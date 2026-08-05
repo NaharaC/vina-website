@@ -1,0 +1,36 @@
+---
+import { propheticWord, stats } from '../data/content';
+---
+
+<section class="py-12 lg:py-16" aria-labelledby="palabra-titulo">
+  <div class="container-page">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-16">
+      <figure class="max-w-lg">
+        <blockquote
+          id="palabra-titulo"
+          class="text-[1.75rem] leading-[1.28] font-bold tracking-tight text-ink text-balance sm:text-[2.125rem]"
+        >
+          {propheticWord.quote}
+        </blockquote>
+        <figcaption class="mt-4 font-serif text-lg italic text-muted sm:text-xl">
+          {propheticWord.source}
+        </figcaption>
+      </figure>
+
+      <dl class="grid gap-x-10 gap-y-10 sm:grid-cols-2 sm:gap-x-14">
+        {
+          stats.map((stat) => (
+            <div>
+              <dt class="text-[1.75rem] font-bold tracking-tight text-ink sm:text-[2rem]">
+                {stat.value}
+              </dt>
+              <dd class="mt-1.5 font-serif text-lg leading-snug italic text-ink/85 sm:text-xl">
+                {stat.label}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+</section>

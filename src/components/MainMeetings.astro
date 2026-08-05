@@ -1,0 +1,56 @@
+---
+import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import SectionHeading from './SectionHeading.astro';
+import { meetings } from '../data/content';
+---
+
+<section id="reuniones" class="bg-mist-cool py-12 lg:py-16" aria-labelledby="reuniones-titulo">
+  <div class="container-page">
+    <SectionHeading
+      id="reuniones-titulo"
+      title="Reuniones Principales"
+      subtitle="Cada semana nos reunimos a mover el corazón de Dios"
+    />
+
+    <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
+      {
+        meetings.map((meeting) => (
+          <li class="flex flex-col rounded-card bg-carbon p-2 shadow-lg shadow-black/5">
+            <Image
+              src={meeting.image}
+              alt={meeting.alt}
+              widths={[400, 640, 800]}
+              sizes="(min-width: 64rem) 380px, (min-width: 40rem) 45vw, 90vw"
+              class="aspect-[3/2] w-full rounded-media object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+
+            <div class="flex flex-1 flex-col px-4 pt-5 pb-2 sm:px-5">
+              <h3 class="heading-md text-white">{meeting.title}</h3>
+              {meeting.subtitle && <p class="mt-1 text-sm text-white/70">{meeting.subtitle}</p>}
+
+              <div class="mt-auto pt-6">
+                <ul class="flex flex-col gap-2.5 text-[0.8125rem] text-white/90">
+                  {meeting.meta.map((item) => (
+                    <li class="flex items-center gap-2.5">
+                      <Icon
+                        name={item.icon}
+                        width={17}
+                        height={17}
+                        class="shrink-0 text-white"
+                        aria-hidden="true"
+                      />
+                      <span>{item.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

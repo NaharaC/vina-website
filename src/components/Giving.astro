@@ -1,0 +1,39 @@
+---
+import ArrowButton from './ArrowButton.astro';
+import { giving } from '../data/content';
+---
+
+{/*
+  Sección a pantalla completa. `svh` en vez de `vh` porque en el móvil la barra
+  del navegador aparece y desaparece: con `vh` la sección cambiaría de alto y
+  daría saltos al hacer scroll.
+*/}
+<section
+  id="dar"
+  class="flex min-h-svh items-center bg-cream py-12 lg:py-16"
+  aria-labelledby="dar-titulo"
+>
+  <div class="container-page">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="font-serif text-lg italic text-muted sm:text-xl">
+        {giving.verse}<br />
+        {giving.reference}
+      </p>
+
+      <h2 id="dar-titulo" class="heading-xl mt-6 text-ink text-balance">{giving.title}</h2>
+
+      {
+        giving.action.href && (
+          <ArrowButton
+            label={giving.action.label}
+            href={giving.action.href}
+            variant="accent"
+            size="lg"
+            external={giving.action.external}
+            class="mt-10"
+          />
+        )
+      }
+    </div>
+  </div>
+</section>

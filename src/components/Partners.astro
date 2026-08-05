@@ -1,0 +1,28 @@
+---
+import { Image } from 'astro:assets';
+import { partners } from '../data/content';
+---
+
+<section class="py-12 lg:py-16" aria-label="Fundaciones y proyectos aliados">
+  <div class="container-page">
+    <ul
+      class="grid grid-cols-2 items-center justify-items-center gap-x-8 gap-y-10 sm:grid-cols-3 lg:flex lg:justify-between lg:gap-10"
+    >
+      {
+        partners.map((partner) => (
+          <li class="flex items-center justify-center">
+            <Image
+              src={partner.logo}
+              alt={partner.name}
+              height={36}
+              densities={[1, 2]}
+              class="h-8 w-auto max-w-[9rem] object-contain opacity-90 sm:h-9"
+              loading="lazy"
+              decoding="async"
+            />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

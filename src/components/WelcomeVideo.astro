@@ -1,0 +1,102 @@
+---
+import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import { welcome } from '../data/content';
+
+const hasVideo = welcome.youtubeId.length > 0;
+
+/**
+ * El iframe no se pone en el HTML: se monta desde JS cuando el bloque entra en
+ * pantalla. Así la home no pide nada a YouTube hasta que hace falta.
+ */
+const embedParams = new URLSearchParams({
+  rel: '0',
+  modestbranding: '1',
+  playsinline: '1',
+  ...(welcome.startSeconds ? { start: String(welcome.startSeconds) } : {}),
+});
+const embedUrl = `https://www.youtube-nocookie.com/embed/${welcome.youtubeId}?${embedParams}`;
+---
+
+<section class="py-12 lg:py-16" aria-labelledby="bienvenido-titulo">
+  <div class="container-page">
+    <div class="text-center">
+      <h2 id="bienvenido-titulo" class="heading-lg text-ink">{welcome.title}</h2>
+      <p class="mt-1.5 text-sm text-muted">{welcome.subtitle}</p>
+    </div>
+
+    <div
+      id="welcome-player"
+      class="relative mt-8 aspect-video overflow-hidden rounded-[1.75rem] bg-carbon shadow-xl shadow-black/10 lg:mt-10 lg:rounded-[2rem]"
+      data-embed={hasVideo ? embedUrl : undefined}
+      data-autoplay={hasVideo && welcome.autoplay ? 'true' : undefined}
+    >
+      <Image
+        src={welcome.poster}
+        alt={welcome.alt}
+        widths={[640, 960, 1280]}
+        sizes="(min-width: 64rem) 1248px, 100vw"
+        class="size-full object-cover"
+        loading="lazy"
+        decoding="async"
+      />
+
+      {
+        hasVideo ? (
+          <button
+            type="button"
+            id="welcome-play"
+            class="group absolute inset-0 grid place-items-center bg-black/10 transition-colors hover:bg-black/25"
+          >
+            <span class="sr-only">Reproducir el video de bienvenida</span>
+            <span class="grid size-16 place-items-center rounded-full bg-white/95 text-carbon shadow-lg transition-transform duration-200 group-hover:scale-105 lg:size-20">
+              <Icon name="lucide:play" width={26} height={26} class="ml-0.5 fill-current" aria-hidden="true" />
+            </span>
+          </button>
+        ) : (
+          <div class="pointer-events-none absolute inset-0 grid place-items-center" aria-hidden="true">
+            <span class="grid size-16 place-items-center rounded-full bg-white/90 text-carbon shadow-lg lg:size-20">
+              <Icon name="lucide:play" width={26} height={26} class="ml-0.5 fill-current" />
+            </span>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  const player = document.getElementById('welcome-player');
+  const play = document.getElementById('welcome-play');
+  const embed = player?.dataset.embed;
+
+  if (player && embed) {
+    const mount = (muted: boolean) => {
+      const frame = document.createElement('iframe');
+      frame.src = `${embed}&autoplay=1${muted ? '&mute=1' : ''}`;
+      frame.title = 'Video de bienvenida';
+      frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture';
+      frame.allowFullscreen = true;
+      frame.className = 'absolute inset-0 size-full';
+      player.replaceChildren(frame);
+    };
+
+    // Pulsar el play carga el video con sonido.
+    play?.addEventListener('click', () => mount(false));
+
+    // Autoplay silenciado, salvo que se haya pedido reducir el movimiento.
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (player.dataset.autoplay === 'true' && !reducedMotion) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          observer.disconnect();
+          mount(true);
+        },
+        { rootMargin: '200px' }
+      );
+      observer.observe(player);
+    }
+  }
+</script>

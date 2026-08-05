@@ -1,0 +1,45 @@
+---
+interface Props {
+  title: string;
+  /** id del <h2>, para enlazarlo con aria-labelledby de la sección */
+  id?: string;
+  subtitle?: string;
+  align?: 'left' | 'center';
+  /** el mockup usa Newsreader italic en algunos subtítulos */
+  subtitleStyle?: 'sans' | 'serif';
+  size?: 'lg' | 'xl';
+  /** `p` para copias que solo reservan espacio: no duplica el <h2> del documento */
+  as?: 'h2' | 'p';
+  class?: string;
+}
+
+const {
+  title,
+  id,
+  subtitle,
+  align = 'left',
+  subtitleStyle = 'sans',
+  size = 'lg',
+  as: Tag = 'h2',
+  class: className = '',
+} = Astro.props;
+---
+
+<div class:list={[align === 'center' ? 'text-center' : 'text-left', className]}>
+  <Tag id={id} class:list={[size === 'xl' ? 'heading-xl' : 'heading-lg', 'text-ink']}>{title}</Tag>
+  {
+    subtitle && (
+      <p
+        class:list={[
+          'mt-2 max-w-2xl',
+          align === 'center' && 'mx-auto',
+          subtitleStyle === 'serif'
+            ? 'font-serif text-lg italic text-muted sm:text-xl'
+            : 'text-sm text-muted sm:text-[0.9375rem]',
+        ]}
+      >
+        {subtitle}
+      </p>
+    )
+  }
+</div>

@@ -1,0 +1,124 @@
+@import 'tailwindcss';
+@import './fonts.css';
+
+/* ---------------------------------------------------------------------------
+   Design tokens — extraídos del mockup vina-website.pdf
+   --------------------------------------------------------------------------- */
+@theme {
+  /* Tipografías. Cambiar aquí cambia toda la web. */
+  --font-sans: 'Albert Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
+
+  /* Color */
+  --color-accent: #fe6038; /* naranja de marca */
+  --color-accent-strong: #ea4c22; /* hover */
+  --color-ink: #3d4e56; /* slate de títulos y texto */
+  --color-muted: #697175; /* texto secundario */
+  --color-carbon: #232323; /* superficies oscuras: cards, footer, panel */
+  --color-carbon-soft: #333333; /* filas dentro del panel oscuro */
+  --color-cream: #fef9f0; /* sección Dar */
+  --color-mist: #f1f0ec; /* secciones claras */
+  --color-mist-cool: #f3f3f3; /* sección Reuniones */
+
+  /* Acentos de los iconos del hero */
+  --color-icon-teal: #6bafb5;
+  --color-icon-maroon: #5c1a10;
+  --color-icon-amber: #f5a20a;
+
+  /* Radios */
+  --radius-panel: 2.25rem; /* panel del hero */
+  --radius-card: 2rem; /* cards oscuras */
+  --radius-media: 1.5rem; /* imágenes dentro de cards */
+  --radius-row: 1.25rem; /* filas del panel */
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+    font-synthesis-weight: none;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  /*
+    Los enlaces del menú apuntan a secciones de la propia página. La barra
+    flotante ocupa los primeros ~88px, así que sin este margen el destino
+    aterriza debajo de ella y el título queda tapado o pegado al borde.
+  */
+  section[id] {
+    scroll-margin-top: 7rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Ancho útil equivalente al del mockup */
+@utility container-page {
+  width: 100%;
+  max-width: 84rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (width >= 40rem) {
+  .container-page {
+    padding-inline: 2rem;
+  }
+}
+
+@media (width >= 64rem) {
+  .container-page {
+    padding-inline: 3rem;
+  }
+}
+
+/* Escala tipográfica de títulos — bold con tracking cerrado, como el mockup */
+@utility heading-xl {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-size: clamp(2rem, 1.35rem + 2.6vw, 3rem);
+}
+
+@utility heading-lg {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-size: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem);
+}
+
+@utility heading-md {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+}
+
+/* Carruseles horizontales sin barra de scroll visible */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

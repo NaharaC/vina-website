@@ -1,0 +1,49 @@
+---
+import { Image } from 'astro:assets';
+import ArrowButton from './ArrowButton.astro';
+import { contact } from '../data/content';
+---
+
+{/* Ídem: a pantalla completa y con `svh` para que no salte en el móvil. */}
+<section
+  id="contacto"
+  class="relative isolate flex min-h-svh items-center overflow-hidden"
+  aria-labelledby="contacto-titulo"
+>
+  <Image
+    src={contact.image}
+    alt={contact.alt}
+    widths={[768, 1280, 1920]}
+    sizes="100vw"
+    class="absolute inset-0 -z-10 size-full object-cover"
+    loading="lazy"
+    decoding="async"
+  />
+  <div class="absolute inset-0 -z-10 bg-[#232833]/70" aria-hidden="true"></div>
+
+  <div class="container-page py-12 lg:py-16">
+    <div class="mx-auto w-full max-w-xl text-center">
+      <h2
+        id="contacto-titulo"
+        class="font-serif text-[2.5rem] leading-none font-bold italic text-white sm:text-6xl"
+      >
+        {contact.title}
+      </h2>
+      <p class="mx-auto mt-4 max-w-sm font-serif text-xl italic text-white/90 sm:text-2xl">
+        {contact.description}
+      </p>
+
+      {
+        contact.action.href && (
+          <ArrowButton
+            label={contact.action.label}
+            href={contact.action.href}
+            variant="accent"
+            external={contact.action.external}
+            class="mt-7"
+          />
+        )
+      }
+    </div>
+  </div>
+</section>

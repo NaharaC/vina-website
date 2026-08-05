@@ -1,0 +1,28 @@
+---
+import { Image } from 'astro:assets';
+import { logo } from '../data/content';
+
+interface Props {
+  class?: string;
+  /** ancho en px del logo */
+  width?: number;
+}
+
+const { class: className = '', width = 132 } = Astro.props;
+---
+
+<a
+  href="/"
+  class:list={['inline-flex shrink-0 items-center', className]}
+  aria-label="Iglesia Viña Puerto Montt — ir al inicio"
+>
+  <Image
+    src={logo.src}
+    alt={logo.alt}
+    width={width}
+    densities={[1, 2]}
+    class="h-auto"
+    loading="eager"
+    decoding="async"
+  />
+</a>
