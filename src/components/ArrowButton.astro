@@ -4,8 +4,12 @@ import { Icon } from 'astro-icon/components';
 interface Props {
   label: string;
   href: string;
-  /** light = pastilla blanca con círculo naranja · accent = pastilla naranja con círculo blanco */
-  variant?: 'light' | 'accent';
+  /**
+   * pill  = píldora gris sobre fondo claro (la de por defecto)
+   * light = píldora blanca, para fondos oscuros o sobre foto
+   * dark  = píldora negra sobre fondo claro
+   */
+  variant?: 'pill' | 'light' | 'dark';
   size?: 'sm' | 'md' | 'lg';
   /** abre en una pestaña nueva; para WhatsApp, donación, radio, etc. */
   external?: boolean;
@@ -15,29 +19,24 @@ interface Props {
 const {
   label,
   href,
-  variant = 'accent',
-  size = 'sm',
+  variant = 'pill',
+  size = 'md',
   external = false,
   class: className = '',
 } = Astro.props;
 
 const shell = {
-  light: 'bg-white text-carbon hover:bg-mist',
-  accent: 'bg-accent text-white hover:bg-accent-strong',
-}[variant];
-
-const circle = {
-  light: 'bg-accent text-white',
-  accent: 'bg-white text-accent',
+  pill: 'bg-pill text-ink hover:bg-pill-strong',
+  light: 'bg-paper text-ink hover:bg-pill',
+  dark: 'bg-ink text-paper hover:bg-carbon-soft',
 }[variant];
 
 const sizing = {
-  sm: 'gap-2.5 pl-4 pr-1.5 py-1.5 text-[0.8125rem]',
-  md: 'gap-3 pl-5 pr-2 py-2 text-[0.9375rem]',
-  lg: 'gap-4 pl-7 pr-2.5 py-2.5 text-lg sm:pl-8 sm:py-3 sm:text-xl',
+  sm: 'gap-2.5 px-4 py-2 text-[0.8125rem]',
+  md: 'gap-3 px-5 py-3 text-[0.9375rem]',
+  lg: 'gap-4 px-7 py-4 text-lg sm:px-8 sm:text-xl',
 }[size];
 
-const circleSize = { sm: 'size-7', md: 'size-8', lg: 'size-11 sm:size-12' }[size];
 const iconSize = { sm: 14, md: 16, lg: 20 }[size];
 ---
 
@@ -46,7 +45,7 @@ const iconSize = { sm: 14, md: 16, lg: 20 }[size];
   target={external ? '_blank' : undefined}
   rel={external ? 'noopener noreferrer' : undefined}
   class:list={[
-    'group inline-flex shrink-0 items-center rounded-full font-semibold transition-colors',
+    'group inline-flex shrink-0 items-center rounded-full font-medium transition-colors',
     shell,
     sizing,
     className,
@@ -54,13 +53,11 @@ const iconSize = { sm: 14, md: 16, lg: 20 }[size];
 >
   <span class="whitespace-nowrap">{label}</span>
   {external && <span class="sr-only">(se abre en una ventana nueva)</span>}
-  <span
-    class:list={[
-      'grid shrink-0 place-items-center rounded-full transition-transform duration-200 group-hover:translate-x-0.5',
-      circle,
-      circleSize,
-    ]}
-  >
-    <Icon name="lucide:arrow-right" width={iconSize} height={iconSize} aria-hidden="true" />
-  </span>
+  <Icon
+    name={external ? 'lucide:arrow-up-right' : 'lucide:arrow-right'}
+    width={iconSize}
+    height={iconSize}
+    class="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+    aria-hidden="true"
+  />
 </a>

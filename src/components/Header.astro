@@ -9,24 +9,17 @@ const contactHref = whatsappHref() || '#contacto';
 const contactIsExternal = contactHref.startsWith('http');
 ---
 
-<header id="site-header" class="fixed inset-x-0 top-4 z-50 lg:top-6" data-hidden="false">
+<header id="site-header" class="fixed inset-x-0 top-0 z-50" data-hidden="false" data-solid="false">
   <div class="container-page">
-    <nav
-      id="site-nav"
-      aria-label="Navegación principal"
-      class="rounded-[1.75rem] bg-carbon/70 shadow-lg shadow-black/10 backdrop-blur-md transition-colors lg:rounded-full"
-    >
-      <div class="flex items-center gap-4 px-5 py-3 lg:px-7 lg:py-3">
-        <Logo class="text-white" width={116} />
+    <nav id="site-nav" aria-label="Navegación principal">
+      <div class="flex items-center gap-4 py-5 lg:py-6">
+        <Logo width={124} />
 
-        <ul class="ml-auto hidden items-center gap-8 text-[0.9375rem] text-white/95 lg:flex xl:gap-10">
+        <ul class="ml-auto hidden items-center gap-9 text-[0.9375rem] lg:flex xl:gap-11">
           {
             nav.map((link) => (
               <li>
-                <a
-                  href={link.href}
-                  class="inline-block py-1 transition-opacity hover:opacity-70"
-                >
+                <a href={link.href} class="inline-block py-1 transition-opacity hover:opacity-60">
                   {link.label}
                 </a>
               </li>
@@ -40,43 +33,44 @@ const contactIsExternal = contactHref.startsWith('http');
           `.inline-flex` después de `.hidden` y ambas tienen la misma
           especificidad.
         */}
-        <div class="hidden lg:ml-4 lg:block">
+        <div class="hidden lg:ml-6 lg:block">
           <ArrowButton
             label="Contactar"
             href={contactHref}
             external={contactIsExternal}
             variant="light"
-            size="md"
+            size="sm"
+            class="nav-cta"
           />
         </div>
 
         <button
           type="button"
           id="nav-toggle"
-          class="ml-auto grid size-10 shrink-0 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 lg:hidden"
+          class="ml-auto grid size-10 shrink-0 place-items-center rounded-full transition-colors lg:hidden"
           aria-expanded="false"
           aria-controls="nav-panel"
         >
           <span class="sr-only">Abrir menú</span>
-          <Icon name="lucide:menu" width={20} height={20} class="nav-icon-open" aria-hidden="true" />
+          <Icon name="lucide:menu" width={22} height={22} class="nav-icon-open" aria-hidden="true" />
           <Icon
             name="lucide:x"
-            width={20}
-            height={20}
+            width={22}
+            height={22}
             class="nav-icon-close hidden"
             aria-hidden="true"
           />
         </button>
       </div>
 
-      <div id="nav-panel" class="hidden px-5 pb-5 lg:hidden">
-        <ul class="flex flex-col gap-1 border-t border-white/15 pt-4 text-white">
+      <div id="nav-panel" class="hidden pb-6 lg:hidden">
+        <ul class="flex flex-col gap-1 border-t border-current/15 pt-5">
           {
             nav.map((link) => (
               <li>
                 <a
                   href={link.href}
-                  class="block rounded-xl px-3 py-2.5 text-lg font-medium transition-colors hover:bg-white/10"
+                  class="block py-2.5 text-2xl font-bold tracking-tight transition-opacity hover:opacity-60"
                 >
                   {link.label}
                 </a>
@@ -88,9 +82,9 @@ const contactIsExternal = contactHref.startsWith('http');
           label="Contactar"
           href={contactHref}
           external={contactIsExternal}
-          variant="light"
+          variant="dark"
           size="md"
-          class="mt-4 w-full justify-between"
+          class="mt-6 w-full justify-between"
         />
       </div>
     </nav>
@@ -99,12 +93,49 @@ const contactIsExternal = contactHref.startsWith('http');
 
 <style>
   #site-header {
-    transition: transform 300ms ease;
+    transition:
+      transform 300ms ease,
+      background-color 250ms ease,
+      color 250ms ease;
+    color: var(--color-paper);
   }
 
   /* Sube lo suficiente para esconder también la sombra y el margen superior. */
   #site-header[data-hidden='true'] {
-    transform: translateY(calc(-100% - 2rem));
+    transform: translateY(-100%);
+  }
+
+  /*
+    Sobre el hero la barra va transparente con texto blanco. Al pasar de largo
+    el hero se vuelve sólida, porque el resto de la página es blanca y el texto
+    blanco no se leería.
+  */
+  #site-header[data-solid='true'],
+  #site-header[data-open='true'] {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    border-bottom: 1px solid var(--color-hairline);
+  }
+
+  /* El logotipo es blanco sobre transparente: al invertirlo queda negro. */
+  #site-header[data-solid='true'] :global(img),
+  #site-header[data-open='true'] :global(img) {
+    filter: invert(1);
+  }
+
+  /* Sobre la foto el botón va blanco; sobre la barra blanca se invierte, o
+     desaparecería sobre su propio fondo. */
+  #site-header[data-solid='true'] :global(.nav-cta) {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  #site-header[data-solid='true'] :global(.nav-cta:hover) {
+    background-color: var(--color-carbon-soft);
+  }
+
+  #nav-toggle:hover {
+    background-color: color-mix(in srgb, currentColor 12%, transparent);
   }
 </style>
 
@@ -112,11 +143,10 @@ const contactIsExternal = contactHref.startsWith('http');
   const header = document.getElementById('site-header');
   const toggle = document.getElementById('nav-toggle');
   const panel = document.getElementById('nav-panel');
-  const nav = document.getElementById('site-nav');
 
   const menuIsOpen = () => panel?.classList.contains('hidden') === false;
 
-  if (toggle && panel && nav) {
+  if (header && toggle && panel) {
     const open = toggle.querySelector('.nav-icon-open');
     const close = toggle.querySelector('.nav-icon-close');
 
@@ -126,16 +156,13 @@ const contactIsExternal = contactHref.startsWith('http');
       close?.classList.toggle('hidden', !isOpen);
       toggle.setAttribute('aria-expanded', String(isOpen));
       toggle.querySelector('.sr-only')!.textContent = isOpen ? 'Cerrar menú' : 'Abrir menú';
-      // con el panel abierto el fondo translúcido deja ver la foto detrás
-      nav.classList.toggle('bg-carbon/70', !isOpen);
-      nav.classList.toggle('bg-carbon', isOpen);
+      // con el panel desplegado la barra necesita fondo, esté donde esté
+      header.dataset.open = String(isOpen);
       // abrir el menú nunca deja la barra escondida
-      if (isOpen && header) header.dataset.hidden = 'false';
+      if (isOpen) header.dataset.hidden = 'false';
     };
 
-    toggle.addEventListener('click', () => {
-      setOpen(panel.classList.contains('hidden'));
-    });
+    toggle.addEventListener('click', () => setOpen(panel.classList.contains('hidden')));
 
     // cerrar al navegar a una sección
     panel.addEventListener('click', (event) => {
@@ -143,7 +170,7 @@ const contactIsExternal = contactHref.startsWith('http');
     });
 
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && !panel.classList.contains('hidden')) setOpen(false);
+      if (event.key === 'Escape' && menuIsOpen()) setOpen(false);
     });
 
     // volver al estado de escritorio si se agranda la ventana
@@ -152,7 +179,7 @@ const contactIsExternal = contactHref.startsWith('http');
     });
   }
 
-  /* --- Ocultar la barra al bajar, mostrarla al subir ----------------------- */
+  /* --- Ocultar al bajar, mostrar al subir · fondo sólido fuera del hero ---- */
 
   if (header) {
     /** Por debajo de esta altura la barra siempre se ve. */
@@ -160,14 +187,19 @@ const contactIsExternal = contactHref.startsWith('http');
     /** Movimiento mínimo para reaccionar: evita parpadeos y el rebote del móvil. */
     const THRESHOLD = 8;
 
+    const hero = document.querySelector('main > section');
+    const heroEnd = () => (hero ? hero.getBoundingClientRect().height - header.offsetHeight : 0);
+
     let lastY = window.scrollY;
     let pending = false;
 
     const update = () => {
       pending = false;
       const y = Math.max(0, window.scrollY);
-      const movement = y - lastY;
 
+      header.dataset.solid = String(y > heroEnd());
+
+      const movement = y - lastY;
       if (Math.abs(movement) < THRESHOLD) return;
 
       const goingDown = movement > 0;
@@ -184,5 +216,8 @@ const contactIsExternal = contactHref.startsWith('http');
       },
       { passive: true }
     );
+
+    window.addEventListener('resize', update);
+    update();
   }
 </script>

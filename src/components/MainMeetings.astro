@@ -5,49 +5,52 @@ import SectionHeading from './SectionHeading.astro';
 import { meetings } from '../data/content';
 ---
 
-<section id="reuniones" class="bg-mist-cool py-12 lg:py-16" aria-labelledby="reuniones-titulo">
+<section id="reuniones" class="hairline py-16 lg:py-24" aria-labelledby="reuniones-titulo">
   <div class="container-page">
-    <SectionHeading
-      id="reuniones-titulo"
-      title="Reuniones Principales"
-      subtitle="Cada semana nos reunimos a mover el corazón de Dios"
-    />
+    {/* Disposición editorial: enunciado a la izquierda, apoyo a la derecha */}
+    <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+      <SectionHeading
+        id="reuniones-titulo"
+        eyebrow="Cada semana"
+        title="Reuniones Principales"
+        size="xl"
+      />
+      <p class="max-w-sm text-[0.9375rem] leading-relaxed text-muted lg:pb-2">
+        Cada semana nos reunimos a mover el corazón de Dios.
+      </p>
+    </div>
 
-    <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
+    <ul class="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
       {
         meetings.map((meeting) => (
-          <li class="flex flex-col rounded-card bg-carbon p-2 shadow-lg shadow-black/5">
+          <li class="flex flex-col">
             <Image
               src={meeting.image}
               alt={meeting.alt}
-              widths={[400, 640, 800]}
-              sizes="(min-width: 64rem) 380px, (min-width: 40rem) 45vw, 90vw"
-              class="aspect-[3/2] w-full rounded-media object-cover"
+              widths={[440, 720, 900]}
+              sizes="(min-width: 64rem) 420px, (min-width: 40rem) 45vw, 90vw"
+              class="aspect-[4/5] w-full rounded-media object-cover"
               loading="lazy"
               decoding="async"
             />
 
-            <div class="flex flex-1 flex-col px-4 pt-5 pb-2 sm:px-5">
-              <h3 class="heading-md text-white">{meeting.title}</h3>
-              {meeting.subtitle && <p class="mt-1 text-sm text-white/70">{meeting.subtitle}</p>}
+            <h3 class="heading-md mt-7 text-ink">{meeting.title}</h3>
+            {meeting.subtitle && <p class="mt-2 text-sm text-muted">{meeting.subtitle}</p>}
 
-              <div class="mt-auto pt-6">
-                <ul class="flex flex-col gap-2.5 text-[0.8125rem] text-white/90">
-                  {meeting.meta.map((item) => (
-                    <li class="flex items-center gap-2.5">
-                      <Icon
-                        name={item.icon}
-                        width={17}
-                        height={17}
-                        class="shrink-0 text-white"
-                        aria-hidden="true"
-                      />
-                      <span>{item.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            <ul class="mt-6 flex flex-col gap-3 border-t border-hairline pt-6">
+              {meeting.meta.map((item) => (
+                <li class="flex items-center gap-3">
+                  <Icon
+                    name={item.icon}
+                    width={16}
+                    height={16}
+                    class="shrink-0 text-muted"
+                    aria-hidden="true"
+                  />
+                  <span class="label-mono text-ink">{item.label}</span>
+                </li>
+              ))}
+            </ul>
           </li>
         ))
       }

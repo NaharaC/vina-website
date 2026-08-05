@@ -1,13 +1,13 @@
 ---
 import { Image } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
-import { contact } from '../data/content';
+import { contact, organization } from '../data/content';
 ---
 
 {/* Ídem: a pantalla completa y con `svh` para que no salte en el móvil. */}
 <section
   id="contacto"
-  class="relative isolate flex min-h-svh items-center overflow-hidden"
+  class="relative isolate flex min-h-svh items-end overflow-hidden"
   aria-labelledby="contacto-titulo"
 >
   <Image
@@ -19,17 +19,23 @@ import { contact } from '../data/content';
     loading="lazy"
     decoding="async"
   />
-  <div class="absolute inset-0 -z-10 bg-[#232833]/70" aria-hidden="true"></div>
+  <div
+    class="absolute inset-0 -z-10 bg-gradient-to-b from-black/40 via-black/25 to-black/80"
+    aria-hidden="true"
+  >
+  </div>
 
-  <div class="container-page py-12 lg:py-16">
-    <div class="mx-auto w-full max-w-xl text-center">
-      <h2
-        id="contacto-titulo"
-        class="font-serif text-[2.5rem] leading-none font-bold italic text-white sm:text-6xl"
-      >
-        {contact.title}
-      </h2>
-      <p class="mx-auto mt-4 max-w-sm font-serif text-xl italic text-white/90 sm:text-2xl">
+  <div class="container-page py-16 lg:py-24">
+    <p class="label-mono text-white/60">
+      {[organization.streetAddress, organization.addressLocality].filter(Boolean).join(' · ')}
+    </p>
+
+    <h2 id="contacto-titulo" class="heading-hero mt-8 max-w-[9ch] text-white">
+      {contact.title}
+    </h2>
+
+    <div class="mt-12 flex flex-col items-start gap-8 border-t border-white/20 pt-10 lg:flex-row lg:items-end lg:justify-between">
+      <p class="max-w-sm text-lg leading-relaxed text-white/80">
         {contact.description}
       </p>
 
@@ -38,9 +44,9 @@ import { contact } from '../data/content';
           <ArrowButton
             label={contact.action.label}
             href={contact.action.href}
-            variant="accent"
+            variant="light"
+            size="lg"
             external={contact.action.external}
-            class="mt-7"
           />
         )
       }

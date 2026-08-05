@@ -6,11 +6,16 @@ import { testimonials, testimonialsIntro } from '../data/content';
 const hasCarousel = testimonials.length > 1;
 ---
 
-<section class="bg-mist py-12 lg:py-16" aria-labelledby="testimonios-titulo">
+<section class="hairline py-16 lg:py-24" aria-labelledby="testimonios-titulo">
   <div class="container-page">
-    <div class="text-center">
-      <h2 id="testimonios-titulo" class="heading-lg text-ink">{testimonialsIntro.title}</h2>
-      <p class="mx-auto mt-2 max-w-2xl font-serif text-lg italic text-muted sm:text-xl">
+    <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+      <div>
+        <p class="label-mono text-muted">Testimonios</p>
+        <h2 id="testimonios-titulo" class="heading-xl mt-6 max-w-[18ch] text-ink text-balance">
+          {testimonialsIntro.title}
+        </h2>
+      </div>
+      <p class="max-w-sm font-serif text-lg italic text-muted lg:pb-2">
         {testimonialsIntro.verse}<br />
         {testimonialsIntro.reference}
       </p>
@@ -22,14 +27,14 @@ const hasCarousel = testimonials.length > 1;
       aria-label={hasCarousel ? 'Testimonios' : undefined}
       tabindex={hasCarousel ? 0 : undefined}
       class:list={[
-        'no-scrollbar mt-9 flex gap-6 overflow-x-auto scroll-smooth lg:mt-11',
+        'no-scrollbar mt-12 flex gap-6 overflow-x-auto scroll-smooth lg:mt-16',
         hasCarousel && 'snap-x snap-mandatory',
       ]}
     >
       {
         testimonials.map((testimonial) => (
           <figure
-            class="relative w-full shrink-0 snap-center overflow-hidden rounded-[1.75rem] bg-carbon lg:rounded-[2rem]"
+            class="relative w-full shrink-0 snap-center overflow-hidden rounded-media bg-carbon"
           >
             <Image
               src={testimonial.poster}
@@ -41,7 +46,7 @@ const hasCarousel = testimonials.length > 1;
               decoding="async"
             />
             <div
-              class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"
+              class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-transparent"
               aria-hidden="true"
             />
 
@@ -57,14 +62,10 @@ const hasCarousel = testimonials.length > 1;
                   loading="lazy"
                   decoding="async"
                 />
-                <figcaption class="text-sm leading-tight font-semibold text-white sm:text-[0.9375rem]">
-                  {testimonial.name}
-                </figcaption>
+                <figcaption class="label-mono text-paper/70">{testimonial.name}</figcaption>
               </div>
 
-              <blockquote
-                class="font-serif text-lg leading-snug italic text-white text-balance sm:text-2xl lg:text-[1.75rem]"
-              >
+              <blockquote class="heading-lg max-w-[20ch] text-paper text-balance">
                 {testimonial.quote}
               </blockquote>
             </div>
@@ -79,7 +80,7 @@ const hasCarousel = testimonials.length > 1;
           <button
             type="button"
             data-carousel-prev
-            class="grid size-11 place-items-center rounded-xl bg-white text-carbon shadow-sm transition-colors hover:bg-white/70 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-white"
+            class="grid size-12 place-items-center rounded-full bg-pill text-ink transition-colors hover:bg-pill-strong disabled:cursor-default disabled:opacity-40 disabled:hover:bg-pill"
           >
             <span class="sr-only">Testimonio anterior</span>
             <Icon name="lucide:arrow-left" width={18} height={18} aria-hidden="true" />
@@ -87,7 +88,7 @@ const hasCarousel = testimonials.length > 1;
           <button
             type="button"
             data-carousel-next
-            class="grid size-11 place-items-center rounded-xl bg-white text-carbon shadow-sm transition-colors hover:bg-white/70 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-white"
+            class="grid size-12 place-items-center rounded-full bg-pill text-ink transition-colors hover:bg-pill-strong disabled:cursor-default disabled:opacity-40 disabled:hover:bg-pill"
           >
             <span class="sr-only">Testimonio siguiente</span>
             <Icon name="lucide:arrow-right" width={18} height={18} aria-hidden="true" />

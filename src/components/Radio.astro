@@ -4,32 +4,33 @@ import ArrowButton from './ArrowButton.astro';
 import { radio } from '../data/content';
 ---
 
-{/* A pantalla completa, con el contenido centrado. `svh` y no `vh`: en el móvil
-    la barra del navegador entra y sale, y con `vh` la sección daría saltos. */}
+{/* Sección en negro, a pantalla completa. `svh` y no `vh`: en el móvil la barra
+    del navegador entra y sale, y con `vh` la sección daría saltos. */}
 <section
   id="radio"
-  class="flex min-h-svh items-center py-12 lg:py-16"
+  class="flex min-h-svh items-center bg-carbon py-16 text-paper lg:py-24"
   aria-labelledby="radio-titulo"
 >
   <div class="container-page">
-    <div class="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
+    <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
       <Image
         src={radio.image}
         alt={radio.alt}
         widths={[480, 720, 1080]}
-        sizes="(min-width: 64rem) 580px, 90vw"
-        class="aspect-[16/10] w-full rounded-[1.5rem] object-cover"
+        sizes="(min-width: 64rem) 620px, 90vw"
+        class="aspect-[4/3] w-full rounded-media object-cover"
         loading="lazy"
         decoding="async"
       />
 
       <div>
-        <h2 id="radio-titulo" class="heading-lg text-ink">{radio.title}</h2>
-        <p class="mt-3 max-w-md font-serif text-xl leading-snug italic text-ink/85 sm:text-2xl">
+        <p class="label-mono text-paper/50">Radio y predicaciones</p>
+        <h2 id="radio-titulo" class="heading-xl mt-6 max-w-[11ch] text-paper">{radio.title}</h2>
+        <p class="mt-7 max-w-md text-lg leading-relaxed text-paper/70">
           {radio.description}
         </p>
 
-        <div class="mt-7 flex flex-wrap gap-3">
+        <div class="mt-10 flex flex-wrap gap-3">
           {
             radio.actions.map(
               (action) =>
@@ -37,7 +38,7 @@ import { radio } from '../data/content';
                   <ArrowButton
                     label={action.label}
                     href={action.href}
-                    variant="accent"
+                    variant="light"
                     external={action.external}
                   />
                 )

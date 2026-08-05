@@ -2,34 +2,45 @@
 @import './fonts.css';
 
 /* ---------------------------------------------------------------------------
-   Design tokens — extraídos del mockup vina-website.pdf
+   Design tokens
+
+   Estilo editorial monocromo, en la línea de wolverineworldwide.com: negro
+   sobre blanco, titulares enormes de tracking cerrado, microetiquetas en
+   monoespaciada y filetes finos separando secciones. El color lo pone la
+   fotografía; el naranja de marca queda para detalles puntuales.
    --------------------------------------------------------------------------- */
 @theme {
   /* Tipografías. Cambiar aquí cambia toda la web. */
   --font-sans: 'Albert Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
+  /* Monoespaciada del sistema: solo se usa en etiquetas pequeñas, no compensa
+     descargar otra familia por unas pocas palabras. */
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Color */
-  --color-accent: #fe6038; /* naranja de marca */
-  --color-accent-strong: #ea4c22; /* hover */
-  --color-ink: #3d4e56; /* slate de títulos y texto */
-  --color-muted: #697175; /* texto secundario */
-  --color-carbon: #232323; /* superficies oscuras: cards, footer, panel */
-  --color-carbon-soft: #333333; /* filas dentro del panel oscuro */
-  --color-cream: #fef9f0; /* sección Dar */
-  --color-mist: #f1f0ec; /* secciones claras */
-  --color-mist-cool: #f3f3f3; /* sección Reuniones */
+  /* Color — la base es blanco y negro */
+  --color-ink: #0a0a0a; /* texto y titulares */
+  --color-muted: #6f6f6f; /* texto secundario */
+  --color-paper: #ffffff;
+  --color-carbon: #0a0a0a; /* superficies oscuras */
+  --color-carbon-soft: #1a1a1a; /* bloques dentro de superficie oscura */
+  --color-hairline: #e2e2e2; /* filetes de separación */
+  --color-pill: #ededed; /* fondo de los botones */
+  --color-pill-strong: #dedede; /* hover */
+
+  /* Naranja de marca, reservado para acentos */
+  --color-accent: #fe6038;
+  --color-accent-strong: #ea4c22;
 
   /* Acentos de los iconos del hero */
   --color-icon-teal: #6bafb5;
   --color-icon-maroon: #5c1a10;
   --color-icon-amber: #f5a20a;
 
-  /* Radios */
-  --radius-panel: 2.25rem; /* panel del hero */
-  --radius-card: 2rem; /* cards oscuras */
-  --radius-media: 1.5rem; /* imágenes dentro de cards */
-  --radius-row: 1.25rem; /* filas del panel */
+  /* Radios — muy redondeado en bloques de imagen, plano en el resto */
+  --radius-media: 1.5rem;
+  --radius-card: 1.5rem;
+  --radius-panel: 1.5rem;
+  --radius-row: 0.75rem;
 }
 
 @layer base {
@@ -39,7 +50,7 @@
   }
 
   body {
-    @apply bg-white font-sans text-ink antialiased;
+    @apply bg-paper font-sans text-ink antialiased;
     font-synthesis-weight: none;
   }
 
@@ -71,10 +82,9 @@
   }
 }
 
-/* Ancho útil equivalente al del mockup */
 @utility container-page {
   width: 100%;
-  max-width: 84rem;
+  max-width: 90rem;
   margin-inline: auto;
   padding-inline: 1.25rem;
 }
@@ -91,26 +101,62 @@
   }
 }
 
-/* Escala tipográfica de títulos — bold con tracking cerrado, como el mockup */
+/* ---------------------------------------------------------------------------
+   Escala tipográfica
+
+   Mucho más grande y apretada que antes: en este estilo el titular es el
+   elemento principal de la composición, no una etiqueta sobre el contenido.
+   --------------------------------------------------------------------------- */
+
+/* Solo para el hero: ocupa el ancho de la pantalla */
+@utility heading-hero {
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  font-size: clamp(2.75rem, 0.5rem + 8vw, 8rem);
+}
+
 @utility heading-xl {
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  font-size: clamp(2rem, 1.35rem + 2.6vw, 3rem);
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  font-size: clamp(2.25rem, 1rem + 4.6vw, 4.5rem);
 }
 
 @utility heading-lg {
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  font-size: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-size: clamp(1.875rem, 1.1rem + 3vw, 3.25rem);
 }
 
 @utility heading-md {
   font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.15;
-  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
+}
+
+/* Cifras grandes de la sección de datos */
+@utility display-num {
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.85;
+  font-size: clamp(3rem, 1.5rem + 5vw, 6rem);
+}
+
+/* Microetiqueta: monoespaciada, mayúsculas y muy espaciada */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Filete de separación entre secciones */
+@utility hairline {
+  border-top: 1px solid var(--color-hairline);
 }
 
 /* Carruseles horizontales sin barra de scroll visible */

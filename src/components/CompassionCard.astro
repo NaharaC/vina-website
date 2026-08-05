@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import ArrowButton from './ArrowButton.astro';
+import { Icon } from 'astro-icon/components';
 import type { CompassionCard } from '../data/content';
 
 interface Props {
@@ -10,64 +10,78 @@ interface Props {
 }
 
 const { card, feature = false } = Astro.props;
+
+const Wrapper = card.href ? 'a' : 'div';
 ---
 
 <article class="group">
-  <div
-    class:list={[
-      'relative overflow-hidden rounded-[1.5rem]',
-      // en escritorio la de "Nosotros" va más apaisada: junto al título tiene
-      // que caber entera en pantalla mientras está fija
-      feature ? 'aspect-[5/4] lg:aspect-[5/3]' : 'aspect-[16/9]',
-    ]}
+  <Wrapper
+    href={card.href || undefined}
+    target={card.href && card.external ? '_blank' : undefined}
+    rel={card.href && card.external ? 'noopener noreferrer' : undefined}
+    class="block"
   >
-    <Image
-      src={card.image}
-      alt={card.alt}
-      widths={[480, 720, 1080]}
-      sizes="(min-width: 64rem) 620px, 90vw"
-      class="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-      loading="lazy"
-      decoding="async"
-    />
+    <div
+      class:list={[
+        'relative overflow-hidden rounded-media',
+        // en escritorio la de "Nosotros" va más apaisada: junto al título tiene
+        // que caber entera en pantalla mientras está fija
+        feature ? 'aspect-[5/4] lg:aspect-[5/3]' : 'aspect-[16/9]',
+      ]}
+    >
+      <Image
+        src={card.image}
+        alt={card.alt}
+        widths={[480, 720, 1080]}
+        sizes="(min-width: 64rem) 620px, 90vw"
+        class="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+        loading="lazy"
+        decoding="async"
+      />
 
-    {
-      card.overlayLogo && (
-        <div class="pointer-events-none absolute inset-0 grid place-items-center p-8">
-          <Image
-            src={card.overlayLogo}
-            alt={card.overlayLogoAlt ?? ''}
-            widths={[220, 440]}
-            sizes="220px"
-            class:list={[
-              'w-auto object-contain drop-shadow-lg',
-              feature ? 'max-h-20 max-w-[65%]' : 'max-h-16 max-w-[55%]',
-            ]}
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
-      )
-    }
-  </div>
+      {
+        card.overlayLogo && (
+          <div class="pointer-events-none absolute inset-0 grid place-items-center p-8">
+            <Image
+              src={card.overlayLogo}
+              alt={card.overlayLogoAlt ?? ''}
+              widths={[220, 440]}
+              sizes="220px"
+              class:list={[
+                'w-auto object-contain',
+                feature ? 'max-h-20 max-w-[65%]' : 'max-h-16 max-w-[55%]',
+              ]}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        )
+      }
+    </div>
 
-  <div class="mt-5">
-    <h3 class:list={[feature ? 'heading-md' : 'heading-md', 'text-ink']}>{card.title}</h3>
+    <div class="mt-7 flex items-start justify-between gap-8 border-t border-hairline pt-6">
+      <div>
+        <h3 class="heading-md text-ink">{card.title}</h3>
+        {
+          card.description && (
+            <p class="mt-3 max-w-sm text-[0.9375rem] leading-relaxed text-muted">
+              {card.description}
+            </p>
+          )
+        }
+      </div>
 
-    <div class="mt-2 flex items-start justify-between gap-6">
-      <p class="max-w-sm text-sm leading-relaxed text-muted sm:text-[0.9375rem]">
-        {card.description}
-      </p>
       {
         card.href && (
-          <ArrowButton
-            label="Ver más"
-            href={card.href}
-            variant="accent"
-            external={card.external}
+          <Icon
+            name={card.external ? 'lucide:arrow-up-right' : 'lucide:arrow-right'}
+            width={22}
+            height={22}
+            class="mt-1 shrink-0 text-accent transition-transform duration-200 group-hover:translate-x-1"
+            aria-hidden="true"
           />
         )
       }
     </div>
-  </div>
+  </Wrapper>
 </article>

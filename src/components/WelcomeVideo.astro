@@ -18,16 +18,14 @@ const embedParams = new URLSearchParams({
 const embedUrl = `https://www.youtube-nocookie.com/embed/${welcome.youtubeId}?${embedParams}`;
 ---
 
-<section class="py-12 lg:py-16" aria-labelledby="bienvenido-titulo">
+<section class="py-16 lg:py-24" aria-labelledby="bienvenido-titulo">
   <div class="container-page">
-    <div class="text-center">
-      <h2 id="bienvenido-titulo" class="heading-lg text-ink">{welcome.title}</h2>
-      <p class="mt-1.5 text-sm text-muted">{welcome.subtitle}</p>
-    </div>
+    <p class="label-mono text-muted">{welcome.subtitle}</p>
+    <h2 id="bienvenido-titulo" class="heading-xl mt-6 max-w-[12ch] text-ink">{welcome.title}</h2>
 
     <div
       id="welcome-player"
-      class="relative mt-8 aspect-video overflow-hidden rounded-[1.75rem] bg-carbon shadow-xl shadow-black/10 lg:mt-10 lg:rounded-[2rem]"
+      class="relative mt-12 aspect-video overflow-hidden rounded-media bg-carbon lg:mt-16"
       data-embed={hasVideo ? embedUrl : undefined}
       data-autoplay={hasVideo && welcome.autoplay ? 'true' : undefined}
     >
@@ -49,13 +47,13 @@ const embedUrl = `https://www.youtube-nocookie.com/embed/${welcome.youtubeId}?${
             class="group absolute inset-0 grid place-items-center bg-black/10 transition-colors hover:bg-black/25"
           >
             <span class="sr-only">Reproducir el video de bienvenida</span>
-            <span class="grid size-16 place-items-center rounded-full bg-white/95 text-carbon shadow-lg transition-transform duration-200 group-hover:scale-105 lg:size-20">
+            <span class="grid size-20 place-items-center rounded-full bg-paper text-ink transition-transform duration-200 group-hover:scale-105 lg:size-24">
               <Icon name="lucide:play" width={26} height={26} class="ml-0.5 fill-current" aria-hidden="true" />
             </span>
           </button>
         ) : (
           <div class="pointer-events-none absolute inset-0 grid place-items-center" aria-hidden="true">
-            <span class="grid size-16 place-items-center rounded-full bg-white/90 text-carbon shadow-lg lg:size-20">
+            <span class="grid size-20 place-items-center rounded-full bg-paper text-ink lg:size-24">
               <Icon name="lucide:play" width={26} height={26} class="ml-0.5 fill-current" />
             </span>
           </div>

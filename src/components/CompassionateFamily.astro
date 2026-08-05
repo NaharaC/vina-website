@@ -9,7 +9,7 @@ const heading = {
 };
 ---
 
-<section id="compasion" class="py-12 lg:py-16" aria-labelledby="compasion-titulo">
+<section id="compasion" class="hairline py-16 lg:py-24" aria-labelledby="compasion-titulo">
   <div class="container-page">
     {/*
       En escritorio el título y la tarjeta de "Nosotros" forman un solo bloque
@@ -24,10 +24,11 @@ const heading = {
       <div class="lg:sticky lg:top-[6.5rem] lg:self-start">
         <SectionHeading
           id="compasion-titulo"
+          eyebrow="Conócenos"
           title={heading.title}
           subtitle={heading.subtitle}
-          subtitleStyle="serif"
-          class="mb-7"
+          size="xl"
+          class="mb-10"
         />
         <CompassionCard card={compassionFeature} feature />
       </div>
@@ -42,11 +43,12 @@ const heading = {
         */}
         <div class="invisible hidden lg:block" aria-hidden="true">
           <SectionHeading
+            eyebrow="Conócenos"
             title={heading.title}
             subtitle={heading.subtitle}
-            subtitleStyle="serif"
+            size="xl"
             as="p"
-            class="mb-7"
+            class="mb-10"
           />
         </div>
 

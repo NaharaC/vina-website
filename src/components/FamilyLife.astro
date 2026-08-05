@@ -1,63 +1,54 @@
 ---
 import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
+import SectionHeading from './SectionHeading.astro';
 import { familyLife } from '../data/content';
 ---
 
-<section id="vida-en-familia" class="py-12 lg:py-16" aria-labelledby="familia-titulo">
+<section id="vida-en-familia" class="py-16 lg:py-24" aria-labelledby="familia-titulo">
   <div class="container-page">
-    <div class="grid gap-10 lg:grid-cols-4 lg:gap-8">
-      <div class="lg:pr-6">
-        <h2 id="familia-titulo" class="heading-lg text-ink">{familyLife.title}</h2>
-        <p class="mt-3 font-serif text-xl leading-snug italic text-muted sm:text-2xl">
-          {familyLife.description}
-        </p>
-      </div>
-
-      <ul class="grid gap-6 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-3 lg:gap-7">
-        {
-          familyLife.activities.map((activity) => (
-            <li class="flex flex-col">
-              <Image
-                src={activity.image}
-                alt={activity.alt}
-                widths={[360, 560, 760]}
-                sizes="(min-width: 64rem) 320px, (min-width: 40rem) 45vw, 90vw"
-                class="aspect-[4/5] w-full rounded-[1.5rem] object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-
-              <h3 class="heading-md mt-5 text-ink">{activity.title}</h3>
-              <p class="mt-2 text-sm text-muted">{activity.when}</p>
-
-              <p class="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-ink">
-                <Icon
-                  name="lucide:clock"
-                  width={16}
-                  height={16}
-                  class="shrink-0 text-ink"
-                  aria-hidden="true"
-                />
-                {activity.times.map((time, index) => (
-                  <>
-                    {index > 0 && (
-                      <Icon
-                        name="lucide:arrow-right"
-                        width={15}
-                        height={15}
-                        class="shrink-0 text-ink/60"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <span>{time}</span>
-                  </>
-                ))}
-              </p>
-            </li>
-          ))
-        }
-      </ul>
+    <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+      <SectionHeading id="familia-titulo" eyebrow="Cada mes" title={familyLife.title} size="xl" />
+      <p class="max-w-sm text-[0.9375rem] leading-relaxed text-muted lg:pb-2">
+        {familyLife.description}
+      </p>
     </div>
+
+    <ul class="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
+      {
+        familyLife.activities.map((activity) => (
+          <li class="flex flex-col">
+            <Image
+              src={activity.image}
+              alt={activity.alt}
+              widths={[440, 720, 900]}
+              sizes="(min-width: 64rem) 420px, (min-width: 40rem) 45vw, 90vw"
+              class="aspect-[4/5] w-full rounded-media object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+
+            <h3 class="heading-md mt-7 text-ink">{activity.title}</h3>
+            <p class="mt-3 text-[0.9375rem] text-muted">{activity.when}</p>
+
+            <p class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-hairline pt-6">
+              <Icon
+                name="lucide:clock"
+                width={16}
+                height={16}
+                class="shrink-0 text-muted"
+                aria-hidden="true"
+              />
+              {activity.times.map((time, index) => (
+                <>
+                  {index > 0 && <span class="text-hairline">·</span>}
+                  <span class="label-mono text-ink">{time}</span>
+                </>
+              ))}
+            </p>
+          </li>
+        ))
+      }
+    </ul>
   </div>
 </section>

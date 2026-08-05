@@ -2,29 +2,33 @@
 import { propheticWord, stats } from '../data/content';
 ---
 
-<section class="py-12 lg:py-16" aria-labelledby="palabra-titulo">
+<section class="hairline py-16 lg:py-24" aria-labelledby="palabra-titulo">
   <div class="container-page">
-    <div class="grid gap-12 lg:grid-cols-2 lg:gap-16">
-      <figure class="max-w-lg">
-        <blockquote
-          id="palabra-titulo"
-          class="text-[1.75rem] leading-[1.28] font-bold tracking-tight text-ink text-balance sm:text-[2.125rem]"
-        >
+    <div class="grid gap-14 lg:grid-cols-[5fr_7fr] lg:gap-20">
+      <figure>
+        <p class="label-mono text-muted">Palabra profética</p>
+        <blockquote id="palabra-titulo" class="heading-lg mt-6 text-ink text-balance">
           {propheticWord.quote}
         </blockquote>
-        <figcaption class="mt-4 font-serif text-lg italic text-muted sm:text-xl">
+        <figcaption class="mt-6 font-serif text-lg italic text-muted">
           {propheticWord.source}
         </figcaption>
       </figure>
 
-      <dl class="grid gap-x-10 gap-y-10 sm:grid-cols-2 sm:gap-x-14">
+      {/* Las cifras como dato grande: número enorme y descripción debajo */}
+      <dl class="grid gap-x-10 sm:grid-cols-2">
         {
-          stats.map((stat) => (
-            <div>
-              <dt class="text-[1.75rem] font-bold tracking-tight text-ink sm:text-[2rem]">
-                {stat.value}
-              </dt>
-              <dd class="mt-1.5 font-serif text-lg leading-snug italic text-ink/85 sm:text-xl">
+          stats.map((stat, index) => (
+            <div
+              class:list={[
+                'border-hairline py-8 first:pt-0 sm:py-10',
+                index > 0 && 'border-t',
+                index === 1 && 'sm:border-t-0 sm:pt-0',
+                index >= 2 && 'sm:border-t',
+              ]}
+            >
+              <dt class="display-num text-ink">{stat.value}</dt>
+              <dd class="mt-4 max-w-[26ch] text-[0.9375rem] leading-relaxed text-muted">
                 {stat.label}
               </dd>
             </div>

@@ -3,9 +3,11 @@ interface Props {
   title: string;
   /** id del <h2>, para enlazarlo con aria-labelledby de la sección */
   id?: string;
+  /** microetiqueta en monoespaciada sobre el título */
+  eyebrow?: string;
   subtitle?: string;
   align?: 'left' | 'center';
-  /** el mockup usa Newsreader italic en algunos subtítulos */
+  /** los versículos conservan la serif cursiva */
   subtitleStyle?: 'sans' | 'serif';
   size?: 'lg' | 'xl';
   /** `p` para copias que solo reservan espacio: no duplica el <h2> del documento */
@@ -16,6 +18,7 @@ interface Props {
 const {
   title,
   id,
+  eyebrow,
   subtitle,
   align = 'left',
   subtitleStyle = 'sans',
@@ -26,16 +29,21 @@ const {
 ---
 
 <div class:list={[align === 'center' ? 'text-center' : 'text-left', className]}>
-  <Tag id={id} class:list={[size === 'xl' ? 'heading-xl' : 'heading-lg', 'text-ink']}>{title}</Tag>
+  {eyebrow && <p class="label-mono mb-5 text-muted">{eyebrow}</p>}
+
+  <Tag id={id} class:list={[size === 'xl' ? 'heading-xl' : 'heading-lg', 'text-ink text-balance']}>
+    {title}
+  </Tag>
+
   {
     subtitle && (
       <p
         class:list={[
-          'mt-2 max-w-2xl',
+          'mt-5 max-w-md',
           align === 'center' && 'mx-auto',
           subtitleStyle === 'serif'
             ? 'font-serif text-lg italic text-muted sm:text-xl'
-            : 'text-sm text-muted sm:text-[0.9375rem]',
+            : 'text-[0.9375rem] leading-relaxed text-muted',
         ]}
       >
         {subtitle}
