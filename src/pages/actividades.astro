@@ -100,39 +100,33 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
   */}
   <div id="actividades-editorial" style={`--foto: url('${portadaFija.src}')`}>
     {/*
-      Banda de foto. Abre la página y luego reaparece por el hueco del
-      calendario: es la misma imagen, quieta detrás, y lo que se mueve es la
-      página por encima.
+      Portada: el titular va encima de la foto y esta corta en seco contra el
+      negro, sin degradado. La misma imagen reaparece más abajo, por el hueco
+      del calendario: está quieta detrás y lo que se mueve es la página.
     */}
-    <div class="foto-fija relative h-[46vh] min-h-72 w-full" role="presentation">
-      <div class="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-b from-transparent to-[#090909]">
-      </div>
-    </div>
-
-    <section class="pt-12 pb-10 lg:pt-16 lg:pb-14" aria-labelledby="actividades-titulo">
+    <section
+      class="foto-fija foto-portada flex min-h-[78vh] items-end pt-32 pb-14 lg:min-h-[82vh] lg:pb-20"
+      aria-labelledby="actividades-titulo"
+    >
       <div class="container-page">
-        {/*
-          Portada al modo de la referencia: el titular manda, ocupa el ancho y
-          va en peso normal; lo de al lado es letra chica.
-        */}
-        <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-10">
-          <div>
-            <p class="eyebrow">Iglesia en movimiento</p>
-            <h1
-              id="actividades-titulo"
-              class="mt-5 leading-[0.9] font-normal tracking-[-0.04em] text-balance text-ink"
-              style="font-size: clamp(2.5rem, 1rem + 5.4vw, 5.25rem)"
-            >
-              Calendario de Actividades
-            </h1>
-          </div>
+        <p class="eyebrow text-ink/75">Iglesia en movimiento</p>
+        <h1
+          id="actividades-titulo"
+          class="mt-5 leading-[0.9] font-normal tracking-[-0.04em] text-balance text-ink"
+          style="font-size: clamp(2.5rem, 1rem + 5.4vw, 5.25rem)"
+        >
+          Calendario de Actividades
+        </h1>
+        <p class="mt-6 max-w-lg text-lg text-ink/90">
+          Permanece conectado y participa de todo lo que realizamos como iglesia
+        </p>
+      </div>
+    </section>
 
-          <p class="subtitle-lg mt-6 max-w-md lg:mt-0 lg:pb-3">
-            Permanece conectado y participa de todo lo que realizamos como iglesia
-          </p>
-        </div>
-
-        <div class="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4 border-t border-ink/15 pt-7">
+    {/* Banda negra con las acciones, como el bloque de texto de la referencia */}
+    <section class="py-14 lg:py-20">
+      <div class="container-page">
+        <div class="flex flex-wrap items-center gap-x-7 gap-y-4">
           <a
             href={suscribirGoogle}
             target="_blank"
@@ -165,10 +159,12 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       <script type="application/json" id="datos-actividades" set:html={JSON.stringify(actividades)} />
 
       {/*
-        El calendario vive dentro del hueco: la foto asoma por detrás, muy
-        apagada para que la rejilla se siga leyendo.
+        El hueco por el que asoma la foto, y encima el calendario como una
+        tarjeta con su propio fondo: la imagen se ve limpia por el margen y la
+        rejilla no tiene que pelear con ella.
       */}
-      <div class="foto-fija foto-velada overflow-hidden rounded-[12px] border border-ink/12 px-4 py-6 sm:px-7 sm:py-8 lg:px-9 lg:py-10">
+      <div class="foto-fija rounded-[12px] p-3 sm:p-8 lg:p-14">
+      <div class="cal-tarjeta rounded-[10px] border border-ink/10 px-4 py-6 sm:px-7 sm:py-8 lg:px-9 lg:py-10">
 
       <div id="cal-barra" class="hidden flex-wrap items-center justify-between gap-4 pt-0">
         <div class="flex items-center gap-2">
@@ -252,6 +248,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
           aria-live="polite"
         >
         </aside>
+      </div>
       </div>
       </div>
 
@@ -420,12 +417,30 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
   }
 
   /*
-    Con la rejilla encima, la foto tiene que quedarse en textura: con menos
-    velo, los números de los días que caen sobre la bandera naranja dejan de
-    leerse.
+    La portada lleva un oscurecido parejo —no un degradado— para que el
+    titular blanco se lea también donde cruza la bandera naranja. El corte
+    contra el negro sigue siendo a filo.
   */
-  #actividades-editorial .foto-velada {
-    background-image: linear-gradient(rgba(9, 9, 9, 0.94), rgba(9, 9, 9, 0.94)), var(--foto);
+  #actividades-editorial .foto-portada {
+    background-image: linear-gradient(rgba(9, 9, 9, 0.42), rgba(9, 9, 9, 0.42)), var(--foto);
+  }
+
+  /*
+    El calendario va sobre la foto, no dentro: lleva su propio fondo, casi
+    opaco y con la imagen desenfocada por detrás. Así la rejilla se lee sin
+    esfuerzo y la foto se sigue viendo entera por el margen.
+  */
+  #actividades-editorial .cal-tarjeta {
+    background-color: rgba(9, 9, 9, 0.88);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  /* Sin `backdrop-filter` el fondo tiene que taparlo todo él solo. */
+  @supports not (backdrop-filter: blur(1px)) {
+    #actividades-editorial .cal-tarjeta {
+      background-color: rgba(9, 9, 9, 0.96);
+    }
   }
 
   /*
