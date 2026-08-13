@@ -123,7 +123,11 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       </div>
     </section>
 
-    {/* Banda negra con las acciones, como el bloque de texto de la referencia */}
+    {/*
+      De aquí para abajo, papel blanco: la portada corta en seco contra él.
+      `tramo-claro` invierte los tokens del tema para todo lo que envuelve.
+    */}
+    <div class="tramo-claro">
     <section class="py-14 lg:py-20">
       <div class="container-page">
         <div class="flex flex-wrap items-center gap-x-7 gap-y-4">
@@ -131,7 +135,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
             href={suscribirGoogle}
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-3 text-sm font-medium text-[#090909] transition-opacity hover:opacity-85"
+            class="inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-3 text-sm font-medium sobre-tinta transition-opacity hover:opacity-85"
           >
             <Icon name="lucide:calendar-plus" width={17} height={17} aria-hidden="true" />
             Suscribirme en Google Calendar
@@ -343,10 +347,11 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     </div>
   </section>
   </div>
+  </div>
 
   {/*
-    Aquí se acaba el tema oscuro: el cierre vuelve al estilo del resto del
-    sitio, claro y con la pastilla naranja.
+    El cierre, ya fuera del tema: mismo bloque claro que en el resto del
+    sitio, con la pastilla naranja.
   */}
   <section class="pt-20 pb-24 lg:pt-24 lg:pb-32">
     <div class="container-page">
@@ -431,7 +436,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     esfuerzo y la foto se sigue viendo entera por el margen.
   */
   #actividades-editorial .cal-tarjeta {
-    background-color: rgba(9, 9, 9, 0.88);
+    background-color: color-mix(in srgb, var(--fondo) 88%, transparent);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
   }
@@ -439,7 +444,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
   /* Sin `backdrop-filter` el fondo tiene que taparlo todo él solo. */
   @supports not (backdrop-filter: blur(1px)) {
     #actividades-editorial .cal-tarjeta {
-      background-color: rgba(9, 9, 9, 0.96);
+      background-color: color-mix(in srgb, var(--fondo) 96%, transparent);
     }
   }
 
@@ -452,6 +457,43 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     #actividades-editorial .foto-fija {
       background-attachment: scroll;
     }
+  }
+
+  /*
+    Tramo claro: de la portada para abajo se invierte todo. Basta con
+    redefinir los tokens —incluido `--fondo`, que es el color del papel— y el
+    marcado entero cambia de piel, también el que dibuja el script.
+  */
+  #actividades-editorial .tramo-claro {
+    --color-ink: #111111;
+    --color-muted: #6a6a6a;
+    --color-mist: #f1f0ec;
+    --fondo: #ffffff;
+
+    background-color: var(--fondo);
+    color: var(--color-ink);
+  }
+
+  /*
+    Sobre papel blanco la tarjeta necesita algo más de cuerpo: al 88% los
+    naranjas de la bandera la teñían.
+  */
+  #actividades-editorial .tramo-claro .cal-tarjeta {
+    background-color: color-mix(in srgb, var(--fondo) 93%, transparent);
+  }
+
+  /* Texto del color del papel: para lo que va sobre un sólido de tinta. */
+  #actividades-editorial .sobre-tinta {
+    color: var(--fondo);
+  }
+
+  /* La X del detalle, sobre la foto: pastilla del color del papel. */
+  #actividades-editorial .cal-cerrar-fondo {
+    background-color: color-mix(in srgb, var(--fondo) 70%, transparent);
+  }
+
+  #actividades-editorial .cal-cerrar-fondo:hover {
+    background-color: var(--fondo);
   }
 
   /*
@@ -514,7 +556,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
   */
   @media (max-width: 39.9375rem) {
     #cal .cal-canal {
-      background-color: #090909;
+      background-color: var(--fondo);
     }
   }
 
@@ -795,7 +837,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       const esHoy = clave(dia) === clave(hoy);
       const numero = document.createElement('span');
       numero.className = esHoy
-        ? 'grid size-6 place-items-center rounded-full bg-ink text-xs font-medium text-[#090909] sm:size-7'
+        ? 'grid size-6 place-items-center rounded-full bg-ink text-xs font-medium sobre-tinta sm:size-7'
         : `px-1 text-xs font-medium ${delMes ? 'text-ink' : 'text-muted/40'}`;
       numero.textContent = String(dia.getDate());
       div.appendChild(numero);
@@ -1024,7 +1066,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         const numero = document.createElement('span');
         const esHoy = clave(dia) === clave(hoy);
         numero.className = esHoy
-          ? 'grid size-7 place-items-center rounded-full bg-ink text-sm font-medium text-[#090909]'
+          ? 'grid size-7 place-items-center rounded-full bg-ink text-sm font-medium sobre-tinta'
           : 'grid size-7 place-items-center text-sm font-medium text-ink';
         numero.textContent = String(dia.getDate());
 
@@ -1295,7 +1337,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         <div class="relative rounded-[10px] border border-ink/15 p-6 lg:p-7">
           ${foto}
           <button type="button" id="cal-cerrar"
-                  class="absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full bg-[#090909]/70 text-ink backdrop-blur-sm transition-colors hover:bg-[#090909]">
+                  class="absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full cal-cerrar-fondo text-ink backdrop-blur-sm transition-colors">
             <span class="sr-only">Cerrar detalle</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
@@ -1307,7 +1349,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
 
           <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
             <a href="${googleCalendar(actividad)}" target="_blank" rel="noopener noreferrer"
-               class="inline-flex items-center justify-center rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-[#090909] transition-opacity hover:opacity-85">
+               class="inline-flex items-center justify-center rounded-full bg-ink px-5 py-2.5 text-sm font-medium sobre-tinta transition-opacity hover:opacity-85">
               Agregar a Google Calendar
             </a>
             ${
