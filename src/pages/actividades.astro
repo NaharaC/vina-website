@@ -5,14 +5,14 @@ import ArrowButton from '../components/ArrowButton.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { agruparPorMes, fechaDe, obtenerActividades } from '../lib/actividades';
 import { site, whatsappHref } from '../data/content';
+import portada from '../assets/img/actividades-portada.jpg';
 
 /*
-  El fondo de la portada y del hueco del calendario es video, no foto: lo que
-  se mueve es la propia escena mientras el resto de la página se queda quieta.
-  El póster es el primer fotograma, para que no haya salto mientras carga.
+  La foto que se ve por detrás de la página. Va como fondo en CSS (y no como
+  <img>) porque tiene que asomar por dos huecos a la vez —la banda de arriba y
+  el rectángulo del calendario— como si estuviera clavada detrás del papel.
 */
-const VIDEO = '/videos/reuniones-bg.mp4';
-const VIDEO_POSTER = '/videos/reuniones-bg-poster.jpg';
+const portadaFija = await getImage({ src: portada, width: 2200, format: 'webp' });
 
 const { actividades: crudas, desdeRespaldo } = await obtenerActividades();
 
@@ -98,30 +98,17 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     `#actividades-editorial` es el ámbito del tema oscuro: los tokens de color
     se redefinen ahí abajo, en el bloque de estilos.
   */}
-  <div id="actividades-editorial" style={`--poster: url('${VIDEO_POSTER}')`}>
+  <div id="actividades-editorial" style={`--foto: url('${portadaFija.src}')`}>
     {/*
       Portada: el titular va encima de la foto y esta corta en seco contra el
       negro, sin degradado. La misma imagen reaparece más abajo, por el hueco
       del calendario: está quieta detrás y lo que se mueve es la página.
     */}
     <section
-      class="con-poster relative flex min-h-[78vh] items-end overflow-hidden pt-32 pb-14 lg:min-h-[82vh] lg:pb-20"
+      class="foto-fija foto-portada flex min-h-[78vh] items-end pt-32 pb-14 lg:min-h-[82vh] lg:pb-20"
       aria-labelledby="actividades-titulo"
     >
-      <video
-        class="cal-video absolute inset-0 size-full object-cover"
-        src={VIDEO}
-        poster={VIDEO_POSTER}
-        muted
-        loop
-        playsinline
-        preload="metadata"
-        aria-hidden="true"></video>
-
-      {/* velo parejo, no degradado: el titular blanco cruza zonas claras */}
-      <div class="absolute inset-0 bg-[#090909]/45" aria-hidden="true"></div>
-
-      <div class="container-page relative">
+      <div class="container-page">
         <p class="eyebrow text-ink/75">Iglesia en movimiento</p>
         <h1
           id="actividades-titulo"
@@ -176,18 +163,8 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         tarjeta con su propio fondo: la imagen se ve limpia por el margen y la
         rejilla no tiene que pelear con ella.
       */}
-      <div class="con-poster relative overflow-hidden rounded-[12px] p-3 sm:p-8 lg:p-14">
-      <video
-        class="cal-video absolute inset-0 size-full object-cover"
-        src={VIDEO}
-        poster={VIDEO_POSTER}
-        muted
-        loop
-        playsinline
-        preload="none"
-        aria-hidden="true"></video>
-
-      <div class="cal-tarjeta relative rounded-[10px] border border-ink/10 px-4 py-6 sm:px-7 sm:py-8 lg:px-9 lg:py-10">
+      <div class="foto-fija rounded-[12px] p-3 sm:p-8 lg:p-14">
+      <div class="cal-tarjeta rounded-[10px] border border-ink/10 px-4 py-6 sm:px-7 sm:py-8 lg:px-9 lg:py-10">
 
       <div id="cal-barra" class="hidden flex-wrap items-center justify-between gap-4 pt-0">
         <div class="flex items-center gap-2">
@@ -423,21 +400,35 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
   }
 
   /* ---------------------------------------------------------------------
-     El video del fondo.
+     La foto detrás del papel.
 
-     Va como <video> dentro de cada hueco —la portada y el rectángulo del
-     calendario— en vez de como fondo CSS: así se mueve la escena, que es lo
-     que da vida a la página. El póster cubre el rato que tarda en cargar.
+     `background-attachment: fixed` ancla la imagen a la ventana del
+     navegador, no al elemento. Como los dos huecos —la banda de arriba y el
+     rectángulo del calendario— la piden con el mismo encuadre, ambos enseñan
+     el mismo trozo de una única foto que se queda quieta mientras la página
+     se desliza por encima. Es el efecto de la referencia.
      --------------------------------------------------------------------- */
-  #actividades-editorial .cal-video {
-    /* que nunca robe el clic a lo que tiene encima */
-    pointer-events: none;
+  #actividades-editorial .foto-fija {
+    background-image: var(--foto);
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
   }
 
   /*
-    El calendario va sobre el video, no dentro: lleva su propio fondo, casi
-    opaco y desenfocando lo que tiene detrás. Así la rejilla se lee sin
-    esfuerzo mientras la escena se sigue viendo y moviendo por el margen.
+    La portada lleva un oscurecido parejo —no un degradado— para que el
+    titular blanco se lea también donde cruza la bandera naranja. El corte
+    contra el negro sigue siendo a filo.
+  */
+  #actividades-editorial .foto-portada {
+    background-image: linear-gradient(rgba(9, 9, 9, 0.42), rgba(9, 9, 9, 0.42)), var(--foto);
+  }
+
+  /*
+    El calendario va sobre la foto, no dentro: lleva su propio fondo, casi
+    opaco y con la imagen desenfocada por detrás. Así la rejilla se lee sin
+    esfuerzo y la foto se sigue viendo entera por el margen.
   */
   #actividades-editorial .cal-tarjeta {
     background-color: rgba(9, 9, 9, 0.88);
@@ -452,16 +443,14 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     }
   }
 
-  /* A quien pide menos movimiento se le deja el fotograma fijo del póster. */
-  @media (prefers-reduced-motion: reduce) {
-    #actividades-editorial .cal-video {
-      display: none;
-    }
-
-    #actividades-editorial .con-poster {
-      background-image: var(--poster);
-      background-position: center;
-      background-size: cover;
+  /*
+    En táctil no existe el fondo fijo (iOS lo ignora y lo pinta a saltos): se
+    ancla al elemento. Se pierde el calce entre los dos huecos, pero la foto
+    se sigue viendo y el scroll no se atasca.
+  */
+  @media (hover: none) {
+    #actividades-editorial .foto-fija {
+      background-attachment: scroll;
     }
   }
 
@@ -1387,29 +1376,6 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         }
         pintar();
       });
-    }
-
-    /* --- videos del fondo --------------------------------------------------- */
-
-    /*
-      Solo corre el video que se está viendo: son dos y decodificar el que
-      quedó fuera de pantalla gasta batería para nada. Arrancarlos desde aquí
-      —y no con `autoplay`— evita que el de abajo se ponga a correr solo al
-      terminar de cargar, cuando ya lo habíamos pausado.
-    */
-    const videos = document.querySelectorAll<HTMLVideoElement>('.cal-video');
-    if (videos.length && 'IntersectionObserver' in window) {
-      const vigia = new IntersectionObserver(
-        (entradas) => {
-          for (const entrada of entradas) {
-            const video = entrada.target as HTMLVideoElement;
-            if (entrada.isIntersecting) video.play().catch(() => {});
-            else video.pause();
-          }
-        },
-        { rootMargin: '200px' }
-      );
-      for (const video of videos) vigia.observe(video);
     }
 
     /* --- arranque ---------------------------------------------------------- */
