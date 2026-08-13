@@ -203,6 +203,26 @@
   letter-spacing: -0.035em;
 }
 
+/*
+  Tramo claro dentro del tema: devuelve los colores de siempre. Sirve para
+  alternar una sección blanca entre las oscuras sin sacarla del bloque —el
+  hueco de la foto sigue funcionando igual, porque va aparte.
+*/
+.tema-editorial .tramo-claro {
+  --color-ink: #111111;
+  --color-muted: #6a6a6a;
+  --color-mist: #f1f0ec;
+
+  background-color: #ffffff;
+  color: var(--color-ink);
+}
+
+.tema-editorial .tramo-claro .heading-xl,
+.tema-editorial .tramo-claro .heading-lg {
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
 /* Carruseles horizontales sin barra de scroll visible */
 @utility no-scrollbar {
   scrollbar-width: none;
