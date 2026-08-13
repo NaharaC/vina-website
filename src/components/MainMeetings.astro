@@ -1,56 +1,307 @@
 ---
-import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
-import SectionHeading from './SectionHeading.astro';
 import { meetings } from '../data/content';
+
+/**
+ * La palabra grande de cada columna, en el mismo orden que `meetings`
+ * (miércoles, viernes, domingos), como las tres frases de la referencia.
+ */
+const words = ['Miércoles.', 'Viernes.', 'Domingos.'];
+const label = 'Nuestras Reuniones';
 ---
 
-<section id="reuniones" class="bg-mist-cool py-12 lg:py-16" aria-labelledby="reuniones-titulo">
-  <div class="container-page">
-    <SectionHeading
-      id="reuniones-titulo"
-      title="Reuniones Principales"
-      subtitle="Cada semana nos reunimos a mover el corazón de Dios"
-    />
+<section id="reuniones" class="relative" aria-labelledby="reuniones-titulo">
+  {/*
+    Escritorio: el rótulo y las palabras viven en capas aparte que arrancan
+    sobre el video y, con el scroll, bajan hasta posarse exactamente donde
+    están sus copias invisibles del panel de abajo — así terminan encabezando
+    el detalle de cada reunión. Cada recorrido lo mide el script (--fin):
+    depende del alto de las columnas, que cambia con el ancho de la ventana.
+  */}
+  {/* el color va en la capa, no en el <h2>: si no, su clase le gana a la animación */}
+  <div
+    class="reuniones-label pointer-events-none absolute inset-x-0 top-24 z-10 text-white/85 lg:top-32"
+  >
+    <div class="container-page">
+      {/*
+        Sin la utilidad `eyebrow`: fija un color propio que le ganaría al de
+        la animación y el rótulo dejaría de verse blanco sobre el video.
+      */}
+      <h2
+        class="pl-7 text-sm font-semibold tracking-[0.2em] uppercase"
+        id="reuniones-titulo"
+      >
+        {label}
+      </h2>
+    </div>
+  </div>
 
-    <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
+  <div
+    class="reuniones-words pointer-events-none absolute inset-x-0 top-0 z-10 hidden h-svh text-white lg:flex lg:items-center"
+    aria-hidden="true"
+  >
+    <div class="container-page w-full">
+      <div class="grid grid-cols-3 gap-8">
+        {
+          words.map((word) => (
+            <div class="border-l border-transparent pl-7">
+              <p class="reuniones-word text-5xl font-semibold tracking-[-0.04em] xl:text-6xl">{word}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  {/* fase 1: video de adoración a pantalla completa, que se encoge al scrollear */}
+  <div class="reuniones-video relative h-svh overflow-clip rounded-b-[2rem] lg:rounded-b-[2.75rem]">
+    <video
+      class="absolute inset-0 size-full object-cover"
+      src="/videos/reuniones-bg.mp4"
+      poster="/videos/reuniones-bg-poster.jpg"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      aria-hidden="true"
+    ></video>
+    <div class="absolute inset-0 bg-black/35" aria-hidden="true"></div>
+
+    {/* móvil: las palabras van apiladas dentro del video */}
+    <div class="container-page absolute inset-0 flex items-center lg:hidden">
+      <div class="flex flex-col gap-4">
+        {
+          words.map((word) => (
+            <p class="text-5xl font-semibold tracking-[-0.04em] text-white">{word}</p>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  {/* fase 2: el detalle de cada reunión, encabezado por su palabra */}
+  <div class="container-page py-16 lg:flex lg:h-svh lg:flex-col lg:justify-end lg:pb-28">
+    {/* huecos: reservan el sitio donde aterrizan las copias animadas */}
+    <p
+      class="reuniones-label-ph invisible mb-10 hidden pl-7 text-sm font-semibold tracking-[0.2em] uppercase lg:block"
+      aria-hidden="true"
+    >
+      {label}
+    </p>
+
+    <div class="grid gap-12 lg:grid-cols-3 lg:gap-8">
       {
-        meetings.map((meeting) => (
-          <li class="flex flex-col rounded-card bg-carbon p-2 shadow-lg shadow-black/5">
-            <Image
-              src={meeting.image}
-              alt={meeting.alt}
-              widths={[400, 640, 800]}
-              sizes="(min-width: 64rem) 380px, (min-width: 40rem) 45vw, 90vw"
-              class="aspect-[3/2] w-full rounded-media object-cover"
-              loading="lazy"
-              decoding="async"
-            />
+        meetings.map((meeting, index) => (
+          <div class="lg:border-l lg:border-ink/15 lg:pl-7">
+            <p
+              class="reuniones-word-ph invisible hidden text-5xl font-semibold tracking-[-0.04em] lg:block xl:text-6xl"
+              aria-hidden="true"
+            >
+              {words[index]}
+            </p>
 
-            <div class="flex flex-1 flex-col px-4 pt-5 pb-2 sm:px-5">
-              <h3 class="heading-md text-white">{meeting.title}</h3>
-              {meeting.subtitle && <p class="mt-1 text-sm text-white/70">{meeting.subtitle}</p>}
+            <div class="lg:mt-4">
+              {/*
+                En escritorio la palabra grande ya dice el día, así que el
+                título solo pone el resto de la frase ("de palabra") y no se
+                repite. El día sigue anunciándose a lectores de pantalla para
+                que el encabezado se lea completo.
+              */}
+              <h3 class="heading-md text-ink">
+                <span class="lg:hidden">{meeting.title}</span>
+                <span class="hidden lg:inline">
+                  <span class="sr-only">{meeting.title.split(' ')[0]} </span>
+                  {meeting.title.split(' ').slice(1).join(' ')}
+                </span>
+              </h3>
 
-              <div class="mt-auto pt-6">
-                <ul class="flex flex-col gap-2.5 text-[0.8125rem] text-white/90">
-                  {meeting.meta.map((item) => (
-                    <li class="flex items-center gap-2.5">
+              {/*
+                La bajada se dibuja siempre, aunque venga vacía: así las tres
+                columnas arrancan la hora y el resto a la misma altura.
+              */}
+              <p class="mt-1 min-h-6 text-sm text-muted sm:text-base">{meeting.subtitle}</p>
+
+              {/* la hora manda: es el dato que se busca primero */}
+              <p class="mt-4 text-2xl font-semibold tracking-[-0.03em] text-ink">{meeting.time}</p>
+
+              <p class="eyebrow mt-6">Cómo participar</p>
+
+              <ul class="mt-3 flex flex-col gap-3 text-sm text-ink sm:text-[0.9375rem]">
+                {meeting.ways.map((way) => {
+                  const contenido = (
+                    <>
                       <Icon
-                        name={item.icon}
+                        name={way.icon}
                         width={17}
                         height={17}
-                        class="shrink-0 text-white"
+                        class="mt-0.5 shrink-0 text-ink"
                         aria-hidden="true"
                       />
-                      <span>{item.label}</span>
+                      <span>
+                        <span class="block group-hover:underline">{way.label}</span>
+                        {way.note && <span class="mt-0.5 block text-xs text-muted">{way.note}</span>}
+                      </span>
+                    </>
+                  );
+
+                  return (
+                    <li>
+                      {way.href ? (
+                        <a
+                          href={way.href}
+                          target={way.external ? '_blank' : undefined}
+                          rel={way.external ? 'noopener noreferrer' : undefined}
+                          class="group flex items-start gap-2.5"
+                        >
+                          {contenido}
+                          {way.external && <span class="sr-only">(se abre en una ventana nueva)</span>}
+                        </a>
+                      ) : (
+                        <span class="flex items-start gap-2.5">{contenido}</span>
+                      )}
                     </li>
-                  ))}
-                </ul>
-              </div>
+                  );
+                })}
+              </ul>
             </div>
-          </li>
+          </div>
         ))
       }
-    </ul>
+    </div>
   </div>
 </section>
+
+<style>
+  #reuniones {
+    view-timeline: --reuniones block;
+  }
+
+  @supports (animation-timeline: view()) {
+    /*
+      El video se encoge y redondea mientras se va: deja de ser un fondo a
+      sangre y se convierte en una tarjeta que se aleja, como la referencia.
+    */
+    .reuniones-video {
+      animation: reuniones-encoge linear both;
+      animation-timeline: --reuniones;
+      animation-range: contain 0% contain 70%;
+    }
+  }
+
+  @keyframes reuniones-encoge {
+    from {
+      transform: scale(1);
+      border-radius: 0 0 2.75rem 2.75rem;
+    }
+    to {
+      transform: scale(0.88);
+      border-radius: 2.75rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    @supports (animation-timeline: view()) {
+      /*
+        Dos animaciones sobre la misma línea de tiempo: el descenso ocupa todo
+        el tramo en que la sección cubre la pantalla; el cambio de color va en
+        un tramo corto que el script sitúa justo donde las letras dejan atrás
+        el video.
+      */
+      .reuniones-words,
+      .reuniones-label {
+        animation:
+          reuniones-baja linear both,
+          reuniones-tinta linear both;
+        animation-timeline: --reuniones, --reuniones;
+        animation-range: contain 0% contain 100%, contain 45% contain 55%;
+      }
+    }
+
+    /* sin animación por scroll los huecos sobran: dejarían un vacío arriba */
+    @supports not (animation-timeline: view()) {
+      .reuniones-word-ph,
+      .reuniones-label-ph {
+        display: none;
+      }
+    }
+  }
+
+  @keyframes reuniones-baja {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(var(--fin, 66svh));
+    }
+  }
+
+  @keyframes reuniones-tinta {
+    from {
+      color: white;
+    }
+    to {
+      color: var(--color-ink);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reuniones-words,
+    .reuniones-label,
+    .reuniones-video {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  const section = document.getElementById('reuniones');
+
+  if (section) {
+    /**
+     * Cada capa viaja desde donde nace (sobre el video) hasta el hueco que la
+     * espera en el panel de abajo. La resta contra la propia capa hace que la
+     * medida no dependa de la animación ya aplicada.
+     */
+    const pares = [
+      ['.reuniones-words', '.reuniones-word', '.reuniones-word-ph'],
+      ['.reuniones-label', 'h2', '.reuniones-label-ph'],
+    ] as const;
+
+    const measure = () => {
+      const alto = window.innerHeight;
+
+      for (const [capaSel, piezaSel, huecoSel] of pares) {
+        const capa = section.querySelector<HTMLElement>(capaSel);
+        const pieza = capa?.querySelector<HTMLElement>(piezaSel);
+        const hueco = section.querySelector<HTMLElement>(huecoSel);
+        if (!capa || !pieza || !hueco) continue;
+
+        // `offsetTop` ignora las transformaciones: es de dónde parte la capa
+        const dentro = pieza.getBoundingClientRect().top - capa.getBoundingClientRect().top;
+        const desde = capa.offsetTop + dentro;
+        const hasta = hueco.getBoundingClientRect().top - section.getBoundingClientRect().top;
+        const fin = hasta - desde;
+        capa.style.setProperty('--fin', `${Math.round(fin)}px`);
+
+        // el cambio de color ocurre al dejar atrás el borde inferior del video
+        const cruce = ((alto - (desde + pieza.offsetHeight / 2)) / fin) * 100;
+        const inicio = Math.max(0, Math.min(96, cruce - 4));
+        const termino = Math.max(inicio + 2, Math.min(100, cruce + 4));
+        capa.style.animationRange = `contain 0% contain 100%, contain ${inicio}% contain ${termino}%`;
+      }
+    };
+
+    measure();
+    window.addEventListener('resize', measure);
+    // las webfonts cambian el alto del texto: vuelve a medir al cargarlas
+    document.fonts?.ready.then(measure);
+
+    // con "reducir movimiento" el video queda quieto en su póster
+    const video = section.querySelector('video');
+    if (video && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      video.pause();
+      video.removeAttribute('autoplay');
+    }
+  }
+</script>

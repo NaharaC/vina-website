@@ -1,0 +1,196 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import { whatsappHref } from '../data/content';
+
+// Mientras no haya número de WhatsApp, el botón baja a la sección de contacto.
+const contactHref = whatsappHref() || '#contacto';
+const contactIsExternal = contactHref.startsWith('http');
+
+// Todas las fotos familia-collage-*.jpg, en orden numérico. Para sumar más,
+// basta con dejar el archivo en assets/img y agregar una entrada a `tiles`.
+const photos = Object.entries(
+  import.meta.glob<{ default: ImageMetadata }>('../assets/img/familia-collage-*.jpg', {
+    eager: true,
+  })
+)
+  .sort(
+    ([a], [b]) => Number(a.match(/-(\d+)\.jpg$/)![1]) - Number(b.match(/-(\d+)\.jpg$/)![1])
+  )
+  .map(([, mod]) => mod.default);
+
+/**
+ * Collage disperso alrededor del texto: un recuadro por foto, sin repetir.
+ * Cada uno flota solo: sube y se desvanece en bucle — `dur` es lo que tarda
+ * una pasada y `delay` (negativo) lo desfasa para que no floten todos a la
+ * vez. `mobile` marca los que sobreviven en pantallas chicas.
+ */
+const tiles = [
+  { top: 1, left: 10, width: 104, aspect: 'aspect-square', dur: 12, delay: -5, mobile: false },
+  { top: 2, left: 30, width: 92, aspect: 'aspect-[4/3]', dur: 15, delay: -9, mobile: true },
+  { top: 3, left: 55, width: 116, aspect: 'aspect-[4/3]', dur: 10, delay: -2, mobile: true },
+  { top: 5, left: 72, width: 100, aspect: 'aspect-[4/5]', dur: 14, delay: -11, mobile: false },
+  { top: 8, left: 88, width: 120, aspect: 'aspect-square', dur: 11, delay: -6, mobile: true },
+  { top: 10, left: 2, width: 130, aspect: 'aspect-[4/3]', dur: 16, delay: -13, mobile: true },
+  { top: 14, left: 20, width: 96, aspect: 'aspect-[4/5]', dur: 9, delay: -4, mobile: false },
+  { top: 16, left: 44, width: 110, aspect: 'aspect-square', dur: 13, delay: -8, mobile: false },
+  { top: 18, left: 63, width: 124, aspect: 'aspect-[4/3]', dur: 15, delay: -1, mobile: false },
+  { top: 22, left: 80, width: 140, aspect: 'aspect-[4/5]', dur: 10, delay: -7, mobile: true },
+  { top: 26, left: 8, width: 112, aspect: 'aspect-[4/3]', dur: 14, delay: -12, mobile: true },
+  { top: 30, left: 35, width: 100, aspect: 'aspect-square', dur: 11, delay: -3, mobile: false },
+  { top: 33, left: 92, width: 128, aspect: 'aspect-[4/3]', dur: 16, delay: -10, mobile: false },
+  { top: 36, left: 1, width: 156, aspect: 'aspect-[4/3]', dur: 12, delay: -6, mobile: true },
+  { top: 40, left: 50, width: 118, aspect: 'aspect-square', dur: 9, delay: -14, mobile: false },
+  { top: 43, left: 70, width: 132, aspect: 'aspect-[4/5]', dur: 13, delay: -2, mobile: true },
+  { top: 47, left: 85, width: 160, aspect: 'aspect-square', dur: 15, delay: -8, mobile: true },
+  { top: 50, left: 15, width: 148, aspect: 'aspect-[4/5]', dur: 10, delay: -5, mobile: false },
+  { top: 54, left: 28, width: 108, aspect: 'aspect-[4/3]', dur: 14, delay: -11, mobile: true },
+  { top: 57, left: 60, width: 124, aspect: 'aspect-square', dur: 12, delay: -3, mobile: false },
+  { top: 60, left: 5, width: 168, aspect: 'aspect-square', dur: 16, delay: -9, mobile: true },
+  { top: 63, left: 42, width: 112, aspect: 'aspect-[4/5]', dur: 11, delay: -6, mobile: false },
+  { top: 66, left: 78, width: 136, aspect: 'aspect-[4/3]', dur: 13, delay: -12, mobile: true },
+  { top: 70, left: 90, width: 120, aspect: 'aspect-[4/5]', dur: 9, delay: -1, mobile: false },
+  { top: 74, left: 20, width: 128, aspect: 'aspect-square', dur: 15, delay: -7, mobile: true },
+  { top: 78, left: 52, width: 140, aspect: 'aspect-[4/3]', dur: 12, delay: -10, mobile: false },
+  { top: 81, left: 68, width: 116, aspect: 'aspect-square', dur: 10, delay: -4, mobile: true },
+  { top: 84, left: 34, width: 132, aspect: 'aspect-[4/3]', dur: 14, delay: -8, mobile: false },
+];
+---
+
+<section
+  id="familia-collage"
+  class="relative overflow-hidden bg-white py-44 sm:py-56 lg:py-72"
+  aria-labelledby="familia-collage-titulo"
+>
+  {/*
+    Capa de fotos: decorativas, detrás del texto y sin capturar el mouse.
+    Va retranqueada respecto a la sección para que los bordes superior e
+    inferior queden en blanco y las secciones vecinas respiren.
+  */}
+  <div
+    class="collage-layer pointer-events-none absolute inset-x-0 top-16 bottom-16 sm:top-20 sm:bottom-20 lg:top-24 lg:bottom-24"
+    aria-hidden="true"
+  >
+    {
+      tiles.map((tile, index) => (
+        <div
+          class:list={['collage-tile absolute', !tile.mobile && 'hidden md:block']}
+          style={`top:${tile.top}%; left:${tile.left}%; width:min(${tile.width}px, ${Math.round(tile.width / 10)}vw); --dur:${tile.dur}s; --delay:${tile.delay}s`}
+        >
+          <Image
+            src={photos[index % photos.length]}
+            alt=""
+            widths={[180, 360]}
+            sizes="12vw"
+            class:list={['w-full rounded-md object-cover', tile.aspect]}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="container-page relative z-10">
+    {/*
+      Escalera de líneas hacia la derecha, como la referencia. Los sangrados
+      van en `em` para que escalen con la letra, y el bloque completo (w-fit)
+      queda centrado en la página.
+    */}
+    <h2
+      id="familia-collage-titulo"
+      class="mx-auto w-fit leading-[1.04] font-semibold tracking-[-0.04em] text-carbon"
+      style="font-size: clamp(2.375rem, 0.9rem + 5.4vw, 5.25rem)"
+    >
+      <span class="block w-fit">Iglesia</span>
+      <span class="ml-[1.6em] block w-fit">en</span>
+      <span class="ml-[2.6em] block w-fit">Movimiento</span>
+    </h2>
+
+    <div class="mt-12 flex justify-center lg:mt-16">
+      <a
+        href={contactHref}
+        target={contactIsExternal ? '_blank' : undefined}
+        rel={contactIsExternal ? 'noopener noreferrer' : undefined}
+        class="group inline-flex items-center gap-3 rounded-full bg-[#e9e9e9]/15 px-7 py-3.5 text-[0.9375rem] font-semibold text-carbon backdrop-blur-2xl transition-colors hover:bg-[#dedede]/30"
+      >
+        Contactar
+        {contactIsExternal && <span class="sr-only">(se abre en una ventana nueva)</span>}
+        <Icon
+          name="lucide:arrow-right"
+          width={18}
+          height={18}
+          class="transition-transform duration-200 group-hover:translate-x-0.5"
+          aria-hidden="true"
+        />
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  /*
+    Cada foto flota por su cuenta: nace abajo desvanecida, sube a ritmo
+    constante y se apaga arriba, en bucle. Los delays negativos reparten las
+    fases para que siempre haya fotos a mitad de camino.
+  */
+  /*
+    Desvanece las fotos antes de tocar los bordes de la sección: así nunca
+    se ven cortadas contra la sección de arriba o la de abajo.
+  */
+  .collage-layer {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      black 7rem,
+      black calc(100% - 7rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      black 7rem,
+      black calc(100% - 7rem),
+      transparent 100%
+    );
+  }
+
+  .collage-tile {
+    opacity: 0;
+    animation: collage-drift var(--dur, 18s) linear infinite;
+    animation-delay: var(--delay, 0s);
+    will-change: transform, opacity;
+  }
+
+  /*
+    La foto viaja todo el ciclo pero sólo se ve en la primera mitad: así en
+    cada momento hay menos fotos en pantalla a la vez.
+  */
+  @keyframes collage-drift {
+    0% {
+      transform: translateY(240px);
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    45% {
+      opacity: 1;
+    }
+    57% {
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(-240px);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .collage-tile {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

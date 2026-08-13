@@ -1,49 +1,161 @@
 ---
 import { Image } from 'astro:assets';
-import ArrowButton from './ArrowButton.astro';
+import { Icon } from 'astro-icon/components';
 import { contact } from '../data/content';
 ---
 
-{/* Ídem: a pantalla completa y con `svh` para que no salte en el móvil. */}
+{/*
+  Ídem: a pantalla completa y con `svh` para que no salte en el móvil.
+  overflow-clip y no -hidden: hidden crearía un scroll container y el view()
+  del parallax mediría contra la sección en vez del viewport.
+*/}
+{/*
+  Reparto como la referencia: el título ocupa arriba y la bajada con su botón
+  se van al pie, con la foto respirando en medio.
+*/}
 <section
   id="contacto"
-  class="relative isolate flex min-h-svh items-center overflow-hidden"
+  class="relative isolate flex min-h-svh flex-col justify-between overflow-clip"
   aria-labelledby="contacto-titulo"
 >
+  {/*
+    La foto va más alta que la sección y se desplaza con el scroll (parallax):
+    la sección funciona como ventana. El velo negro sobre la foto oscurecida
+    da los negros profundos de la referencia.
+  */}
   <Image
     src={contact.image}
     alt={contact.alt}
     widths={[768, 1280, 1920]}
     sizes="100vw"
-    class="absolute inset-0 -z-10 size-full object-cover"
+    class="contacto-bg absolute inset-x-0 -top-[15%] -z-10 h-[130%] w-full object-cover brightness-[0.55] saturate-[0.7]"
     loading="lazy"
     decoding="async"
   />
-  <div class="absolute inset-0 -z-10 bg-[#232833]/70" aria-hidden="true"></div>
+  <div class="absolute inset-0 -z-10 bg-black/45" aria-hidden="true"></div>
 
-  <div class="container-page py-12 lg:py-16">
-    <div class="mx-auto w-full max-w-xl text-center">
+  {/* cada bloque entra deslizándose desde su propia máscara, escalonado */}
+  <div class="container-page pt-10 lg:pt-12">
+    <div class="overflow-hidden">
+      {/* una palabra por línea y renglones casi tocándose, como la referencia */}
       <h2
         id="contacto-titulo"
-        class="font-serif text-[2.5rem] leading-none font-bold italic text-white sm:text-6xl"
+        class="reveal-item text-center leading-[0.76] font-semibold tracking-[-0.05em] text-white"
+        style="--reveal-delay: 0ms; font-size: clamp(2.75rem, 1rem + 6.2vw, 6.25rem)"
       >
-        {contact.title}
+        {contact.title.split(' ').map((palabra) => <span class="block">{palabra}</span>)}
       </h2>
-      <p class="mx-auto mt-4 max-w-sm font-serif text-xl italic text-white/90 sm:text-2xl">
-        {contact.description}
-      </p>
+    </div>
+  </div>
+
+  <div class="container-page pb-20 lg:pb-28">
+    <div class="mx-auto w-full max-w-md text-center">
+      <div class="overflow-hidden">
+        <p class="reveal-item subtitle-lg !text-white/85" style="--reveal-delay: 150ms">
+          {contact.description}
+        </p>
+      </div>
 
       {
         contact.action.href && (
-          <ArrowButton
-            label={contact.action.label}
-            href={contact.action.href}
-            variant="accent"
-            external={contact.action.external}
-            class="mt-7"
-          />
+          <div class="overflow-hidden pt-12 pb-1">
+            <div class="reveal-item" style="--reveal-delay: 300ms">
+              {/*
+                Mismo botón de vidrio que el collage: píldora translúcida con
+                desenfoque, para que la foto se cuele por detrás. Aquí el
+                fondo es oscuro, así que el texto va en blanco — con tinta
+                oscura sobre este velo no se leería.
+              */}
+              <a
+                href={contact.action.href}
+                target={contact.action.external ? '_blank' : undefined}
+                rel={contact.action.external ? 'noopener noreferrer' : undefined}
+                class="group inline-flex items-center gap-3 rounded-full bg-white/10 px-7 py-3.5 text-[0.9375rem] font-semibold text-white backdrop-blur-lg backdrop-saturate-150 transition-colors hover:bg-white/20"
+              >
+                {contact.action.label}
+                {contact.action.external && (
+                  <span class="sr-only">(se abre en una ventana nueva)</span>
+                )}
+                <Icon
+                  name="lucide:arrow-right"
+                  width={18}
+                  height={18}
+                  class="transition-transform duration-200 group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </a>
+            </div>
+          </div>
         )
       }
     </div>
   </div>
 </section>
+
+<style is:global>
+  /*
+    Entrada del texto: cada bloque nace bajo su máscara (overflow-hidden del
+    contenedor) y sube a su sitio cuando la sección entra en pantalla. El
+    atributo data-inview lo pone el script; sin JavaScript no existe y el
+    texto queda visible.
+  */
+  #contacto .reveal-item {
+    transition: transform 800ms cubic-bezier(0.22, 0.61, 0.21, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  #contacto[data-inview='false'] .reveal-item {
+    transform: translateY(115%);
+    transition: none;
+  }
+
+  /*
+    Parallax del fondo: la foto (120% de alto) recorre su holgura mientras la
+    sección cruza el viewport. Scroll-driven animations es Chrome 115+; donde
+    no exista, la foto simplemente queda quieta.
+  */
+  @supports (animation-timeline: view()) {
+    #contacto .contacto-bg {
+      animation: contacto-parallax linear both;
+      animation-timeline: view();
+    }
+  }
+
+  @keyframes contacto-parallax {
+    from {
+      transform: translateY(-11%);
+    }
+    to {
+      transform: translateY(11%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #contacto[data-inview='false'] .reveal-item {
+      transform: none;
+    }
+
+    #contacto .contacto-bg {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  const section = document.getElementById('contacto');
+
+  if (section) {
+    // arranca oculto sólo si hay JS: sin script el texto se ve siempre
+    section.dataset.inview = 'false';
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // se re-arma al salir del todo, para que la entrada se repita
+        section.dataset.inview = String(entry.isIntersecting);
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(section);
+  }
+</script>

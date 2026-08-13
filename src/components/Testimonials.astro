@@ -1,16 +1,24 @@
 ---
-import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { testimonials, testimonialsIntro } from '../data/content';
 
 const hasCarousel = testimonials.length > 1;
 ---
 
-<section class="bg-mist py-12 lg:py-16" aria-labelledby="testimonios-titulo">
+{/*
+  La sección entra completa en pantalla: el bloque de título y el video se
+  reparten el alto disponible. El video corre solo y en silencio; el botón de
+  sonido es la única forma de que empiece a oírse (los navegadores no dejan
+  arrancar con audio sin que alguien lo pida).
+*/}
+<section
+  class="flex min-h-svh flex-col justify-center bg-mist py-12 lg:py-16"
+  aria-labelledby="testimonios-titulo"
+>
   <div class="container-page">
     <div class="text-center">
       <h2 id="testimonios-titulo" class="heading-lg text-ink">{testimonialsIntro.title}</h2>
-      <p class="mx-auto mt-2 max-w-2xl font-serif text-lg italic text-muted sm:text-xl">
+      <p class="subtitle-lg mx-auto mt-3 max-w-2xl">
         {testimonialsIntro.verse}<br />
         {testimonialsIntro.reference}
       </p>
@@ -22,51 +30,58 @@ const hasCarousel = testimonials.length > 1;
       aria-label={hasCarousel ? 'Testimonios' : undefined}
       tabindex={hasCarousel ? 0 : undefined}
       class:list={[
-        'no-scrollbar mt-9 flex gap-6 overflow-x-auto scroll-smooth lg:mt-11',
+        'no-scrollbar mt-8 flex gap-6 overflow-x-auto scroll-smooth lg:mt-10',
         hasCarousel && 'snap-x snap-mandatory',
       ]}
     >
       {
-        testimonials.map((testimonial) => (
-          <figure
-            class="relative w-full shrink-0 snap-center overflow-hidden rounded-[1.75rem] bg-carbon lg:rounded-[2rem]"
-          >
-            <Image
-              src={testimonial.poster}
-              alt={testimonial.posterAlt}
-              widths={[640, 960, 1280]}
-              sizes="(min-width: 64rem) 1248px, 100vw"
-              class="aspect-[16/9] w-full object-cover lg:aspect-[2/1]"
-              loading="lazy"
-              decoding="async"
-            />
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"
-              aria-hidden="true"
-            />
+        testimonials.map((testimonial, index) => (
+          <figure class="mx-auto aspect-video max-h-[58svh] w-full max-w-4xl shrink-0 snap-center overflow-hidden rounded-[1.75rem] bg-carbon lg:rounded-[2rem]">
+            <div class="relative size-full">
+              <video
+                class="testimonio-video size-full object-cover"
+                src={testimonial.video}
+                poster={testimonial.poster}
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                aria-label={testimonial.alt}
+              />
 
-            <div class="absolute inset-0 flex flex-col justify-center gap-4 p-6 sm:p-10 lg:max-w-[62%] lg:p-12">
-              <div class="flex items-center gap-4">
-                <Image
-                  src={testimonial.thumb}
-                  alt={testimonial.thumbAlt}
-                  width={112}
-                  height={80}
-                  densities={[1, 2]}
-                  class="hidden h-20 w-28 rounded-xl object-cover sm:block"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <figcaption class="text-sm leading-tight font-semibold text-white sm:text-[0.9375rem]">
-                  {testimonial.name}
-                </figcaption>
-              </div>
+              {/* el degradado solo cubre la franja donde va el nombre */}
+              <div
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent"
+                aria-hidden="true"
+              />
 
-              <blockquote
-                class="font-serif text-lg leading-snug italic text-white text-balance sm:text-2xl lg:text-[1.75rem]"
+              <figcaption class="absolute bottom-5 left-5 text-sm font-semibold text-white sm:bottom-7 sm:left-7 sm:text-base">
+                {testimonial.name}
+              </figcaption>
+
+              <button
+                type="button"
+                class="testimonio-sonido absolute right-5 bottom-5 inline-flex items-center gap-2.5 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-lg backdrop-saturate-150 transition-colors hover:bg-white/20 sm:right-7 sm:bottom-7"
+                data-indice={index}
+                aria-pressed="false"
               >
-                {testimonial.quote}
-              </blockquote>
+                <Icon
+                  name="lucide:volume-x"
+                  width={18}
+                  height={18}
+                  class="icono-silencio"
+                  aria-hidden="true"
+                />
+                <Icon
+                  name="lucide:volume-2"
+                  width={18}
+                  height={18}
+                  class="icono-sonido hidden"
+                  aria-hidden="true"
+                />
+                <span class="etiqueta-sonido">Activar sonido</span>
+              </button>
             </div>
           </figure>
         ))
@@ -99,6 +114,33 @@ const hasCarousel = testimonials.length > 1;
 </section>
 
 <script>
+  /* --- Sonido de cada testimonio ------------------------------------------- */
+
+  for (const boton of document.querySelectorAll<HTMLButtonElement>('.testimonio-sonido')) {
+    const figura = boton.closest('figure');
+    const video = figura?.querySelector('video');
+    if (!video) continue;
+
+    boton.addEventListener('click', () => {
+      const conSonido = video.muted;
+      video.muted = !conSonido;
+
+      // al activar el sonido conviene partir desde el principio
+      if (conSonido) {
+        video.currentTime = 0;
+        video.play();
+      }
+
+      boton.setAttribute('aria-pressed', String(conSonido));
+      boton.querySelector('.icono-silencio')?.classList.toggle('hidden', conSonido);
+      boton.querySelector('.icono-sonido')?.classList.toggle('hidden', !conSonido);
+      const etiqueta = boton.querySelector('.etiqueta-sonido');
+      if (etiqueta) etiqueta.textContent = conSonido ? 'Silenciar' : 'Activar sonido';
+    });
+  }
+
+  /* --- Carrusel (solo con más de un testimonio) ---------------------------- */
+
   const track = document.getElementById('testimonios-track');
   const prev = document.querySelector<HTMLButtonElement>('[data-carousel-prev]');
   const next = document.querySelector<HTMLButtonElement>('[data-carousel-next]');

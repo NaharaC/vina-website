@@ -1,11 +1,20 @@
 ---
+import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import ArrowButton from './ArrowButton.astro';
 import Logo from './Logo.astro';
 import { credit, footerColumns, socials } from '../data/content';
+import fachada from '../assets/img/fachada.jpg';
 ---
 
-<footer class="bg-carbon text-white">
+{/*
+  El footer monta sobre la foto de contacto con las esquinas superiores
+  redondeadas (mismos radios que el hero). El fondo va más negro que el
+  carbon de las cards para leerse como las letras oscuras del sitio.
+*/}
+<footer
+  class="relative -mt-10 rounded-t-[2rem] rounded-b-[2rem] bg-[#161616] text-white lg:rounded-t-[2.75rem] lg:rounded-b-[2.75rem]"
+>
   <div class="container-page py-12 lg:py-16">
     <div class="flex flex-wrap items-center justify-between gap-6">
       <Logo width={124} />
@@ -18,7 +27,7 @@ import { credit, footerColumns, socials } from '../data/content';
       {
         footerColumns.map((column) => (
           <nav aria-label={column.title}>
-            <h2 class="text-lg font-bold tracking-tight">{column.title}</h2>
+            <h2 class="text-lg font-semibold tracking-[-0.03em]">{column.title}</h2>
             <ul class="mt-6 flex flex-col gap-3 text-sm text-white/85">
               {column.links.map((link) => (
                 <li>
@@ -76,3 +85,71 @@ import { credit, footerColumns, socials } from '../data/content';
     </div>
   </div>
 </footer>
+
+{/*
+  Revelado final: la foto queda fija al fondo del viewport (detrás de todo,
+  el contenido la tapa con sus fondos) y este hueco al final de la página la
+  va descubriendo a medida que el footer se levanta.
+*/}
+<div class="footer-reveal-spacer h-[70vh]" aria-hidden="true"></div>
+{/*
+  La capa fija mide 85vh aunque la ventana del revelado es de 70vh: los 15vh
+  extra quedan escondidos tras el contenido y cubren la franja que destapa el
+  rebote elástico del overscroll en macOS (si no, se vería el lienzo blanco).
+*/}
+<div class="fixed inset-x-0 bottom-0 -z-10 h-[85vh] overflow-clip">
+  <Image
+    src={fachada}
+    alt=""
+    widths={[768, 1280, 1920]}
+    sizes="100vw"
+    class="footer-reveal-img absolute inset-0 size-full object-cover brightness-[0.7] contrast-[1.05] saturate-[0.55]"
+    loading="lazy"
+    decoding="async"
+  />
+  <div class="absolute inset-0 bg-black/25" aria-hidden="true"></div>
+  <div class="absolute inset-x-0 bottom-0 flex h-[70vh] items-center justify-center">
+    <div class="w-[min(55vw,400px)] px-4">
+      <Logo class="w-full text-white drop-shadow-lg" width={400} />
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  /*
+    Zoom-out del revelado: la foto parte ampliada y vuelve a escala 1 mientras
+    el hueco final entra en pantalla. El hueco (en flujo) presta su línea de
+    tiempo a la foto fija vía timeline-scope; scroll-driven animations es
+    Chrome 115+, en el resto la foto queda quieta.
+  */
+  body {
+    timeline-scope: --footer-reveal;
+  }
+
+  .footer-reveal-spacer {
+    view-timeline: --footer-reveal block;
+  }
+
+  @supports (animation-timeline: view()) {
+    .footer-reveal-img {
+      animation: footer-reveal-zoom linear both;
+      animation-timeline: --footer-reveal;
+      animation-range: entry;
+    }
+  }
+
+  @keyframes footer-reveal-zoom {
+    from {
+      transform: scale(1.18);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-reveal-img {
+      animation: none;
+    }
+  }
+</style>

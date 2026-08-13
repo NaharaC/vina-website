@@ -19,14 +19,13 @@ const heading = {
       sola columna, no aplica.
     */}
     <div class="grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
-      {/* 6.5rem = justo bajo la barra flotante (que llega a 92px), sin más aire
-          del necesario, y dejando que el bloque entero quepa en pantalla. */}
-      <div class="lg:sticky lg:top-[6.5rem] lg:self-start">
+      {/* 4rem deja el bloque bien arriba; la píldora flotante (~71px con su
+          margen) sólo asoma al subir y apenas roza el borde del título. */}
+      <div class="lg:sticky lg:top-16 lg:self-start">
         <SectionHeading
           id="compasion-titulo"
           title={heading.title}
           subtitle={heading.subtitle}
-          subtitleStyle="serif"
           class="mb-7"
         />
         <CompassionCard card={compassionFeature} feature />
@@ -44,14 +43,39 @@ const heading = {
           <SectionHeading
             title={heading.title}
             subtitle={heading.subtitle}
-            subtitleStyle="serif"
             as="p"
             class="mb-7"
           />
         </div>
 
         <div class="flex flex-col gap-10 lg:gap-12">
-          {compassionCards.map((card) => <CompassionCard card={card} />)}
+          {
+            compassionCards.map((card, index) =>
+              index < compassionCards.length - 1 ? (
+                <CompassionCard card={card} />
+              ) : (
+                <div class="lg:grid lg:items-start">
+                  {/*
+                    La última tarjeta comparte celda con un clon invisible de
+                    la tarjeta "Nosotros" en su variante normal: imagen 16/9
+                    (la misma de esta tarjeta) + su texto. Con esa altura, la
+                    columna sigue subiendo hasta que el BORDE INFERIOR de la
+                    imagen de "Nosotros" coincide con el de esta imagen, en
+                    cualquier ancho. Mismo truco que la copia del título.
+                  */}
+                  <div class="lg:col-start-1 lg:row-start-1">
+                    <CompassionCard card={card} />
+                  </div>
+                  <div
+                    class="invisible hidden lg:col-start-1 lg:row-start-1 lg:block"
+                    aria-hidden="true"
+                  >
+                    <CompassionCard card={compassionFeature} />
+                  </div>
+                </div>
+              )
+            )
+          }
         </div>
       </div>
     </div>

@@ -2,23 +2,25 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CompassionateFamily from '../components/CompassionateFamily.astro';
 import Contact from '../components/Contact.astro';
+import FamilyCollage from '../components/FamilyCollage.astro';
 import FamilyLife from '../components/FamilyLife.astro';
 import Giving from '../components/Giving.astro';
 import Hero from '../components/Hero.astro';
 import MainMeetings from '../components/MainMeetings.astro';
 import Partners from '../components/Partners.astro';
-import PropheticWord from '../components/PropheticWord.astro';
+import PropheticStatement from '../components/PropheticStatement.astro';
 import Radio from '../components/Radio.astro';
+import Stats from '../components/Stats.astro';
 import Testimonials from '../components/Testimonials.astro';
-import WelcomeVideo from '../components/WelcomeVideo.astro';
 import { site } from '../data/content';
 ---
 
-<BaseLayout title={`${site.name} — ${site.tagline}`}>
+<BaseLayout title={`${site.name} — ${site.tagline}`} heroFoto>
   <Hero />
-  <WelcomeVideo />
+  <PropheticStatement />
   <MainMeetings />
-  <PropheticWord />
+  <FamilyCollage />
+  <Stats />
   <Partners />
   <CompassionateFamily />
   <Radio />

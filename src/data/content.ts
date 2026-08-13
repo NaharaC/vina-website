@@ -16,15 +16,23 @@ import aliadoBilav from '../assets/img/aliado-bilav.png';
 import aliadoCentroMedico from '../assets/img/aliado-centro-medico.png';
 import aliadoMontealto from '../assets/img/aliado-montealto.png';
 import aliadoPuravida from '../assets/img/aliado-puravida.png';
-import aliadoPuravidaFm from '../assets/img/aliado-puravida-fm.png';
+import aliadoPuravidaFm from '../assets/img/aliado-puravida-radio.png';
 import aliadoVelos from '../assets/img/aliado-velos.png';
 import centroMedico from '../assets/img/centro-medico.jpg';
 import contactoBanderas from '../assets/img/contacto-banderas.jpg';
 import dadoresDeAmor from '../assets/img/dadores-de-amor.jpg';
 import educaMontealto from '../assets/img/educa-montealto.jpg';
-import familiaCasaOracion from '../assets/img/familia-casa-oracion.jpg';
+import familiaCasaOracion1 from '../assets/img/familia-casa-oracion-1.jpg';
+import familiaCasaOracion2 from '../assets/img/familia-casa-oracion-2.jpg';
+import familiaCasaOracion3 from '../assets/img/familia-casa-oracion-3.jpg';
+import familiaCasaOracion4 from '../assets/img/familia-casa-oracion-4.jpg';
 import familiaSalasSanidad from '../assets/img/familia-salas-sanidad.jpg';
-import familiaSentadosMesa from '../assets/img/familia-sentados-mesa.jpg';
+import familiaSalasSanidad2 from '../assets/img/familia-salas-sanidad-2.jpg';
+import familiaSalasSanidad3 from '../assets/img/familia-salas-sanidad-3.jpg';
+import familiaSalasSanidad4 from '../assets/img/familia-salas-sanidad-4.jpg';
+import familiaSentadosMesa1 from '../assets/img/familia-sentados-mesa-1.jpg';
+import familiaSentadosMesa2 from '../assets/img/familia-sentados-mesa-2.jpg';
+import familiaSentadosMesa3 from '../assets/img/familia-sentados-mesa-3.jpg';
 import heroCongregacion from '../assets/img/hero-congregacion.jpg';
 import logoCentroMedico from '../assets/img/logo-centro-medico.png';
 import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
@@ -35,8 +43,6 @@ import radioEstudio from '../assets/img/radio-estudio.jpg';
 import reunionDomingosGloria from '../assets/img/reunion-domingos-gloria.jpg';
 import reunionMiercolesPalabra from '../assets/img/reunion-miercoles-palabra.jpg';
 import reunionViernesAvivamiento from '../assets/img/reunion-viernes-avivamiento.jpg';
-import testimonioNelsonWendy from '../assets/img/testimonio-nelson-wendy.jpg';
-import testimonioNelsonWendyThumb from '../assets/img/testimonio-nelson-wendy-thumb.jpg';
 import videoPoster from '../assets/img/video-poster.jpg';
 
 export const logo = { src: logoVinapm, alt: 'Iglesia viñapm' };
@@ -175,48 +181,87 @@ export const welcome = {
 
 /* --- Reuniones principales ------------------------------------------------- */
 
-export type MeetingMeta = { icon: string; label: string };
+/** Canal donde se transmiten las reuniones en vivo. */
+export const youtubeChannel = 'https://www.youtube.com/@lavinatvpmontt';
+
+/** Búsqueda en Google Maps con la dirección de la iglesia. */
+export const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${organization.streetAddress}, ${organization.addressLocality}`
+)}`;
+
+/**
+ * Cada forma de participar dice su canal completo ("En línea por Zoom", no
+ * solo "Zoom"): así se entiende de una lectura y no se confunde con las otras.
+ */
+export type MeetingWay = {
+  icon: string;
+  label: string;
+  href?: string;
+  external?: boolean;
+  /** aclaración corta, cuando la opción tiene letra chica */
+  note?: string;
+};
 
 export type Meeting = {
   title: string;
   subtitle: string;
+  time: string;
   image: ImageMetadata;
   alt: string;
-  meta: MeetingMeta[];
+  ways: MeetingWay[];
 };
 
 export const meetings: Meeting[] = [
   {
     title: 'Miércoles de palabra',
     subtitle: 'Desde casa y sin excusa',
+    time: '20:00 hrs',
     image: reunionMiercolesPalabra,
     alt: 'Biblia abierta durante el estudio de la palabra',
-    meta: [
-      { icon: 'lucide:clock', label: '20:00 hrs' },
-      { icon: 'lucide:video', label: 'Zoom' },
-      { icon: 'lucide:youtube', label: 'Transmisión Online' },
+    ways: [
+      {
+        icon: 'lucide:video',
+        label: 'En línea por Zoom',
+        // el enlace cambia cada semana: lo pedimos por WhatsApp
+        href: whatsappHref('Hola, quiero el enlace de Zoom del miércoles'),
+        external: true,
+        note: 'Obtén el enlace por los grupos de WhatsApp',
+      },
+      { icon: 'lucide:youtube', label: 'En vivo por YouTube', href: youtubeChannel, external: true },
     ],
   },
   {
     title: 'Viernes de Avivamiento',
     subtitle: '',
+    time: '19:30 hrs',
     image: reunionViernesAvivamiento,
     alt: 'Persona adorando con un lienzo durante la reunión de avivamiento',
-    meta: [
-      { icon: 'lucide:clock', label: '19:30 hrs' },
-      { icon: 'lucide:user', label: 'Presencial' },
-      { icon: 'lucide:youtube', label: 'Transmisión Online' },
+    ways: [
+      {
+        icon: 'lucide:map-pin',
+        label: 'Presencial',
+        href: mapsHref,
+        external: true,
+        note: organization.streetAddress,
+      },
+      { icon: 'lucide:youtube', label: 'En vivo por YouTube', href: youtubeChannel, external: true },
     ],
   },
   {
     title: 'Domingos de Gloria',
     subtitle: 'Reunión general',
+    time: '10:30 hrs',
     image: reunionDomingosGloria,
     alt: 'Manos levantadas en adoración durante la reunión general',
-    meta: [
-      { icon: 'lucide:clock', label: '10:30 hrs' },
-      { icon: 'lucide:user', label: 'Presencial' },
-      { icon: 'lucide:youtube', label: 'Transmisión Online' },
+    ways: [
+      {
+        icon: 'lucide:map-pin',
+        label: 'Presencial',
+        href: mapsHref,
+        external: true,
+        note: organization.streetAddress,
+      },
+      { icon: 'lucide:youtube', label: 'En vivo por YouTube', href: youtubeChannel, external: true },
     ],
   },
 ];
@@ -229,16 +274,26 @@ export const propheticWord = {
   source: 'Palabra Profética 2026',
 };
 
-export type Stat = { value: string; label: string };
+/** `caption` va arriba en versalitas y `description` matiza la cifra. */
+export type Stat = { caption: string; value: string; description?: string };
 
 export const stats: Stat[] = [
-  { value: '25+', label: 'años de iglesia' },
+  { caption: 'Años de iglesia', value: '25+' },
   {
+    caption: 'Atenciones médicas',
     value: '12.000+',
-    label: 'atenciones médicas a la fecha. A todos se les ha predicado de Jesús',
+    description: 'A la fecha. A todos se les ha predicado de Jesús',
   },
-  { value: 'Cientos', label: 'niños creciendo con educación de calidad y valores cristianos' },
-  { value: 'Miles', label: 'familias alcanzadas a través de nuestros proyectos sociales' },
+  {
+    caption: 'Niños en educación',
+    value: '100+',
+    description: 'Creciendo con educación de calidad y valores cristianos',
+  },
+  {
+    caption: 'Familias alcanzadas',
+    value: '1.000+',
+    description: 'A través de nuestros proyectos sociales',
+  },
 ];
 
 /* --- Aliados --------------------------------------------------------------- */
@@ -275,8 +330,7 @@ export const compassionFeature: CompassionCard = {
   alt: 'Congregación con las manos levantadas en adoración',
   overlayLogo: logoVinapm,
   overlayLogoAlt: 'Iglesia viñapm',
-  /** TODO: destino de "Nosotros". */
-  href: '',
+  href: '/nosotros',
 };
 
 export const compassionCards: CompassionCard[] = [
@@ -288,8 +342,7 @@ export const compassionCards: CompassionCard[] = [
     alt: 'Profesional de la salud atendiendo a un paciente',
     overlayLogo: logoCentroMedico,
     overlayLogoAlt: 'Centro Médico viñapm',
-    /** TODO: web o Instagram del Centro Médico. */
-    href: '',
+    href: 'https://cm.vinapm.cl/',
     external: true,
   },
   {
@@ -300,8 +353,7 @@ export const compassionCards: CompassionCard[] = [
     alt: 'Estudiante orando en una actividad del colegio',
     overlayLogo: logoEducaMontealto,
     overlayLogoAlt: 'Educa Montealto',
-    /** TODO: web o Instagram de Educa Montealto. */
-    href: '',
+    href: 'https://www.instagram.com/educamontealto/',
     external: true,
   },
   {
@@ -351,47 +403,51 @@ export type FamilyActivity = {
   title: string;
   when: string;
   times: string[];
-  image: ImageMetadata;
+  /** varias fotos por actividad: van pasando en columna junto a la lista */
+  images: ImageMetadata[];
   alt: string;
 };
 
 export const familyLife = {
   title: 'Vida en Familia',
   description: 'Instancias en el mes para crecer, servir y caminar juntos.',
+  cta: { label: 'Ver todas las actividades', href: '/actividades' },
   activities: [
     {
       title: 'Sentados a la mesa',
       when: 'Primer domingo de cada mes',
       times: ['18:00 hrs'],
-      image: familiaSentadosMesa,
-      alt: 'Manos sosteniendo la copa de la santa cena',
+      images: [familiaSentadosMesa1, familiaSentadosMesa2, familiaSentadosMesa3],
+      alt: 'Compartiendo sentados a la mesa',
     },
     {
       title: 'Salas de Sanidad',
       when: 'A confirmar cada mes',
       times: ['18:00 hrs'],
-      image: familiaSalasSanidad,
+      images: [familiaSalasSanidad, familiaSalasSanidad2, familiaSalasSanidad3, familiaSalasSanidad4],
       alt: 'Personas orando unas por otras',
     },
     {
       title: 'Casa de Oración',
       when: 'Último fin de semana de cada mes',
       times: ['12:00 hrs / Vie', '12:00 hrs / Sáb'],
-      image: familiaCasaOracion,
-      alt: 'Persona de rodillas orando',
+      images: [familiaCasaOracion1, familiaCasaOracion2, familiaCasaOracion3, familiaCasaOracion4],
+      alt: 'Momentos de oración en comunidad',
     },
   ] satisfies FamilyActivity[],
 };
 
 /* --- Testimonios ----------------------------------------------------------- */
 
+/**
+ * Los testimonios son videos: parten en silencio y el visitante decide si
+ * activa el audio. Las rutas apuntan a `public/videos`.
+ */
 export type Testimonial = {
   name: string;
-  quote: string;
-  poster: ImageMetadata;
-  posterAlt: string;
-  thumb: ImageMetadata;
-  thumbAlt: string;
+  video: string;
+  poster: string;
+  alt: string;
 };
 
 export const testimonialsIntro = {
@@ -402,13 +458,10 @@ export const testimonialsIntro = {
 
 export const testimonials: Testimonial[] = [
   {
-    name: 'Nelson Morillo y Wendy',
-    /** TODO: cita real del testimonio. */
-    quote: '',
-    poster: testimonioNelsonWendy,
-    posterAlt: 'Wendy contando su testimonio',
-    thumb: testimonioNelsonWendyThumb,
-    thumbAlt: 'Nelson y Wendy conversando',
+    name: 'Andrea',
+    video: '/videos/testimonio-andrea.mp4',
+    poster: '/videos/testimonio-andrea-poster.jpg',
+    alt: 'Andrea contando su testimonio',
   },
 ];
 
@@ -424,7 +477,8 @@ export const giving = {
 /* --- Contacto -------------------------------------------------------------- */
 
 export const contact = {
-  title: 'Contáctanos',
+  /** se compone una palabra por línea, como la referencia */
+  title: 'Contáctate con nosotros',
   description: 'Si necesitas oración o mayor información',
   action: {
     label: 'Enviar mensaje',

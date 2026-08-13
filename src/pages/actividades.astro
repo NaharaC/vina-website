@@ -1,0 +1,1192 @@
+---
+import { getImage } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import ArrowButton from '../components/ArrowButton.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { agruparPorMes, fechaDe, obtenerActividades } from '../lib/actividades';
+import { site, whatsappHref } from '../data/content';
+
+const { actividades: crudas, desdeRespaldo } = await obtenerActividades();
+
+/*
+  Las fotos que vienen de Notion apuntan a S3 con una firma que caduca. Aquí
+  se descargan y se emiten como imagen propia del sitio, para que sigan
+  viéndose mucho después de la publicación. Si alguna falla, la actividad se
+  queda sin foto en vez de tumbar el build.
+*/
+const actividades = await Promise.all(
+  crudas.map(async (actividad) => {
+    if (!actividad.foto) return actividad;
+    try {
+      const imagen = await getImage({
+        src: actividad.foto,
+        inferSize: true,
+        width: 720,
+        format: 'webp',
+      });
+      /*
+        Las medidas viajan junto a la foto: el panel las usa para darle al
+        marco la proporción de cada imagen (las de Notion vienen verticales,
+        cuadradas y apaisadas) y para reservarle el sitio antes de que cargue.
+      */
+      return {
+        ...actividad,
+        foto: imagen.src,
+        ancho: imagen.attributes.width,
+        alto: imagen.attributes.height,
+      };
+    } catch (error) {
+      console.warn(`[actividades] no pude procesar la foto de «${actividad.nombre}»:`, error);
+      return { ...actividad, foto: undefined };
+    }
+  })
+);
+
+const meses = agruparPorMes(actividades);
+
+const contactHref = whatsappHref('Hola, quiero saber más de las actividades') || '/#contacto';
+
+/*
+  Suscripción al calendario completo: Google (y Apple y Outlook) leen el .ics
+  cada tanto, así que quien se suscribe recibe las actividades nuevas sin
+  volver a la web. `webcal://` es lo que hace que el sistema lo tome como
+  calendario y no como descarga.
+*/
+const dominio = Astro.site?.host ?? 'iglesiavinapm.cl';
+const feed = `webcal://${dominio}/actividades.ics`;
+const suscribirGoogle = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(feed)}`;
+
+// 24 horas, como los horarios del resto de la web
+const hora = (iso: string) =>
+  new Date(iso).toLocaleTimeString('es-CL', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+/*
+  Hay actividades que se pasan de la medianoche: la Casa de Oración empieza el
+  viernes a las 13:00 y termina el sábado a la misma hora. Sin decirlo, el
+  horario quedaba en «13:00 – 13:00» y no se entendía nada.
+*/
+const cruzaDias = (actividad: { inicio: string; fin?: string }) =>
+  Boolean(actividad.fin) &&
+  fechaDe(actividad.inicio).toDateString() !== fechaDe(actividad.fin!).toDateString();
+
+const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { weekday: 'long' });
+---
+
+<BaseLayout
+  title={`Actividades — ${site.name}`}
+  description="Calendario de actividades de Iglesia Viña Puerto Montt: reuniones de redes, ensayos y eventos."
+>
+  <section class="pt-28 pb-8 lg:pt-32 lg:pb-10" aria-labelledby="actividades-titulo">
+    <div class="container-page">
+      <p class="eyebrow">Iglesia en movimiento</p>
+      <h1
+        id="actividades-titulo"
+        class="mt-4 leading-[0.92] font-semibold tracking-[-0.045em] text-balance text-ink"
+        style="font-size: clamp(2rem, 1rem + 3.4vw, 3.5rem)"
+      >
+        Calendario de Actividades
+      </h1>
+      <p class="subtitle-lg mt-5 max-w-xl">
+        Permanece conectado y participa de todo lo que realizamos como iglesia
+      </p>
+
+      <div class="mt-7 flex flex-wrap items-center gap-3">
+        <a
+          href={suscribirGoogle}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="group inline-flex items-center gap-3 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-carbon"
+        >
+          <Icon name="lucide:calendar-plus" width={18} height={18} aria-hidden="true" />
+          Suscribirme en Google Calendar
+          <span class="sr-only">(se abre en una ventana nueva)</span>
+        </a>
+
+        <a
+          href="/actividades.ics"
+          class="inline-flex items-center gap-2.5 rounded-full bg-mist px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-ink/10"
+        >
+          <Icon name="lucide:download" width={18} height={18} aria-hidden="true" />
+          Apple o Outlook
+        </a>
+      </div>
+
+      <p class="mt-3 text-xs text-muted">
+        Agrega las actividades a tu calendario personal y no te pierdas de nada
+      </p>
+    </div>
+  </section>
+
+  <section class="pb-24 lg:pb-32" aria-label="Calendario de actividades">
+    <div class="container-page">
+      {/*
+        Los datos viajan como JSON y el calendario se dibuja en el navegador:
+        así se puede navegar entre meses sin recargar. Si no hay JavaScript
+        queda la agenda de más abajo, que sí viene renderizada del servidor.
+      */}
+      <script type="application/json" id="datos-actividades" set:html={JSON.stringify(actividades)} />
+
+      <div id="cal-barra" class="hidden flex-wrap items-center justify-between gap-4 border-t border-ink/15 pt-6">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="cal-antes"
+            class="grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-mist"
+          >
+            <span class="sr-only">Periodo anterior</span>
+            <Icon name="lucide:chevron-left" width={20} height={20} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            id="cal-despues"
+            class="grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-mist"
+          >
+            <span class="sr-only">Periodo siguiente</span>
+            <Icon name="lucide:chevron-right" width={20} height={20} aria-hidden="true" />
+          </button>
+
+          <h2 id="cal-titulo" class="heading-md ml-2 text-ink first-letter:uppercase" aria-live="polite"></h2>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="cal-hoy"
+            class="rounded-full px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-mist"
+          >
+            Hoy
+          </button>
+
+          {/* selector de vista */}
+          <div class="flex rounded-full bg-mist p-1" role="group" aria-label="Vista del calendario">
+            <button
+              type="button"
+              data-vista="mes"
+              class="cal-vista rounded-full px-4 py-2 text-sm font-semibold text-ink transition-colors"
+              aria-pressed="true"
+            >
+              Mes
+            </button>
+            <button
+              type="button"
+              data-vista="semana"
+              class="cal-vista rounded-full px-4 py-2 text-sm font-semibold text-ink transition-colors"
+              aria-pressed="false"
+            >
+              Semana
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-10">
+        <div id="cal" class="hidden"></div>
+
+        {/* detalle de la actividad elegida */}
+        {/*
+          En pantalla grande el panel queda fijo mientras se navega el
+          calendario. Se le limita el alto a lo que se ve: con una foto muy
+          alta, antes los datos y los botones quedaban debajo del borde de la
+          pantalla y no había cómo llegar a ellos.
+        */}
+        <aside
+          id="cal-detalle"
+          class="mt-6 hidden lg:sticky lg:top-24 lg:mt-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"
+          aria-live="polite"
+        >
+        </aside>
+      </div>
+
+      {/* Agenda: es lo que se ve sin JavaScript, y el respaldo si algo falla */}
+      <div id="agenda" class="flex flex-col gap-16 lg:gap-20">
+        {
+          meses.length === 0 && (
+            <p class="subtitle-lg border-t border-ink/15 pt-10">
+              Por ahora no hay actividades agendadas. Vuelve pronto o escríbenos.
+            </p>
+          )
+        }
+
+        {
+          meses.map((mes) => (
+            <div>
+              <h2 class="heading-lg text-ink first-letter:uppercase">{mes.titulo}</h2>
+
+              <ul class="mt-4">
+                {mes.actividades.map((actividad) => (
+                  <li class="border-t border-ink/15">
+                    <div class="flex flex-col gap-4 py-6 sm:flex-row sm:items-baseline sm:gap-10">
+                      <div class="flex shrink-0 items-baseline gap-3 sm:w-28 sm:flex-col sm:gap-0">
+                        <span class="text-[2.5rem] leading-none font-semibold tracking-[-0.04em] text-ink">
+                          {fechaDe(actividad.inicio).toLocaleDateString('es-CL', { day: '2-digit' })}
+                        </span>
+                        <span class="eyebrow sm:mt-2">
+                          {fechaDe(actividad.inicio)
+                            .toLocaleDateString('es-CL', { weekday: 'short' })
+                            .replace('.', '')}
+                        </span>
+                      </div>
+
+                      <div class="min-w-0 flex-1">
+                        <h3 class="heading-md text-ink">{actividad.nombre}</h3>
+
+                        <ul class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted sm:text-[0.9375rem]">
+                          {!actividad.todoElDia && (
+                            <li class="flex items-center gap-2">
+                              <Icon name="lucide:clock" width={16} height={16} aria-hidden="true" />
+                              <span>
+                                {hora(actividad.inicio)}
+                                {actividad.fin &&
+                                  (cruzaDias(actividad)
+                                    ? ` → ${hora(actividad.fin)} del ${diaLargo(actividad.fin)}`
+                                    : ` – ${hora(actividad.fin)}`)}
+                              </span>
+                            </li>
+                          )}
+                          {actividad.todoElDia && cruzaDias(actividad) && (
+                            <li class="flex items-center gap-2">
+                              <Icon name="lucide:calendar" width={16} height={16} aria-hidden="true" />
+                              <span>
+                                hasta el{' '}
+                                {fechaDe(actividad.fin!).toLocaleDateString('es-CL', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                })}
+                              </span>
+                            </li>
+                          )}
+                          {actividad.ubicacion && (
+                            <li class="flex items-center gap-2">
+                              <Icon name="lucide:map-pin" width={16} height={16} aria-hidden="true" />
+                              <span>{actividad.ubicacion}</span>
+                            </li>
+                          )}
+                          {actividad.red && (
+                            <li class="flex items-center gap-2">
+                              <Icon name="lucide:users" width={16} height={16} aria-hidden="true" />
+                              <span>{actividad.red}</span>
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="mt-20 rounded-[2rem] bg-mist px-8 py-12 text-center lg:rounded-[2.75rem] lg:px-16 lg:py-16">
+        <h2 class="heading-lg mx-auto max-w-xl text-ink">¿Quieres ser parte?</h2>
+        <p class="subtitle-lg mx-auto mt-4 max-w-md">
+          Escríbenos y te contamos cómo sumarte a la actividad que te interese.
+        </p>
+
+        <div class="mt-8 flex justify-center">
+          <ArrowButton
+            label="Contactar"
+            href={contactHref}
+            external={contactHref.startsWith('http')}
+            variant="accent"
+            size="md"
+          />
+        </div>
+      </div>
+
+      {
+        desdeRespaldo && (
+          <p class="mt-8 text-center text-xs text-muted">
+            Vista previa con datos de ejemplo — falta conectar la base de Notion.
+          </p>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+{/*
+  Global y acotado a #cal a propósito: las celdas y los chips los crea el
+  script en el navegador, así que no llevan el atributo de estilos con ámbito
+  que Astro pone en el marcado de la plantilla.
+*/}
+<style is:global>
+  #cal .cal-chip {
+    background-color: var(--color-mist);
+    color: var(--color-ink);
+    transition: background-color 150ms ease;
+  }
+
+  #cal .cal-chip:hover {
+    background-color: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  }
+
+  /* la actividad abierta en el panel manda sobre el hover */
+  #cal .cal-chip[aria-current='true'],
+  #cal .cal-chip[aria-current='true']:hover {
+    background-color: var(--color-ink);
+    color: white;
+  }
+
+  /*
+    En una celda de teléfono no cabe ni la hora, así que cada actividad se
+    reduce a un punto. El botón conserva 24px para que se pueda tocar sin
+    apuntar fino; el punto es solo la parte que se ve. Solo aplica a la vista
+    de mes: la de semana se desplaza en horizontal y ahí sí cabe el texto.
+  */
+  @media (max-width: 39.9375rem) {
+    #cal[data-vista='mes'] .cal-chip {
+      display: grid;
+      place-items: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      padding: 0;
+      font-size: 0;
+    }
+
+    #cal[data-vista='mes'] .cal-chip,
+    #cal[data-vista='mes'] .cal-chip:hover,
+    #cal[data-vista='mes'] .cal-chip[aria-current='true'] {
+      background-color: transparent;
+    }
+
+    #cal[data-vista='mes'] .cal-chip::before {
+      content: '';
+      width: 0.625rem;
+      height: 0.625rem;
+      border-radius: 9999px;
+      background-color: color-mix(in srgb, var(--color-ink) 40%, transparent);
+    }
+
+    #cal[data-vista='mes'] .cal-chip[aria-current='true']::before {
+      background-color: var(--color-ink);
+    }
+  }
+
+  /* Bloques de la vista semanal: van sobre la rejilla de horas */
+  #cal .cal-bloque {
+    background-color: color-mix(in srgb, var(--color-ink) 8%, white);
+    border-left: 3px solid color-mix(in srgb, var(--color-ink) 45%, transparent);
+    color: var(--color-ink);
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  #cal .cal-bloque:hover {
+    background-color: color-mix(in srgb, var(--color-ink) 14%, white);
+  }
+
+  #cal .cal-bloque[aria-current='true'],
+  #cal .cal-bloque[aria-current='true']:hover {
+    background-color: var(--color-ink);
+    border-left-color: var(--color-accent);
+    color: white;
+  }
+</style>
+
+<script>
+  type Actividad = {
+    nombre: string;
+    inicio: string;
+    fin?: string;
+    todoElDia: boolean;
+    ubicacion?: string;
+    red?: string;
+    url?: string;
+    foto?: string;
+    /** medidas de la foto ya procesada, para darle su forma al marco */
+    ancho?: number;
+    alto?: number;
+  };
+
+  const fuente = document.getElementById('datos-actividades');
+  const cal = document.getElementById('cal');
+  const barra = document.getElementById('cal-barra');
+  const agenda = document.getElementById('agenda');
+  const panel = document.getElementById('cal-detalle');
+  const titulo = document.getElementById('cal-titulo');
+
+  if (fuente && cal && barra && agenda && panel && titulo) {
+    const actividades: Actividad[] = JSON.parse(fuente.textContent || '[]');
+
+    /* --- utilidades de fecha ---------------------------------------------- */
+
+    /** Clave YYYY-MM-DD en hora local (no UTC: si no, los eventos saltan de día). */
+    const clave = (fecha: Date) =>
+      `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(
+        fecha.getDate()
+      ).padStart(2, '0')}`;
+
+    /**
+     * Igual que `fechaDe` del servidor: las actividades de todo el día vienen
+     * como `YYYY-MM-DD` y `new Date` las lee en UTC, lo que en Chile las
+     * corría al día anterior.
+     */
+    const fechaDe = (iso: string) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return new Date(iso);
+      const [anio, mes, dia] = iso.split('-').map(Number);
+      return new Date(anio, mes - 1, dia);
+    };
+
+    /** La semana empieza el lunes, como los calendarios de acá. */
+    const lunesDe = (fecha: Date) => {
+      const d = new Date(fecha);
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+      return d;
+    };
+
+    const sumarDias = (fecha: Date, dias: number) => {
+      const d = new Date(fecha);
+      d.setDate(d.getDate() + dias);
+      return d;
+    };
+
+    const hora = (iso: string) =>
+      new Date(iso).toLocaleTimeString('es-CL', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+    const diaCorto = (fecha: Date) =>
+      fecha.toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+
+    /** «viernes 28 → sábado 29 de agosto», sin repetir el mes si es el mismo. */
+    const rangoFechas = (inicio: Date, fin: Date) => {
+      const mismoMes =
+        inicio.getMonth() === fin.getMonth() && inicio.getFullYear() === fin.getFullYear();
+      if (!mismoMes) return `${fechaLarga(inicio)} → ${fechaLarga(fin)}`;
+      const dia = (f: Date) => `${f.toLocaleDateString('es-CL', { weekday: 'long' })} ${f.getDate()}`;
+      return `${dia(inicio)} → ${dia(fin)} de ${fin.toLocaleDateString('es-CL', { month: 'long' })}`;
+    };
+
+    const fechaLarga = (fecha: Date) =>
+      fecha.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    /**
+     * Último día que ocupa la actividad. Importa para las que se pasan de la
+     * medianoche, como la Casa de Oración: empieza el viernes a las 13:00 y
+     * termina el sábado a la misma hora.
+     */
+    const ultimoDia = (actividad: Actividad) => {
+      const inicio = fechaDe(actividad.inicio);
+      if (!actividad.fin) return inicio;
+      const fin = fechaDe(actividad.fin);
+      if (fin <= inicio) return inicio;
+      // terminar justo a medianoche es cerrar el día anterior, no ocupar otro
+      if (!actividad.todoElDia && fin.getHours() === 0 && fin.getMinutes() === 0) {
+        return new Date(fin.getTime() - 1);
+      }
+      return fin;
+    };
+
+    const cruzaDias = (actividad: Actividad) =>
+      clave(fechaDe(actividad.inicio)) !== clave(ultimoDia(actividad));
+
+    /* --- índice por día ---------------------------------------------------- */
+
+    const porDia = new Map<string, Actividad[]>();
+    for (const actividad of actividades) {
+      const dia = fechaDe(actividad.inicio);
+      dia.setHours(0, 0, 0, 0);
+      const ultimo = ultimoDia(actividad);
+
+      // la que cruza la medianoche se anota en todos los días que ocupa
+      for (let i = 0; i < 366 && dia <= ultimo; i++) {
+        const k = clave(dia);
+        if (!porDia.has(k)) porDia.set(k, []);
+        porDia.get(k)!.push(actividad);
+        dia.setDate(dia.getDate() + 1);
+      }
+    }
+
+    /* --- estado ------------------------------------------------------------ */
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    let vista: 'mes' | 'semana' = 'mes';
+    // si este mes no tiene nada, partimos donde está la próxima actividad
+    let ancla = (() => {
+      const hayEsteMes = actividades.some((a) => {
+        const d = fechaDe(a.inicio);
+        return d.getFullYear() === hoy.getFullYear() && d.getMonth() === hoy.getMonth();
+      });
+      if (hayEsteMes || actividades.length === 0) return new Date(hoy);
+      return fechaDe(actividades[0].inicio);
+    })();
+    let elegida: Actividad | null = null;
+
+    /* --- pintado ----------------------------------------------------------- */
+
+    /** Cuándo pasa una actividad, en una línea. Va en el `title` y en la barra. */
+    const cuando = (actividad: Actividad) => {
+      const inicio = fechaDe(actividad.inicio);
+      if (actividad.todoElDia) {
+        return cruzaDias(actividad)
+          ? `${fechaLarga(inicio)} → ${fechaLarga(ultimoDia(actividad))}`
+          : fechaLarga(inicio);
+      }
+      if (!actividad.fin) return `${fechaLarga(inicio)}, ${hora(actividad.inicio)}`;
+      const fin = fechaDe(actividad.fin);
+      return cruzaDias(actividad)
+        ? `${fechaLarga(inicio)}, ${hora(actividad.inicio)} → ${fechaLarga(fin)}, ${hora(actividad.fin)}`
+        : `${fechaLarga(inicio)}, ${hora(actividad.inicio)} – ${hora(actividad.fin)}`;
+    };
+
+    /**
+     * Actividad como etiqueta: en las celdas del mes y en la fila de arriba de
+     * la semana. Ahí el nombre se muestra completo porque la fila es ancha; en
+     * el mes hay que apretarlo.
+     */
+    const chip = (
+      actividad: Actividad,
+      indice: number,
+      opciones: { dia?: Date; texto?: string } = {}
+    ) => {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.dataset.indice = String(indice);
+      // los colores viven en CSS: así el estado elegido gana también al hover
+      boton.className =
+        'cal-chip block w-full truncate rounded-md px-1.5 py-1 text-left text-[0.6875rem] sm:px-2 sm:text-xs';
+
+      /*
+        En una celda de móvil no cabe el nombre (quedaba "1..."), así que ahí
+        se muestra solo la hora —o un punto si dura todo el día— y el nombre
+        aparece al abrir el detalle.
+      */
+      if (opciones.texto !== undefined) {
+        boton.textContent = opciones.texto;
+      } else {
+        // en los días siguientes de una actividad que sigue, una flecha
+        const sigue =
+          opciones.dia && clave(opciones.dia) !== clave(fechaDe(actividad.inicio));
+
+        const marca = document.createElement('span');
+        marca.textContent = sigue ? '→' : actividad.todoElDia ? '•' : hora(actividad.inicio);
+
+        const nombre = document.createElement('span');
+        nombre.className = 'hidden sm:inline';
+        nombre.textContent = ` ${actividad.nombre}`;
+
+        boton.append(marca, nombre);
+      }
+
+      boton.title = `${actividad.nombre} · ${cuando(actividad)}`;
+      // pulsar la actividad ya abierta la cierra
+      boton.addEventListener('click', () =>
+        elegida === actividad ? cerrar() : seleccionar(actividad)
+      );
+      return boton;
+    };
+
+    const celda = (dia: Date, delMes: boolean, alto: string) => {
+      const div = document.createElement('div');
+      div.className = `flex flex-col border-t border-ink/10 p-1 sm:p-2 ${alto}`;
+
+      const esHoy = clave(dia) === clave(hoy);
+      const numero = document.createElement('span');
+      numero.className = esHoy
+        ? 'grid size-6 place-items-center rounded-full bg-ink text-xs font-semibold text-white sm:size-7'
+        : `px-1 text-xs font-semibold ${delMes ? 'text-ink' : 'text-muted/50'}`;
+      numero.textContent = String(dia.getDate());
+      div.appendChild(numero);
+
+      // en móvil las actividades se apilan en fila (son puntos); desde sm, en columna
+      const lista = document.createElement('div');
+      lista.className = 'mt-1 flex flex-wrap items-center gap-1 sm:flex-col sm:items-stretch';
+      for (const actividad of porDia.get(clave(dia)) ?? []) {
+        lista.appendChild(chip(actividad, actividades.indexOf(actividad), { dia }));
+      }
+      div.appendChild(lista);
+
+      return div;
+    };
+
+    const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+    const cabecera = () => {
+      const fila = document.createElement('div');
+      fila.className = 'grid grid-cols-7';
+      for (const dia of DIAS) {
+        const c = document.createElement('div');
+        c.className = 'eyebrow px-2 pb-2';
+        c.textContent = dia;
+        fila.appendChild(c);
+      }
+      return fila;
+    };
+
+    /* --- vista de semana, con horas ---------------------------------------- */
+
+    /** Alto de una hora en la rejilla, en píxeles. */
+    const ALTO_HORA = 56;
+    /** Franja que se muestra siempre, aunque no haya nada a esas horas. */
+    const HORA_MIN = 8 * 60;
+    const HORA_MAX = 22 * 60;
+    /*
+      Ancho del canal de horas; el mismo en la cabecera, para que cuadre. Va
+      pegado a la izquierda porque en móvil la semana se desplaza en
+      horizontal y las horas tienen que seguir a la vista.
+    */
+    const CANAL = 'sticky left-0 z-20 w-12 shrink-0 bg-white sm:w-14';
+
+    const minutosDe = (fecha: Date) => fecha.getHours() * 60 + fecha.getMinutes();
+
+    /**
+     * Minutos de inicio y término dentro de su día. Sin hora de término damos
+     * una hora; si la actividad se pasa de medianoche, se corta ahí (el resto
+     * ya se ve en el día siguiente).
+     */
+    const tramo = (actividad: Actividad) => {
+      const inicio = fechaDe(actividad.inicio);
+      const fin = actividad.fin ? fechaDe(actividad.fin) : new Date(inicio.getTime() + 3600000);
+      const desde = minutosDe(inicio);
+      const hasta = clave(fin) === clave(inicio) ? minutosDe(fin) : 24 * 60;
+      return { desde, hasta: Math.max(hasta, desde + 30) };
+    };
+
+    /*
+      A la rejilla de horas solo van las actividades que empiezan y terminan
+      el mismo día. Las de todo el día y las que se pasan de la medianoche van
+      a la fila de arriba, como una barra que abarca sus días: en la rejilla
+      obligarían a dibujar la noche entera para nada.
+    */
+    const enBarra = (actividad: Actividad) => actividad.todoElDia || cruzaDias(actividad);
+
+    const conHora = (dia: Date) => (porDia.get(clave(dia)) ?? []).filter((a) => !enBarra(a));
+
+    /** Barras de la fila de arriba, con la columna donde empiezan y cuánto abarcan. */
+    const barrasDe = (dias: Date[]) => {
+      const vistas = new Set<Actividad>();
+      const barras: { actividad: Actividad; desde: number; abarca: number }[] = [];
+
+      // los días que caen fuera de la semana se recortan a sus bordes
+      const columnaDe = (fecha: Date) =>
+        Math.round(
+          (new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()).getTime() -
+            dias[0].getTime()) /
+            86400000
+        );
+
+      for (const dia of dias) {
+        for (const actividad of porDia.get(clave(dia)) ?? []) {
+          if (!enBarra(actividad) || vistas.has(actividad)) continue;
+          vistas.add(actividad);
+          const desde = Math.max(0, columnaDe(fechaDe(actividad.inicio)));
+          const hasta = Math.min(6, columnaDe(ultimoDia(actividad)));
+          barras.push({ actividad, desde, abarca: hasta - desde + 1 });
+        }
+      }
+
+      return barras.sort((a, b) => a.desde - b.desde || b.abarca - a.abarca);
+    };
+
+    /** Texto de la barra: el nombre y, si tiene hora, hasta cuándo va. */
+    const textoBarra = (actividad: Actividad) => {
+      if (actividad.todoElDia || !actividad.fin) return actividad.nombre;
+      const fin = fechaDe(actividad.fin);
+      return `${actividad.nombre} · ${hora(actividad.inicio)} → ${diaCorto(fin)} ${hora(actividad.fin)}`;
+    };
+
+    /** Franja horaria que hay que dibujar: la de siempre más lo que se salga. */
+    const franja = (dias: Date[]) => {
+      let desde = HORA_MIN;
+      let hasta = HORA_MAX;
+      for (const dia of dias) {
+        for (const actividad of conHora(dia)) {
+          const t = tramo(actividad);
+          desde = Math.min(desde, t.desde);
+          hasta = Math.max(hasta, t.hasta);
+        }
+      }
+      return {
+        desde: Math.max(0, Math.floor(desde / 60) * 60),
+        hasta: Math.min(24 * 60, Math.ceil(hasta / 60) * 60),
+      };
+    };
+
+    /**
+     * Reparte en carriles las actividades que se pisan en el tiempo, para que
+     * dos reuniones a la misma hora se vean lado a lado y no una encima de la
+     * otra.
+     */
+    const carriles = (lista: Actividad[]) => {
+      const items = lista
+        .map((actividad) => ({ actividad, ...tramo(actividad), carril: 0, total: 1 }))
+        .sort((a, b) => a.desde - b.desde || a.hasta - b.hasta);
+
+      let grupo: typeof items = [];
+      let limite = -1;
+
+      const cerrarGrupo = () => {
+        const finales: number[] = [];
+        for (const item of grupo) {
+          const libre = finales.findIndex((fin) => fin <= item.desde);
+          item.carril = libre === -1 ? finales.length : libre;
+          finales[item.carril] = item.hasta;
+        }
+        for (const item of grupo) item.total = finales.length;
+        grupo = [];
+        limite = -1;
+      };
+
+      for (const item of items) {
+        if (grupo.length && item.desde >= limite) cerrarGrupo();
+        grupo.push(item);
+        limite = Math.max(limite, item.hasta);
+      }
+      if (grupo.length) cerrarGrupo();
+
+      return items;
+    };
+
+    const bloque = (item: ReturnType<typeof carriles>[number], inicioFranja: number) => {
+      const { actividad } = item;
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.dataset.indice = String(actividades.indexOf(actividad));
+      // flex-col porque el navegador centra en vertical el contenido de un
+      // botón con alto fijo, y aquí el texto va arriba, junto a su hora
+      boton.className =
+        'cal-bloque absolute flex flex-col overflow-hidden rounded-md px-1.5 py-1 text-left text-[0.6875rem] leading-tight sm:px-2 sm:text-xs';
+
+      const alto = Math.max(24, ((item.hasta - item.desde) / 60) * ALTO_HORA - 2);
+      boton.style.top = `${((item.desde - inicioFranja) / 60) * ALTO_HORA}px`;
+      boton.style.height = `${alto}px`;
+
+      // los carriles reparten el ancho de la columna entre las que se pisan
+      const ancho = 100 / item.total;
+      boton.style.left = `calc(${item.carril * ancho}% + 1px)`;
+      boton.style.width = `calc(${ancho}% - 2px)`;
+
+      const nombre = document.createElement('span');
+      nombre.className = 'block truncate font-semibold';
+      nombre.textContent = actividad.nombre;
+      boton.appendChild(nombre);
+
+      // la hora solo si el bloque da para dos líneas; si no, estorba
+      if (alto >= 38) {
+        const cuando = document.createElement('span');
+        cuando.className = 'block truncate opacity-70';
+        cuando.textContent = `${hora(actividad.inicio)}${actividad.fin ? ` – ${hora(actividad.fin)}` : ''}`;
+        boton.appendChild(cuando);
+      }
+
+      boton.title = actividad.nombre;
+      boton.addEventListener('click', () =>
+        elegida === actividad ? cerrar() : seleccionar(actividad)
+      );
+      return boton;
+    };
+
+    const semana = (desde: Date) => {
+      const dias = Array.from({ length: 7 }, (_, i) => sumarDias(desde, i));
+      const { desde: inicioFranja, hasta: finFranja } = franja(dias);
+      const altoTotal = ((finFranja - inicioFranja) / 60) * ALTO_HORA;
+
+      /*
+        En pantallas chicas siete columnas con horas no caben, así que la
+        semana se desplaza en horizontal en vez de apretujarse.
+      */
+      const marco = document.createElement('div');
+      marco.className = 'overflow-x-auto';
+
+      const dentro = document.createElement('div');
+      dentro.className = 'min-w-[44rem] sm:min-w-0';
+      marco.appendChild(dentro);
+
+      /* cabecera: día de la semana y número, con el de hoy destacado */
+      const cabeza = document.createElement('div');
+      cabeza.className = 'flex border-b border-ink/15 pb-2';
+      const hueco = document.createElement('div');
+      hueco.className = CANAL;
+      cabeza.appendChild(hueco);
+
+      const cabeceraDias = document.createElement('div');
+      cabeceraDias.className = 'grid flex-1 grid-cols-7';
+      dias.forEach((dia, i) => {
+        const c = document.createElement('div');
+        c.className = 'flex flex-col items-center gap-1 px-1';
+
+        const nombre = document.createElement('span');
+        nombre.className = 'eyebrow';
+        nombre.textContent = DIAS[i];
+
+        const numero = document.createElement('span');
+        const esHoy = clave(dia) === clave(hoy);
+        numero.className = esHoy
+          ? 'grid size-7 place-items-center rounded-full bg-ink text-sm font-semibold text-white'
+          : 'grid size-7 place-items-center text-sm font-semibold text-ink';
+        numero.textContent = String(dia.getDate());
+
+        c.append(nombre, numero);
+        cabeceraDias.appendChild(c);
+      });
+      cabeza.appendChild(cabeceraDias);
+      dentro.appendChild(cabeza);
+
+      /*
+        Fila de arriba: lo que dura todo el día y lo que se pasa de la
+        medianoche. Cada actividad es una barra que ocupa las columnas de los
+        días que abarca, así se ve de un vistazo que va de viernes a sábado.
+      */
+      const barras = barrasDe(dias);
+      if (barras.length) {
+        const fila = document.createElement('div');
+        fila.className = 'flex border-b border-ink/10';
+
+        const etiqueta = document.createElement('div');
+        etiqueta.className = `${CANAL} py-2 pr-2 text-right text-[0.625rem] leading-tight text-muted`;
+        etiqueta.textContent = 'Todo el día';
+        fila.appendChild(etiqueta);
+
+        const celdas = document.createElement('div');
+        celdas.className = 'relative flex-1 border-r border-ink/10';
+
+        // las líneas de los días van detrás, porque las barras las cruzan
+        const lineas = document.createElement('div');
+        lineas.className = 'absolute inset-0 grid grid-cols-7';
+        for (let i = 0; i < 7; i++) {
+          const c = document.createElement('div');
+          c.className = 'border-l border-ink/10';
+          lineas.appendChild(c);
+        }
+
+        const capa = document.createElement('div');
+        capa.className = 'relative grid grid-cols-7 gap-y-1 py-1';
+        for (const barra of barras) {
+          const boton = chip(barra.actividad, actividades.indexOf(barra.actividad), {
+            texto: textoBarra(barra.actividad),
+          });
+          boton.style.gridColumn = `${barra.desde + 1} / span ${barra.abarca}`;
+          boton.classList.add('mx-1');
+          capa.appendChild(boton);
+        }
+
+        celdas.append(lineas, capa);
+        fila.appendChild(celdas);
+        dentro.appendChild(fila);
+      }
+
+      /* rejilla de horas */
+      const cuerpo = document.createElement('div');
+      cuerpo.className = 'flex border-b border-ink/10';
+
+      const canal = document.createElement('div');
+      canal.className = `${CANAL} relative`;
+      canal.style.height = `${altoTotal}px`;
+      for (let m = inicioFranja; m < finFranja; m += 60) {
+        const etiqueta = document.createElement('span');
+        etiqueta.className = 'absolute right-2 text-[0.625rem] font-medium text-muted tabular-nums';
+        etiqueta.style.top = `${((m - inicioFranja) / 60) * ALTO_HORA + 2}px`;
+        etiqueta.textContent = `${String(m / 60).padStart(2, '0')}:00`;
+        canal.appendChild(etiqueta);
+      }
+      cuerpo.appendChild(canal);
+
+      const rejilla = document.createElement('div');
+      rejilla.className = 'grid flex-1 grid-cols-7 border-r border-ink/10';
+
+      let columnaHoy: HTMLElement | null = null;
+
+      for (const dia of dias) {
+        const columna = document.createElement('div');
+        columna.className = 'relative border-l border-ink/10';
+        columna.style.height = `${altoTotal}px`;
+        if (clave(dia) === clave(hoy)) columnaHoy = columna;
+
+        // las líneas de cada hora, de fondo
+        for (let m = inicioFranja + 60; m < finFranja; m += 60) {
+          const linea = document.createElement('div');
+          linea.className = 'pointer-events-none absolute inset-x-0 border-t border-ink/10';
+          linea.style.top = `${((m - inicioFranja) / 60) * ALTO_HORA}px`;
+          columna.appendChild(linea);
+        }
+
+        for (const item of carriles(conHora(dia))) {
+          columna.appendChild(bloque(item, inicioFranja));
+        }
+
+        // línea de la hora actual, solo en el día de hoy
+        if (clave(dia) === clave(hoy)) {
+          const ahora = minutosDe(new Date());
+          if (ahora >= inicioFranja && ahora <= finFranja) {
+            const linea = document.createElement('div');
+            linea.className = 'pointer-events-none absolute inset-x-0 z-10 border-t-2 border-accent';
+            linea.style.top = `${((ahora - inicioFranja) / 60) * ALTO_HORA}px`;
+
+            const punto = document.createElement('span');
+            punto.className = 'absolute -top-[5px] -left-1 size-2 rounded-full bg-accent';
+            linea.appendChild(punto);
+            columna.appendChild(linea);
+          }
+        }
+
+        rejilla.appendChild(columna);
+      }
+
+      cuerpo.appendChild(rejilla);
+      dentro.appendChild(cuerpo);
+
+      /*
+        Cuando la semana no cabe (móvil), la abrimos en el día de hoy en vez
+        de en el lunes. Va en una microtarea porque hasta que no está en la
+        página no se sabe cuánto se puede desplazar.
+      */
+      queueMicrotask(() => {
+        if (!columnaHoy || marco.scrollWidth <= marco.clientWidth) return;
+        const canalAncho = canal.getBoundingClientRect().width;
+        marco.scrollLeft +=
+          columnaHoy.getBoundingClientRect().left - marco.getBoundingClientRect().left - canalAncho;
+      });
+
+      return marco;
+    };
+
+    const pintar = () => {
+      cal.innerHTML = '';
+      cal.dataset.vista = vista;
+
+      if (vista === 'mes') {
+        cal.appendChild(cabecera());
+
+        const rejilla = document.createElement('div');
+        rejilla.className = 'grid grid-cols-7 border-b border-ink/10';
+
+        const primero = new Date(ancla.getFullYear(), ancla.getMonth(), 1);
+        const desde = lunesDe(primero);
+        // seis semanas cubren cualquier mes, con cualquier día de inicio
+        for (let i = 0; i < 42; i++) {
+          const dia = sumarDias(desde, i);
+          rejilla.appendChild(celda(dia, dia.getMonth() === ancla.getMonth(), 'min-h-24'));
+        }
+
+        cal.appendChild(rejilla);
+        titulo.textContent = ancla.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+      } else {
+        const desde = lunesDe(ancla);
+        cal.appendChild(semana(desde));
+
+        const hasta = sumarDias(desde, 6);
+        const mismoMes = desde.getMonth() === hasta.getMonth();
+        titulo.textContent = mismoMes
+          ? `${desde.getDate()} – ${hasta.getDate()} de ${desde.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}`
+          : `${desde.getDate()} ${desde.toLocaleDateString('es-CL', { month: 'short' })} – ${hasta.getDate()} ${hasta.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' })}`;
+      }
+
+      marcarElegida();
+    };
+
+    const marcarElegida = () => {
+      for (const boton of cal.querySelectorAll<HTMLElement>('.cal-chip, .cal-bloque')) {
+        const esta = elegida && actividades[Number(boton.dataset.indice)] === elegida;
+        boton.setAttribute('aria-current', String(Boolean(esta)));
+      }
+    };
+
+    /* --- detalle ----------------------------------------------------------- */
+
+    /** Enlace para agregar la actividad al Google Calendar de quien visita. */
+    const googleCalendar = (actividad: Actividad) => {
+      const compacta = (fecha: Date, soloFecha: boolean) =>
+        soloFecha
+          ? `${fecha.getFullYear()}${String(fecha.getMonth() + 1).padStart(2, '0')}${String(fecha.getDate()).padStart(2, '0')}`
+          : fecha.toISOString().replace(/[-:]|\.\d{3}/g, '');
+
+      const inicio = fechaDe(actividad.inicio);
+      // sin hora de término, Google espera igual un fin: damos una hora
+      const fin = actividad.fin
+        ? fechaDe(actividad.fin)
+        : new Date(inicio.getTime() + (actividad.todoElDia ? 86400000 : 3600000));
+
+      const fechas = `${compacta(inicio, actividad.todoElDia)}/${compacta(fin, actividad.todoElDia)}`;
+
+      const parametros = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: actividad.nombre,
+        dates: fechas,
+        details: 'Actividad de Iglesia Viña Puerto Montt',
+      });
+      if (actividad.ubicacion) parametros.set('location', actividad.ubicacion);
+
+      return `https://calendar.google.com/calendar/render?${parametros}`;
+    };
+
+    /** El texto viene de Notion y se inyecta como HTML: hay que escaparlo. */
+    const escapar = (texto: string) =>
+      texto.replace(
+        /[&<>"']/g,
+        (c) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string
+      );
+
+    const dato = (icono: string, texto: string) =>
+      `<li class="flex items-center gap-2.5">
+         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0" aria-hidden="true">${icono}</svg>
+         <span>${texto}</span>
+       </li>`;
+
+    // trazos de lucide, en línea: el panel se arma desde el navegador
+    const ICONOS = {
+      reloj: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+      pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+      gente:
+        '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/>',
+      calendario:
+        '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    };
+
+    const seleccionar = (actividad: Actividad) => {
+      elegida = actividad;
+      const inicio = fechaDe(actividad.inicio);
+
+      /*
+        Las que se pasan de la medianoche llevan los dos días y la flecha, que
+        si no «13:00 – 13:00» parecía que no duraba nada.
+      */
+      const sigueOtroDia = cruzaDias(actividad);
+      const fechas = sigueOtroDia
+        ? rangoFechas(inicio, ultimoDia(actividad))
+        : fechaLarga(inicio);
+
+      const datos = [
+        dato(ICONOS.calendario, escapar(fechas)),
+        actividad.todoElDia
+          ? ''
+          : dato(
+              ICONOS.reloj,
+              `${hora(actividad.inicio)}${
+                actividad.fin ? `${sigueOtroDia ? ' → ' : ' – '}${hora(actividad.fin)}` : ''
+              }`
+            ),
+        actividad.ubicacion ? dato(ICONOS.pin, escapar(actividad.ubicacion)) : '',
+        actividad.red ? dato(ICONOS.gente, escapar(actividad.red)) : '',
+      ].join('');
+
+      /*
+        El marco toma la forma de la foto en vez de al revés: las de Notion
+        vienen de todas las proporciones y encajarlas en un rectángulo fijo
+        obligaba a elegir entre recortar media imagen o dejar bandas vacías.
+        El `width`/`height` le reserva el sitio antes de cargar, así el panel
+        no salta.
+
+        El tope de alto es de escritorio, donde el panel va fijo al costado y
+        tiene que caber entero: descontando lo que ocupan el título, los datos
+        y los botones, a la foto le queda `100vh - 33rem`. Se achica completa,
+        manteniendo su forma, en vez de recortarse. En móvil no hace falta:
+        ahí el panel va en el flujo de la página y se baja con el dedo.
+      */
+      const foto = actividad.foto
+        ? `<img src="${escapar(actividad.foto)}" alt="" loading="lazy" decoding="async"
+                ${actividad.ancho && actividad.alto ? `width="${actividad.ancho}" height="${actividad.alto}"` : ''}
+                class="mx-auto mb-5 h-auto w-auto max-w-full rounded-[1rem] lg:max-h-[max(9rem,min(26rem,calc(100vh_-_33rem)))]">`
+        : '';
+
+      panel.innerHTML = `
+        <div class="relative rounded-[1.5rem] bg-mist p-6 lg:p-7">
+          ${foto}
+          <button type="button" id="cal-cerrar"
+                  class="absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full bg-white/85 text-ink backdrop-blur-sm transition-colors hover:bg-white">
+            <span class="sr-only">Cerrar detalle</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+
+          <p class="eyebrow">Actividad</p>
+          <h3 class="heading-md mt-3 pr-10 text-ink">${escapar(actividad.nombre)}</h3>
+
+          <ul class="mt-5 flex flex-col gap-3 text-sm text-muted">${datos}</ul>
+
+          <div class="mt-7 flex flex-col gap-2.5">
+            <a href="${googleCalendar(actividad)}" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center justify-center gap-2.5 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-strong">
+              Agregar a Google Calendar
+            </a>
+            ${
+              actividad.url
+                ? `<a href="${actividad.url}" target="_blank" rel="noopener noreferrer"
+                     class="inline-flex items-center justify-center gap-2.5 rounded-full bg-white px-5 py-3 text-sm font-semibold text-carbon transition-colors hover:bg-white/70">
+                     Ver detalle
+                   </a>`
+                : ''
+            }
+          </div>
+        </div>
+      `;
+      panel.classList.remove('hidden');
+      document.getElementById('cal-cerrar')?.addEventListener('click', cerrar);
+      marcarElegida();
+
+      // en móvil el panel queda debajo: lo traemos a la vista
+      if (window.matchMedia('(max-width: 63.99rem)').matches) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+
+    /** Cierra el detalle: por la X, con Escape o volviendo a pulsar la misma. */
+    const cerrar = () => {
+      elegida = null;
+      panel.innerHTML = '';
+      panel.classList.add('hidden');
+      marcarElegida();
+    };
+
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape' && elegida) cerrar();
+    });
+
+    /* --- controles --------------------------------------------------------- */
+
+    document.getElementById('cal-antes')?.addEventListener('click', () => {
+      ancla =
+        vista === 'mes'
+          ? new Date(ancla.getFullYear(), ancla.getMonth() - 1, 1)
+          : sumarDias(ancla, -7);
+      pintar();
+    });
+
+    document.getElementById('cal-despues')?.addEventListener('click', () => {
+      ancla =
+        vista === 'mes'
+          ? new Date(ancla.getFullYear(), ancla.getMonth() + 1, 1)
+          : sumarDias(ancla, 7);
+      pintar();
+    });
+
+    document.getElementById('cal-hoy')?.addEventListener('click', () => {
+      ancla = new Date(hoy);
+      pintar();
+    });
+
+    for (const boton of document.querySelectorAll<HTMLButtonElement>('.cal-vista')) {
+      boton.addEventListener('click', () => {
+        vista = boton.dataset.vista === 'semana' ? 'semana' : 'mes';
+        for (const otro of document.querySelectorAll<HTMLButtonElement>('.cal-vista')) {
+          const activo = otro === boton;
+          otro.setAttribute('aria-pressed', String(activo));
+          otro.classList.toggle('bg-white', activo);
+          otro.classList.toggle('shadow-sm', activo);
+        }
+        pintar();
+      });
+    }
+
+    /* --- arranque ---------------------------------------------------------- */
+
+    // con JavaScript mandamos el calendario; la agenda era el plan B
+    agenda.classList.add('hidden');
+    barra.classList.remove('hidden');
+    barra.classList.add('flex');
+    cal.classList.remove('hidden');
+    document.querySelector<HTMLButtonElement>('.cal-vista[data-vista="mes"]')?.classList.add('bg-white', 'shadow-sm');
+    pintar();
+  }
+</script>

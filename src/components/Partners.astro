@@ -1,28 +1,99 @@
 ---
 import { Image } from 'astro:assets';
 import { partners } from '../data/content';
+
+/*
+  Vueltas idénticas encadenadas. Con cuatro, las tres que no se están
+  desplazando cubren de sobra cualquier pantalla, así nunca se abre un hueco
+  al final de la cinta. El paso de la animación se calcula a partir de este
+  número, para que ambos no se desincronicen.
+
+  La separación entre logos (el `pr` de cada <li>) crece con el ancho de la
+  ventana a propósito: así una vuelta completa siempre mide más que la
+  pantalla y nunca se alcanzan a ver dos veces el mismo logo.
+
+  Solo la primera vuelta se anuncia: las demás van con aria-hidden y sin alt.
+*/
+const vueltas = [0, 1, 2, 3];
 ---
 
-<section class="py-12 lg:py-16" aria-label="Fundaciones y proyectos aliados">
+<section class="pt-12 pb-24 lg:pt-16 lg:pb-32" aria-label="Fundaciones y proyectos aliados">
+  {/* la cinta empieza y termina donde los filetes de las cifras de arriba */}
   <div class="container-page">
-    <ul
-      class="grid grid-cols-2 items-center justify-items-center gap-x-8 gap-y-10 sm:grid-cols-3 lg:flex lg:justify-between lg:gap-10"
-    >
+    <div class="cinta-marco overflow-hidden">
+      <div class="cinta flex w-max" style={`--vueltas: ${vueltas.length}`}>
       {
-        partners.map((partner) => (
-          <li class="flex items-center justify-center">
-            <Image
-              src={partner.logo}
-              alt={partner.name}
-              height={36}
-              densities={[1, 2]}
-              class="h-8 w-auto max-w-[9rem] object-contain opacity-90 sm:h-9"
-              loading="lazy"
-              decoding="async"
-            />
-          </li>
+        vueltas.map((vuelta) => (
+          <ul class="flex shrink-0 items-center" aria-hidden={vuelta > 0 ? 'true' : undefined}>
+            {partners.map((partner) => (
+              <li class="flex shrink-0 items-center justify-center pr-[max(5rem,14vw)]">
+                {/*
+                  Cada logo se ajusta dentro de una caja, no a una altura fija:
+                  los apaisados topan con el ancho y los verticales con el alto,
+                  así todos pesan parecido a la vista.
+                */}
+                <Image
+                  src={partner.logo}
+                  alt={vuelta > 0 ? '' : partner.name}
+                  height={56}
+                  densities={[1, 2]}
+                  class="h-auto max-h-11 w-auto max-w-[8.5rem] object-contain sm:max-h-14"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </li>
+            ))}
+          </ul>
         ))
       }
-    </ul>
+      </div>
+    </div>
   </div>
 </section>
+
+<style>
+  /*
+    Cinta continua: todas las vueltas miden lo mismo, así que desplazar
+    exactamente una deja la siguiente donde estaba la anterior y el reinicio
+    es invisible. La separación va en el `padding` de cada logo (no en un
+    `gap`) para que ese ancho sea exacto.
+  */
+  /* la vuelta es más larga que antes: más tiempo para conservar el mismo paso */
+  .cinta {
+    animation: cinta-pasa 60s linear infinite;
+  }
+
+  .cinta:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes cinta-pasa {
+    to {
+      transform: translateX(calc(-100% / var(--vueltas)));
+    }
+  }
+
+  /* los logos entran y salen difuminados en los extremos */
+  .cinta-marco {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 6rem,
+      black calc(100% - 6rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 6rem,
+      black calc(100% - 6rem),
+      transparent 100%
+    );
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cinta {
+      animation: none;
+    }
+  }
+</style>
