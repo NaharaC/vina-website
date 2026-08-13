@@ -76,50 +76,66 @@ const cruzaDias = (actividad: { inicio: string; fin?: string }) =>
 const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { weekday: 'long' });
 ---
 
+{/*
+  `heroFoto` le dice a la barra de navegación que la página abre sobre fondo
+  oscuro, así el logo y los enlaces van en blanco. Sin esto salían en tinta,
+  invisibles sobre el negro.
+*/}
 <BaseLayout
   title={`Actividades — ${site.name}`}
   description="Calendario de actividades de Iglesia Viña Puerto Montt: reuniones de redes, ensayos y eventos."
+  heroFoto
 >
-  <section class="pt-28 pb-8 lg:pt-32 lg:pb-10" aria-labelledby="actividades-titulo">
-    <div class="container-page">
-      <p class="eyebrow">Iglesia en movimiento</p>
-      <h1
-        id="actividades-titulo"
-        class="mt-4 leading-[0.92] font-semibold tracking-[-0.045em] text-balance text-ink"
-        style="font-size: clamp(2rem, 1rem + 3.4vw, 3.5rem)"
-      >
-        Calendario de Actividades
-      </h1>
-      <p class="subtitle-lg mt-5 max-w-xl">
-        Permanece conectado y participa de todo lo que realizamos como iglesia
-      </p>
+  {/*
+    `#actividades-editorial` es el ámbito del tema oscuro: los tokens de color
+    se redefinen ahí abajo, en el bloque de estilos.
+  */}
+  <div id="actividades-editorial">
+    <section class="pt-28 pb-10 lg:pt-36 lg:pb-14" aria-labelledby="actividades-titulo">
+      <div class="container-page">
+        {/*
+          Portada al modo de la referencia: el titular manda, ocupa el ancho y
+          va en peso normal; lo de al lado es letra chica.
+        */}
+        <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-10">
+          <div>
+            <p class="eyebrow">Iglesia en movimiento</p>
+            <h1
+              id="actividades-titulo"
+              class="mt-5 leading-[0.9] font-normal tracking-[-0.04em] text-balance text-ink"
+              style="font-size: clamp(2.5rem, 1rem + 5.4vw, 5.25rem)"
+            >
+              Calendario de Actividades
+            </h1>
+          </div>
 
-      <div class="mt-7 flex flex-wrap items-center gap-3">
-        <a
-          href={suscribirGoogle}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="group inline-flex items-center gap-3 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-carbon"
-        >
-          <Icon name="lucide:calendar-plus" width={18} height={18} aria-hidden="true" />
-          Suscribirme en Google Calendar
-          <span class="sr-only">(se abre en una ventana nueva)</span>
-        </a>
+          <p class="subtitle-lg mt-6 max-w-md lg:mt-0 lg:pb-3">
+            Permanece conectado y participa de todo lo que realizamos como iglesia
+          </p>
+        </div>
 
-        <a
-          href="/actividades.ics"
-          class="inline-flex items-center gap-2.5 rounded-full bg-mist px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-ink/10"
-        >
-          <Icon name="lucide:download" width={18} height={18} aria-hidden="true" />
-          Apple o Outlook
-        </a>
+        <div class="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4 border-t border-ink/15 pt-7">
+          <a
+            href={suscribirGoogle}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-3 text-sm font-medium text-[#090909] transition-opacity hover:opacity-85"
+          >
+            <Icon name="lucide:calendar-plus" width={17} height={17} aria-hidden="true" />
+            Suscribirme en Google Calendar
+            <span class="sr-only">(se abre en una ventana nueva)</span>
+          </a>
+
+          <a href="/actividades.ics" class="enlace text-sm text-ink/80 hover:text-ink">
+            Descargar para Apple u Outlook
+          </a>
+
+          <p class="w-full text-xs text-muted sm:w-auto">
+            Y no te pierdas de nada
+          </p>
+        </div>
       </div>
-
-      <p class="mt-3 text-xs text-muted">
-        Agrega las actividades a tu calendario personal y no te pierdas de nada
-      </p>
-    </div>
-  </section>
+    </section>
 
   <section class="pb-24 lg:pb-32" aria-label="Calendario de actividades">
     <div class="container-page">
@@ -135,38 +151,47 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
           <button
             type="button"
             id="cal-antes"
-            class="grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-mist"
+            class="grid size-9 place-items-center rounded-full border border-ink/15 text-ink transition-colors hover:bg-mist"
           >
             <span class="sr-only">Periodo anterior</span>
-            <Icon name="lucide:chevron-left" width={20} height={20} aria-hidden="true" />
+            <Icon name="lucide:chevron-left" width={18} height={18} aria-hidden="true" />
           </button>
           <button
             type="button"
             id="cal-despues"
-            class="grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-mist"
+            class="grid size-9 place-items-center rounded-full border border-ink/15 text-ink transition-colors hover:bg-mist"
           >
             <span class="sr-only">Periodo siguiente</span>
-            <Icon name="lucide:chevron-right" width={20} height={20} aria-hidden="true" />
+            <Icon name="lucide:chevron-right" width={18} height={18} aria-hidden="true" />
           </button>
 
-          <h2 id="cal-titulo" class="heading-md ml-2 text-ink first-letter:uppercase" aria-live="polite"></h2>
+          <h2
+            id="cal-titulo"
+            class="ml-3 text-2xl font-normal tracking-[-0.03em] text-ink first-letter:uppercase sm:text-[1.75rem]"
+            aria-live="polite"
+          >
+          </h2>
         </div>
 
         <div class="flex items-center gap-2">
           <button
             type="button"
             id="cal-hoy"
-            class="rounded-full px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-mist"
+            class="rounded-full border border-ink/15 px-4 py-1.5 text-sm text-ink transition-colors hover:bg-mist"
           >
             Hoy
           </button>
 
-          {/* selector de vista */}
-          <div class="flex rounded-full bg-mist p-1" role="group" aria-label="Vista del calendario">
+          {/* selector de vista: el activo se invierte, blanco sobre negro */}
+          <div
+            class="flex rounded-full border border-ink/15 p-1"
+            role="group"
+            aria-label="Vista del calendario"
+          >
             <button
               type="button"
               data-vista="mes"
-              class="cal-vista rounded-full px-4 py-2 text-sm font-semibold text-ink transition-colors"
+              class="cal-vista rounded-full px-4 py-1 text-sm text-ink transition-colors"
               aria-pressed="true"
             >
               Mes
@@ -174,7 +199,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
             <button
               type="button"
               data-vista="semana"
-              class="cal-vista rounded-full px-4 py-2 text-sm font-semibold text-ink transition-colors"
+              class="cal-vista rounded-full px-4 py-1 text-sm text-ink transition-colors"
               aria-pressed="false"
             >
               Semana
@@ -183,7 +208,11 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         </div>
       </div>
 
-      <div class="mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-10">
+      <div
+        id="cal-lienzo"
+        class="mt-8 lg:grid lg:grid-cols-1 lg:items-start lg:gap-10"
+        data-panel="cerrado"
+      >
         <div id="cal" class="hidden"></div>
 
         {/* detalle de la actividad elegida */}
@@ -221,7 +250,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
                   <li class="border-t border-ink/15">
                     <div class="flex flex-col gap-4 py-6 sm:flex-row sm:items-baseline sm:gap-10">
                       <div class="flex shrink-0 items-baseline gap-3 sm:w-28 sm:flex-col sm:gap-0">
-                        <span class="text-[2.5rem] leading-none font-semibold tracking-[-0.04em] text-ink">
+                        <span class="text-[2.5rem] leading-none font-normal tracking-[-0.04em] text-ink">
                           {fechaDe(actividad.inicio).toLocaleDateString('es-CL', { day: '2-digit' })}
                         </span>
                         <span class="eyebrow sm:mt-2">
@@ -282,20 +311,28 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         }
       </div>
 
-      <div class="mt-20 rounded-[2rem] bg-mist px-8 py-12 text-center lg:rounded-[2.75rem] lg:px-16 lg:py-16">
-        <h2 class="heading-lg mx-auto max-w-xl text-ink">¿Quieres ser parte?</h2>
-        <p class="subtitle-lg mx-auto mt-4 max-w-md">
-          Escríbenos y te contamos cómo sumarte a la actividad que te interese.
-        </p>
+      {/*
+        Cierre: en la referencia estos bloques son de borde fino y esquina
+        casi recta, con el titular a la izquierda y la acción al costado.
+      */}
+      <div class="mt-24 rounded-[10px] border border-ink/15 px-7 py-10 lg:px-12 lg:py-14">
+        <div class="lg:flex lg:items-end lg:justify-between lg:gap-12">
+          <div>
+            <h2 class="heading-lg max-w-lg text-ink">¿Quieres ser parte?</h2>
+            <p class="subtitle-lg mt-4 max-w-md">
+              Escríbenos y te contamos cómo sumarte a la actividad que te interese.
+            </p>
+          </div>
 
-        <div class="mt-8 flex justify-center">
-          <ArrowButton
-            label="Contactar"
-            href={contactHref}
-            external={contactHref.startsWith('http')}
-            variant="accent"
-            size="md"
-          />
+          <div class="mt-8 shrink-0 lg:mt-0">
+            <ArrowButton
+              label="Contactar"
+              href={contactHref}
+              external={contactHref.startsWith('http')}
+              variant="light"
+              size="md"
+            />
+          </div>
         </div>
       </div>
 
@@ -308,6 +345,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       }
     </div>
   </section>
+  </div>
 </BaseLayout>
 
 {/*
@@ -316,21 +354,80 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
   que Astro pone en el marcado de la plantilla.
 */}
 <style is:global>
+  /* ---------------------------------------------------------------------
+     Tema editorial oscuro, solo en esta página.
+
+     En vez de cambiar clase por clase, se redefinen aquí los tokens de
+     color: las utilidades de Tailwind los leen con `var()`, así que todo el
+     marcado —el de la plantilla y el que dibuja el script— cambia de piel
+     de una vez. `ink` pasa a ser el color del texto (blanco) y `mist`, la
+     superficie suave (blanco muy transparente).
+     --------------------------------------------------------------------- */
+  body:has(#actividades-editorial) {
+    background-color: #090909;
+  }
+
+  #actividades-editorial {
+    --color-ink: #ffffff;
+    --color-muted: rgba(255, 255, 255, 0.6);
+    --color-mist: rgba(255, 255, 255, 0.07);
+    --fondo: #090909;
+
+    background-color: var(--fondo);
+    color: #fff;
+  }
+
+  /*
+    La referencia titula en peso normal y con las letras muy juntas: el peso
+    lo pone el tamaño, no la seminegrita.
+  */
+  #actividades-editorial .heading-lg {
+    font-weight: 400;
+    letter-spacing: -0.035em;
+  }
+
+  #actividades-editorial .heading-md {
+    font-weight: 500;
+    letter-spacing: -0.025em;
+  }
+
+  /*
+    El selector de vista se invierte en el activo. Va por CSS y no añadiendo
+    clases: `text-ink` y una clase de color puntual pesan igual, y ganaba la
+    que el navegador encontrara después en la hoja de estilos.
+  */
+  #actividades-editorial .cal-vista[aria-pressed='true'] {
+    background-color: var(--color-ink);
+    color: var(--fondo);
+  }
+
+  /*
+    El calendario ocupa todo el ancho hasta que se abre una actividad; ahí
+    cede las 22rem de la derecha al panel.
+  */
+  @media (width >= 64rem) {
+    #cal-lienzo[data-panel='abierto'] {
+      grid-template-columns: minmax(0, 1fr) 22rem;
+    }
+  }
+
   #cal .cal-chip {
     background-color: var(--color-mist);
     color: var(--color-ink);
+    /* casi a escuadra, como las tarjetas de la referencia */
+    border-radius: 3px;
     transition: background-color 150ms ease;
   }
 
   #cal .cal-chip:hover {
-    background-color: color-mix(in srgb, var(--color-ink) 12%, transparent);
+    background-color: color-mix(in srgb, var(--color-ink) 16%, transparent);
   }
 
-  /* la actividad abierta en el panel manda sobre el hover */
+  /* la actividad abierta en el panel manda sobre el hover: se invierte */
   #cal .cal-chip[aria-current='true'],
   #cal .cal-chip[aria-current='true']:hover {
     background-color: var(--color-ink);
-    color: white;
+    color: var(--fondo);
   }
 
   /*
@@ -370,8 +467,9 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
 
   /* Bloques de la vista semanal: van sobre la rejilla de horas */
   #cal .cal-bloque {
-    background-color: color-mix(in srgb, var(--color-ink) 8%, white);
-    border-left: 3px solid color-mix(in srgb, var(--color-ink) 45%, transparent);
+    background-color: var(--color-mist);
+    border-left: 2px solid color-mix(in srgb, var(--color-ink) 45%, transparent);
+    border-radius: 3px;
     color: var(--color-ink);
     transition:
       background-color 150ms ease,
@@ -379,14 +477,27 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
   }
 
   #cal .cal-bloque:hover {
-    background-color: color-mix(in srgb, var(--color-ink) 14%, white);
+    background-color: color-mix(in srgb, var(--color-ink) 16%, transparent);
   }
 
   #cal .cal-bloque[aria-current='true'],
   #cal .cal-bloque[aria-current='true']:hover {
     background-color: var(--color-ink);
     border-left-color: var(--color-accent);
-    color: white;
+    color: var(--fondo);
+  }
+
+  /* Enlaces de texto: subrayado fino, como en la referencia */
+  #actividades-editorial .enlace {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+    transition: text-decoration-color 150ms ease;
+  }
+
+  #actividades-editorial .enlace:hover {
+    text-decoration-color: var(--color-ink);
   }
 </style>
 
@@ -407,6 +518,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
 
   const fuente = document.getElementById('datos-actividades');
   const cal = document.getElementById('cal');
+  const lienzo = document.getElementById('cal-lienzo');
   const barra = document.getElementById('cal-barra');
   const agenda = document.getElementById('agenda');
   const panel = document.getElementById('cal-detalle');
@@ -595,8 +707,8 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       const esHoy = clave(dia) === clave(hoy);
       const numero = document.createElement('span');
       numero.className = esHoy
-        ? 'grid size-6 place-items-center rounded-full bg-ink text-xs font-semibold text-white sm:size-7'
-        : `px-1 text-xs font-semibold ${delMes ? 'text-ink' : 'text-muted/50'}`;
+        ? 'grid size-6 place-items-center rounded-full bg-ink text-xs font-medium text-[#090909] sm:size-7'
+        : `px-1 text-xs font-medium ${delMes ? 'text-ink' : 'text-muted/40'}`;
       numero.textContent = String(dia.getDate());
       div.appendChild(numero);
 
@@ -637,7 +749,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       pegado a la izquierda porque en móvil la semana se desplaza en
       horizontal y las horas tienen que seguir a la vista.
     */
-    const CANAL = 'sticky left-0 z-20 w-12 shrink-0 bg-white sm:w-14';
+    const CANAL = 'sticky left-0 z-20 w-12 shrink-0 bg-[#090909] sm:w-14';
 
     const minutosDe = (fecha: Date) => fecha.getHours() * 60 + fecha.getMinutes();
 
@@ -824,8 +936,8 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         const numero = document.createElement('span');
         const esHoy = clave(dia) === clave(hoy);
         numero.className = esHoy
-          ? 'grid size-7 place-items-center rounded-full bg-ink text-sm font-semibold text-white'
-          : 'grid size-7 place-items-center text-sm font-semibold text-ink';
+          ? 'grid size-7 place-items-center rounded-full bg-ink text-sm font-medium text-[#090909]'
+          : 'grid size-7 place-items-center text-sm font-medium text-ink';
         numero.textContent = String(dia.getDate());
 
         c.append(nombre, numero);
@@ -1088,14 +1200,14 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       const foto = actividad.foto
         ? `<img src="${escapar(actividad.foto)}" alt="" loading="lazy" decoding="async"
                 ${actividad.ancho && actividad.alto ? `width="${actividad.ancho}" height="${actividad.alto}"` : ''}
-                class="mx-auto mb-5 h-auto w-auto max-w-full rounded-[1rem] lg:max-h-[max(9rem,min(26rem,calc(100vh_-_33rem)))]">`
+                class="mx-auto mb-6 h-auto w-auto max-w-full rounded-[4px] lg:max-h-[max(9rem,min(26rem,calc(100vh_-_33rem)))]">`
         : '';
 
       panel.innerHTML = `
-        <div class="relative rounded-[1.5rem] bg-mist p-6 lg:p-7">
+        <div class="relative rounded-[10px] border border-ink/15 p-6 lg:p-7">
           ${foto}
           <button type="button" id="cal-cerrar"
-                  class="absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full bg-white/85 text-ink backdrop-blur-sm transition-colors hover:bg-white">
+                  class="absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full bg-[#090909]/70 text-ink backdrop-blur-sm transition-colors hover:bg-[#090909]">
             <span class="sr-only">Cerrar detalle</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
@@ -1105,15 +1217,15 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
 
           <ul class="mt-5 flex flex-col gap-3 text-sm text-muted">${datos}</ul>
 
-          <div class="mt-7 flex flex-col gap-2.5">
+          <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
             <a href="${googleCalendar(actividad)}" target="_blank" rel="noopener noreferrer"
-               class="inline-flex items-center justify-center gap-2.5 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-strong">
+               class="inline-flex items-center justify-center rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-[#090909] transition-opacity hover:opacity-85">
               Agregar a Google Calendar
             </a>
             ${
               actividad.url
                 ? `<a href="${actividad.url}" target="_blank" rel="noopener noreferrer"
-                     class="inline-flex items-center justify-center gap-2.5 rounded-full bg-white px-5 py-3 text-sm font-semibold text-carbon transition-colors hover:bg-white/70">
+                     class="enlace text-sm text-ink/80 transition-colors hover:text-ink">
                      Ver detalle
                    </a>`
                 : ''
@@ -1122,6 +1234,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         </div>
       `;
       panel.classList.remove('hidden');
+      lienzo?.setAttribute('data-panel', 'abierto');
       document.getElementById('cal-cerrar')?.addEventListener('click', cerrar);
       marcarElegida();
 
@@ -1136,6 +1249,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       elegida = null;
       panel.innerHTML = '';
       panel.classList.add('hidden');
+      lienzo?.setAttribute('data-panel', 'cerrado');
       marcarElegida();
     };
 
@@ -1170,10 +1284,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       boton.addEventListener('click', () => {
         vista = boton.dataset.vista === 'semana' ? 'semana' : 'mes';
         for (const otro of document.querySelectorAll<HTMLButtonElement>('.cal-vista')) {
-          const activo = otro === boton;
-          otro.setAttribute('aria-pressed', String(activo));
-          otro.classList.toggle('bg-white', activo);
-          otro.classList.toggle('shadow-sm', activo);
+          otro.setAttribute('aria-pressed', String(otro === boton));
         }
         pintar();
       });
@@ -1186,7 +1297,6 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     barra.classList.remove('hidden');
     barra.classList.add('flex');
     cal.classList.remove('hidden');
-    document.querySelector<HTMLButtonElement>('.cal-vista[data-vista="mes"]')?.classList.add('bg-white', 'shadow-sm');
     pintar();
   }
 </script>
