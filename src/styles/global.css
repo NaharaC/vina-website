@@ -149,6 +149,60 @@
   color: var(--color-muted);
 }
 
+/* ---------------------------------------------------------------------------
+   Tema editorial oscuro
+
+   Para los tramos que van sobre fondo negro con una foto detrás. En vez de
+   cambiar clase por clase, se redefinen aquí los tokens de color: las
+   utilidades de Tailwind los leen con `var()`, así que todo lo que haya
+   dentro cambia de piel de una vez.
+
+   Uso: envolver el tramo en `.tema-editorial` y pasarle la foto en `--foto`.
+   --------------------------------------------------------------------------- */
+.tema-editorial {
+  --color-ink: #ffffff;
+  --color-muted: rgba(255, 255, 255, 0.6);
+  --color-mist: rgba(255, 255, 255, 0.07);
+  --fondo: #090909;
+
+  background-color: var(--fondo);
+  color: #fff;
+}
+
+/*
+  La foto detrás del papel.
+
+  `background-attachment: fixed` la ancla a la ventana del navegador y no al
+  elemento. Como todos los huecos la piden con el mismo encuadre, enseñan el
+  mismo trozo de una única foto que se queda quieta mientras la página se
+  desliza por encima.
+*/
+.tema-editorial .foto-fija {
+  background-image: var(--foto);
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/*
+  En táctil no existe el fondo fijo (iOS lo ignora y lo pinta a saltos): se
+  ancla al elemento. Se pierde el calce entre huecos, pero la foto se sigue
+  viendo y el scroll no se atasca.
+*/
+@media (hover: none) {
+  .tema-editorial .foto-fija {
+    background-attachment: scroll;
+  }
+}
+
+/* Titulares en peso normal: el peso lo pone el tamaño, no la seminegrita. */
+.tema-editorial .heading-xl,
+.tema-editorial .heading-lg {
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
 /* Carruseles horizontales sin barra de scroll visible */
 @utility no-scrollbar {
   scrollbar-width: none;

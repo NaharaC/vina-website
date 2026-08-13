@@ -4,18 +4,24 @@ import { giving } from '../data/content';
 ---
 
 {/*
-  Sección a pantalla completa. `svh` en vez de `vh` porque en el móvil la barra
-  del navegador aparece y desaparece: con `vh` la sección cambiaría de alto y
-  daría saltos al hacer scroll.
+  Sección a pantalla completa, con la foto de fondo. `svh` en vez de `vh`
+  porque en el móvil la barra del navegador aparece y desaparece: con `vh` la
+  sección cambiaría de alto y daría saltos al hacer scroll.
+
+  La foto sale del tramo oscuro que la envuelve (`.tema-editorial`), así que
+  la misma imagen reaparece más abajo por el hueco del testimonio.
 */}
 <section
   id="dar"
-  class="flex min-h-svh items-center bg-cream py-12 lg:py-16"
+  class="foto-fija relative flex min-h-svh items-center py-12 lg:py-16"
   aria-labelledby="dar-titulo"
 >
-  <div class="container-page">
+  {/* velo parejo, no degradado: el texto blanco cruza las zonas claras */}
+  <div class="absolute inset-0 bg-[#090909]/55" aria-hidden="true"></div>
+
+  <div class="container-page relative">
     <div class="mx-auto max-w-2xl text-center">
-      <p class="subtitle-lg">
+      <p class="subtitle-lg text-ink/80">
         {giving.verse}<br />
         {giving.reference}
       </p>
