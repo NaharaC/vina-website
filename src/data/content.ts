@@ -454,6 +454,15 @@ export const testimonialsIntro = {
   title: 'Testimonios',
   verse: '“El testimonio de Jesús es el espíritu que inspira la profecía”',
   reference: 'Apocalipsis 19:10',
+  /**
+   * Botón bajo el video. Por ahora lleva al canal de YouTube, que es donde
+   * están los testimonios; si algún día hay una lista propia, se cambia aquí.
+   */
+  action: {
+    label: 'Ver más testimonios',
+    href: youtubeChannel,
+    external: true,
+  } satisfies NavLink,
 };
 
 export const testimonials: Testimonial[] = [
