@@ -28,18 +28,13 @@ const hasCarousel = testimonials.length > 1;
       </p>
     </div>
 
-    {/*
-      El video va sobre un hueco por el que asoma la misma foto que hay
-      detrás de Dar: es la que se queda quieta mientras la página sube.
-    */}
-    <div class="foto-fija mt-8 rounded-[14px] p-3 sm:p-6 lg:mt-10 lg:p-10">
     <div
       id="testimonios-track"
       aria-roledescription={hasCarousel ? 'carrusel' : undefined}
       aria-label={hasCarousel ? 'Testimonios' : undefined}
       tabindex={hasCarousel ? 0 : undefined}
       class:list={[
-        'no-scrollbar flex gap-6 overflow-x-auto scroll-smooth',
+        'no-scrollbar mt-8 flex gap-6 overflow-x-auto scroll-smooth lg:mt-10',
         hasCarousel && 'snap-x snap-mandatory',
       ]}
     >
@@ -95,7 +90,6 @@ const hasCarousel = testimonials.length > 1;
           </figure>
         ))
       }
-    </div>
     </div>
 
     {
