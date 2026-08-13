@@ -5,6 +5,14 @@ import ArrowButton from '../components/ArrowButton.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { agruparPorMes, fechaDe, obtenerActividades } from '../lib/actividades';
 import { site, whatsappHref } from '../data/content';
+import portada from '../assets/img/actividades-portada.jpg';
+
+/*
+  La foto que se ve por detrás de la página. Va como fondo en CSS (y no como
+  <img>) porque tiene que asomar por dos huecos a la vez —la banda de arriba y
+  el rectángulo del calendario— como si estuviera clavada detrás del papel.
+*/
+const portadaFija = await getImage({ src: portada, width: 2200, format: 'webp' });
 
 const { actividades: crudas, desdeRespaldo } = await obtenerActividades();
 
@@ -90,8 +98,18 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     `#actividades-editorial` es el ámbito del tema oscuro: los tokens de color
     se redefinen ahí abajo, en el bloque de estilos.
   */}
-  <div id="actividades-editorial">
-    <section class="pt-28 pb-10 lg:pt-36 lg:pb-14" aria-labelledby="actividades-titulo">
+  <div id="actividades-editorial" style={`--foto: url('${portadaFija.src}')`}>
+    {/*
+      Banda de foto. Abre la página y luego reaparece por el hueco del
+      calendario: es la misma imagen, quieta detrás, y lo que se mueve es la
+      página por encima.
+    */}
+    <div class="foto-fija relative h-[46vh] min-h-72 w-full" role="presentation">
+      <div class="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-b from-transparent to-[#090909]">
+      </div>
+    </div>
+
+    <section class="pt-12 pb-10 lg:pt-16 lg:pb-14" aria-labelledby="actividades-titulo">
       <div class="container-page">
         {/*
           Portada al modo de la referencia: el titular manda, ocupa el ancho y
@@ -146,7 +164,13 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       */}
       <script type="application/json" id="datos-actividades" set:html={JSON.stringify(actividades)} />
 
-      <div id="cal-barra" class="hidden flex-wrap items-center justify-between gap-4 border-t border-ink/15 pt-6">
+      {/*
+        El calendario vive dentro del hueco: la foto asoma por detrás, muy
+        apagada para que la rejilla se siga leyendo.
+      */}
+      <div class="foto-fija foto-velada overflow-hidden rounded-[12px] border border-ink/12 px-4 py-6 sm:px-7 sm:py-8 lg:px-9 lg:py-10">
+
+      <div id="cal-barra" class="hidden flex-wrap items-center justify-between gap-4 pt-0">
         <div class="flex items-center gap-2">
           <button
             type="button"
@@ -228,6 +252,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
           aria-live="polite"
         >
         </aside>
+      </div>
       </div>
 
       {/* Agenda: es lo que se ve sin JavaScript, y el respaldo si algo falla */}
@@ -377,6 +402,43 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     color: #fff;
   }
 
+  /* ---------------------------------------------------------------------
+     La foto detrás del papel.
+
+     `background-attachment: fixed` ancla la imagen a la ventana del
+     navegador, no al elemento. Como los dos huecos —la banda de arriba y el
+     rectángulo del calendario— la piden con el mismo encuadre, ambos enseñan
+     el mismo trozo de una única foto que se queda quieta mientras la página
+     se desliza por encima. Es el efecto de la referencia.
+     --------------------------------------------------------------------- */
+  #actividades-editorial .foto-fija {
+    background-image: var(--foto);
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  /*
+    Con la rejilla encima, la foto tiene que quedarse en textura: con menos
+    velo, los números de los días que caen sobre la bandera naranja dejan de
+    leerse.
+  */
+  #actividades-editorial .foto-velada {
+    background-image: linear-gradient(rgba(9, 9, 9, 0.94), rgba(9, 9, 9, 0.94)), var(--foto);
+  }
+
+  /*
+    En táctil no existe el fondo fijo (iOS lo ignora y lo pinta a saltos): se
+    ancla al elemento. Se pierde el calce entre los dos huecos, pero la foto
+    se sigue viendo y el scroll no se atasca.
+  */
+  @media (hover: none) {
+    #actividades-editorial .foto-fija {
+      background-attachment: scroll;
+    }
+  }
+
   /*
     La referencia titula en peso normal y con las letras muy juntas: el peso
     lo pone el tamaño, no la seminegrita.
@@ -428,6 +490,17 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
   #cal .cal-chip[aria-current='true']:hover {
     background-color: var(--color-ink);
     color: var(--fondo);
+  }
+
+  /*
+    El canal de horas solo necesita tapar lo que pasa por debajo cuando la
+    semana se desplaza en horizontal, o sea en móvil. En pantalla grande se
+    queda transparente para no abrir un agujero negro en la foto.
+  */
+  @media (max-width: 39.9375rem) {
+    #cal .cal-canal {
+      background-color: #090909;
+    }
   }
 
   /*
@@ -749,7 +822,7 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
       pegado a la izquierda porque en móvil la semana se desplaza en
       horizontal y las horas tienen que seguir a la vista.
     */
-    const CANAL = 'sticky left-0 z-20 w-12 shrink-0 bg-[#090909] sm:w-14';
+    const CANAL = 'cal-canal sticky left-0 z-20 w-12 shrink-0 sm:w-14';
 
     const minutosDe = (fecha: Date) => fecha.getHours() * 60 + fecha.getMinutes();
 
