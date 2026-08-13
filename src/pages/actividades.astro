@@ -333,31 +333,6 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
         }
       </div>
 
-      {/*
-        Cierre: en la referencia estos bloques son de borde fino y esquina
-        casi recta, con el titular a la izquierda y la acción al costado.
-      */}
-      <div class="mt-24 rounded-[10px] border border-ink/15 px-7 py-10 lg:px-12 lg:py-14">
-        <div class="lg:flex lg:items-end lg:justify-between lg:gap-12">
-          <div>
-            <h2 class="heading-lg max-w-lg text-ink">¿Quieres ser parte?</h2>
-            <p class="subtitle-lg mt-4 max-w-md">
-              Escríbenos y te contamos cómo sumarte a la actividad que te interese.
-            </p>
-          </div>
-
-          <div class="mt-8 shrink-0 lg:mt-0">
-            <ArrowButton
-              label="Contactar"
-              href={contactHref}
-              external={contactHref.startsWith('http')}
-              variant="light"
-              size="md"
-            />
-          </div>
-        </div>
-      </div>
-
       {
         desdeRespaldo && (
           <p class="mt-8 text-center text-xs text-muted">
@@ -368,6 +343,31 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
     </div>
   </section>
   </div>
+
+  {/*
+    Aquí se acaba el tema oscuro: el cierre vuelve al estilo del resto del
+    sitio, claro y con la pastilla naranja.
+  */}
+  <section class="pt-20 pb-24 lg:pt-24 lg:pb-32">
+    <div class="container-page">
+      <div class="rounded-[2rem] bg-mist px-8 py-12 text-center lg:rounded-[2.75rem] lg:px-16 lg:py-16">
+        <h2 class="heading-lg mx-auto max-w-xl text-ink">¿Quieres ser parte?</h2>
+        <p class="subtitle-lg mx-auto mt-4 max-w-md">
+          Escríbenos y te contamos cómo sumarte a la actividad que te interese.
+        </p>
+
+        <div class="mt-8 flex justify-center">
+          <ArrowButton
+            label="Contactar"
+            href={contactHref}
+            external={contactHref.startsWith('http')}
+            variant="accent"
+            size="md"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
 
 {/*
@@ -385,10 +385,10 @@ const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { wee
      de una vez. `ink` pasa a ser el color del texto (blanco) y `mist`, la
      superficie suave (blanco muy transparente).
      --------------------------------------------------------------------- */
-  body:has(#actividades-editorial) {
-    background-color: #090909;
-  }
-
+  /*
+    El negro lo pone el propio ámbito y no el `body`: la página termina en
+    claro, con el bloque de cierre igual que en el resto del sitio.
+  */
   #actividades-editorial {
     --color-ink: #ffffff;
     --color-muted: rgba(255, 255, 255, 0.6);
