@@ -1,21 +1,21 @@
 ---
 import { Image } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
-import { radio } from '../data/content';
+import { predicaciones } from '../data/content';
 ---
 
 {/* A pantalla completa, con el contenido centrado. `svh` y no `vh`: en el móvil
     la barra del navegador entra y sale, y con `vh` la sección daría saltos. */}
 <section
-  id="radio"
+  id="predicaciones"
   class="flex min-h-svh items-center py-12 lg:py-16"
-  aria-labelledby="radio-titulo"
+  aria-labelledby="predicaciones-titulo"
 >
   <div class="container-page">
     <div class="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
       <Image
-        src={radio.image}
-        alt={radio.alt}
+        src={predicaciones.image}
+        alt={predicaciones.alt}
         widths={[480, 720, 1080]}
         sizes="(min-width: 64rem) 580px, 90vw"
         class="aspect-[16/10] w-full rounded-[1.5rem] object-cover"
@@ -24,14 +24,14 @@ import { radio } from '../data/content';
       />
 
       <div>
-        <h2 id="radio-titulo" class="heading-lg text-ink">{radio.title}</h2>
+        <h2 id="predicaciones-titulo" class="heading-lg text-ink">{predicaciones.title}</h2>
         <p class="subtitle-lg mt-3 max-w-md">
-          {radio.description}
+          {predicaciones.description}
         </p>
 
         <div class="mt-7 flex flex-wrap gap-3">
           {
-            radio.actions.map(
+            predicaciones.actions.map(
               (action) =>
                 action.href && (
                   <ArrowButton

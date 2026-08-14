@@ -39,7 +39,7 @@ import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
 import nosotros from '../assets/img/nosotros.jpg';
-import radioEstudio from '../assets/img/radio-estudio.jpg';
+import predicacion from '../assets/img/predicacion.jpg';
 import reunionDomingosGloria from '../assets/img/reunion-domingos-gloria.jpg';
 import reunionMiercolesPalabra from '../assets/img/reunion-miercoles-palabra.jpg';
 import reunionViernesAvivamiento from '../assets/img/reunion-viernes-avivamiento.jpg';
@@ -97,7 +97,7 @@ export type NavLink = { label: string; href: string; external?: boolean };
 export const nav: NavLink[] = [
   { label: 'Compasión', href: '#compasion' },
   { label: 'Actividades', href: '#vida-en-familia' },
-  { label: 'Radio', href: '#radio' },
+  { label: 'Prédicas', href: '#predicaciones' },
   { label: 'Dar', href: '#dar' },
 ];
 
@@ -370,13 +370,13 @@ export const compassionCards: CompassionCard[] = [
   },
 ];
 
-/* --- Radio ----------------------------------------------------------------- */
+/* --- Predicaciones --------------------------------------------------------- */
 
-export const radio = {
+export const predicaciones = {
   title: 'Escucha donde estés',
-  description: 'Revive nuestras predicaciones y conéctate a nuestros programas radiales',
-  image: radioEstudio,
-  alt: 'Dos personas grabando un programa en el estudio de radio',
+  description: 'Revive nuestras predicaciones cuando quieras y donde quieras',
+  image: predicacion,
+  alt: 'Pastor predicando durante una reunión',
   actions: [
     /**
      * Playlist "Prédicas 2026". Va a la vista de lista en vez de al enlace de
@@ -384,16 +384,10 @@ export const radio = {
      * una concreta que con el tiempo deje de ser la más reciente.
      */
     {
-      label: 'Predicaciones',
+      label: 'Ver predicaciones',
       href: 'https://www.youtube.com/playlist?list=PLdyP4f9u-CyoZ4P-ZyG8FP9y77hfIkXLv',
       external: true,
     },
-    /**
-     * Señal en vivo (Icecast, AAC 128 kbps). El servidor también responde por
-     * HTTPS, que es lo que hay que usar: enlazar a http:// desde un sitio en
-     * https dispara avisos de "no seguro" en el navegador.
-     */
-    { label: 'Radio Pura Vida FM', href: 'https://audio2.tustreaming.cl:7200/stream', external: true },
   ] satisfies NavLink[],
 };
 
@@ -529,7 +523,7 @@ export const footerColumns: FooterColumn[] = [
     links: [
       { label: 'Horarios y Ubicación', href: '#reuniones' },
       { label: 'Calendario de Actividades', href: '#vida-en-familia' },
-      { label: 'Predicaciones Recientes', href: '#radio' },
+      { label: 'Predicaciones Recientes', href: '#predicaciones' },
       { label: 'Áreas de Servicio', href: '' },
     ],
   },
