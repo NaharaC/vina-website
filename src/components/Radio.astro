@@ -1,0 +1,91 @@
+---
+import { Image } from 'astro:assets';
+import ArrowButton from './ArrowButton.astro';
+import { radio } from '../data/content';
+
+/*
+  La marquesina va con los afiches repetidos dos veces: la animación desplaza
+  la pista justo la mitad de su ancho, así el segundo grupo cae exactamente
+  donde estaba el primero y el bucle no tiene costura. La copia es decorativa
+  —`aria-hidden`— para que un lector de pantalla no lea la lista dos veces.
+*/
+const grupos = [
+  { programas: radio.programas, copia: false },
+  { programas: radio.programas, copia: true },
+];
+---
+
+<section id="radio" class="overflow-hidden py-20 lg:py-28" aria-labelledby="radio-titulo">
+  <div class="container-page">
+    <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+      <div>
+        <h2 id="radio-titulo" class="heading-lg text-ink">{radio.title}</h2>
+        <p class="subtitle-lg mt-3 max-w-md">{radio.description}</p>
+      </div>
+
+      <ArrowButton
+        label={radio.action.label}
+        href={radio.action.href}
+        variant="accent"
+        size="md"
+        external={radio.action.external}
+      />
+    </div>
+  </div>
+
+  {/* a sangre: los afiches entran y salen por los bordes de la pantalla */}
+  <div class="marquesina mt-12 lg:mt-16">
+    <div class="marquesina-pista flex w-max">
+      {
+        grupos.map(({ programas, copia }) => (
+          <ul class="flex shrink-0" aria-hidden={copia ? 'true' : undefined}>
+            {programas.map((programa) => (
+              <li class="mr-5 shrink-0 lg:mr-7">
+                <Image
+                  src={programa.poster}
+                  alt={copia ? '' : `${programa.name}, ${programa.when}`}
+                  widths={[320, 480, 720]}
+                  sizes="(min-width: 64rem) 22rem, 15rem"
+                  class="h-[19rem] w-auto rounded-[1.25rem] object-cover sm:h-[24rem] lg:h-[27.5rem]"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </li>
+            ))}
+          </ul>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .marquesina-pista {
+    animation: desfile 45s linear infinite;
+  }
+
+  /* al pasar el ratón se detiene, para poder mirar un afiche con calma */
+  .marquesina:hover .marquesina-pista {
+    animation-play-state: paused;
+  }
+
+  @keyframes desfile {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /*
+    Sin animación, la tira se queda quieta y se arrastra con el dedo o la
+    rueda: si no, solo se verían los dos primeros afiches.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .marquesina {
+      overflow-x: auto;
+    }
+
+    .marquesina-pista {
+      animation: none;
+    }
+  }
+</style>

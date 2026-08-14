@@ -40,6 +40,12 @@ import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
 import nosotros from '../assets/img/nosotros.jpg';
 import predicacion from '../assets/img/predicacion.jpg';
+import radioCaminandoSeguras from '../assets/img/radio-caminando-seguras.jpg';
+import radioPastoresPuraVida from '../assets/img/radio-pastores-con-pura-vida.jpg';
+import radioPermaneciendoDependientes from '../assets/img/radio-permaneciendo-dependientes.jpg';
+import radioPulsoDeVida from '../assets/img/radio-pulso-de-vida.jpg';
+import radioTerminandoLaSemana from '../assets/img/radio-terminando-la-semana.jpg';
+import radioTiempoYHora from '../assets/img/radio-tiempo-y-hora.jpg';
 import reunionDomingosGloria from '../assets/img/reunion-domingos-gloria.jpg';
 import reunionMiercolesPalabra from '../assets/img/reunion-miercoles-palabra.jpg';
 import reunionViernesAvivamiento from '../assets/img/reunion-viernes-avivamiento.jpg';
@@ -389,6 +395,42 @@ export const predicaciones = {
       external: true,
     },
   ] satisfies NavLink[],
+};
+
+/* --- Radio ----------------------------------------------------------------- */
+
+export type ProgramaRadio = {
+  name: string;
+  /** Cuándo se emite, tal como lo dice el afiche. */
+  when: string;
+  poster: ImageMetadata;
+};
+
+export const radio = {
+  title: 'Radio Pura Vida FM',
+  description: 'Nuestra programación semanal, en vivo y para todo Puerto Montt',
+  /**
+   * Señal en vivo (Icecast, AAC 128 kbps). El servidor también responde por
+   * HTTPS, que es lo que hay que usar: enlazar a http:// desde un sitio en
+   * https dispara avisos de "no seguro" en el navegador.
+   */
+  action: {
+    label: 'Escuchar en vivo',
+    href: 'https://audio2.tustreaming.cl:7200/stream',
+    external: true,
+  } satisfies NavLink,
+  programas: [
+    { name: 'Caminando Seguras', when: 'Lunes a jueves · 12:00 hrs', poster: radioCaminandoSeguras },
+    { name: 'Pastores con Pura Vida', when: 'Miércoles · 13:00 hrs', poster: radioPastoresPuraVida },
+    { name: 'Tiempo y Hora', when: 'Miércoles · 14:00 hrs', poster: radioTiempoYHora },
+    {
+      name: 'Permaneciendo Dependientes',
+      when: 'Jueves · 14:00 hrs',
+      poster: radioPermaneciendoDependientes,
+    },
+    { name: 'Terminando la Semana', when: 'Viernes · 12:00 hrs', poster: radioTerminandoLaSemana },
+    { name: 'Pulso de Vida', when: 'Viernes · 16:00 hrs', poster: radioPulsoDeVida },
+  ] satisfies ProgramaRadio[],
 };
 
 /* --- Vida en familia ------------------------------------------------------- */
