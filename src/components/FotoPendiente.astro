@@ -1,0 +1,28 @@
+---
+/**
+ * Hueco para una foto que todavía no llega.
+ *
+ * Deja el espacio con la proporción final —así la maqueta ya se ve como
+ * quedará— y dice qué foto va ahí. Cuando la imagen exista, se cambia este
+ * componente por `<Image>` y no hay que tocar nada más alrededor.
+ */
+interface Props {
+  /** Qué foto va aquí, para saber qué pedir. */
+  label: string;
+  /** Proporción y esquinas las pone quien lo usa. */
+  class?: string;
+}
+
+const { label, class: className = '' } = Astro.props;
+---
+
+<div
+  class:list={[
+    'grid place-items-center border border-dashed border-ink/25 bg-mist p-4 text-center',
+    className,
+  ]}
+  role="img"
+  aria-label={`Pendiente: ${label}`}
+>
+  <span class="text-xs text-muted">{label}</span>
+</div>

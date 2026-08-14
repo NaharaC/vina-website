@@ -433,6 +433,90 @@ export const radio = {
   ] satisfies ProgramaRadio[],
 };
 
+/* --- Nosotros -------------------------------------------------------------- */
+
+export type MiembroEquipo = {
+  name: string;
+  role: string;
+  /** `null` mientras no llegue el retrato. Formato vertical, 4:5. */
+  photo: ImageMetadata | null;
+};
+
+export type FotoHistorica = {
+  /** Pie de foto: año, lugar o qué se ve. */
+  caption: string;
+  /** `null` mientras no llegue. Horizontal, 4:3. */
+  image: ImageMetadata | null;
+};
+
+export const about = {
+  eyebrow: 'Nosotros',
+  title: 'Más de 25 años siendo una familia compasiva en Puerto Montt',
+
+  historia: {
+    title: 'Cómo empezó',
+    /** Un párrafo por entrada. */
+    body: [
+      'Un grupo pequeño reuniéndose a orar fue el principio de lo que hoy es una familia de cientos de personas en Puerto Montt.',
+      'Con los años, esa casa se hizo chica y la iglesia se fue extendiendo a la ciudad: primero en reuniones y redes, después en salud, educación y proyectos sociales.',
+    ],
+    foto: null as ImageMetadata | null,
+    fotoCaption: 'Los primeros años de la iglesia',
+  },
+
+  /** TODO: pendiente la cita real y quién la dice. */
+  cita: {
+    quote:
+      '«Pendiente: unas líneas de los pastores contando por qué la iglesia es como es. Dos o tres frases.»',
+    name: 'Nombre del pastor o pastora',
+    role: 'Pastor',
+    photo: null as ImageMetadata | null,
+  },
+
+  valores: [
+    {
+      title: 'Una familia compasiva imitando a Jesús',
+      body: 'La compasión no es un programa: es la forma en que entendemos la fe. Por eso la iglesia se extiende en salud, educación y ayuda social.',
+    },
+    {
+      title: 'Iglesia en movimiento',
+      body: 'Seguimos creciendo como comunidad y sirviendo a la ciudad, con la convicción de que la palabra declarada trae transformación.',
+    },
+    {
+      title: 'Una casa abierta',
+      body: 'Cada reunión, red y actividad existe para que nadie tenga que llegar solo: hay lugar para quien viene por primera vez y para quien lleva años.',
+    },
+  ],
+
+  galeria: {
+    title: 'Nuestra historia en fotos',
+    description: 'Del living de una casa a una familia de cientos de personas',
+    /** TODO: pendientes las fotos antiguas y sus pies. */
+    fotos: [
+      { caption: 'Pendiente', image: null },
+      { caption: 'Pendiente', image: null },
+      { caption: 'Pendiente', image: null },
+      { caption: 'Pendiente', image: null },
+      { caption: 'Pendiente', image: null },
+      { caption: 'Pendiente', image: null },
+    ] satisfies FotoHistorica[],
+  },
+
+  equipo: {
+    title: 'Equipo pastoral',
+    description: 'Quienes cuidan y acompañan a la familia',
+    /** TODO: pendientes los nombres, los cargos y los retratos. */
+    miembros: [
+      { name: 'Nombre pendiente', role: 'Pastor principal', photo: null },
+      { name: 'Nombre pendiente', role: 'Pastora', photo: null },
+      { name: 'Nombre pendiente', role: 'Pastor', photo: null },
+      { name: 'Nombre pendiente', role: 'Pastor de jóvenes', photo: null },
+      { name: 'Nombre pendiente', role: 'Pastora de mujeres', photo: null },
+      { name: 'Nombre pendiente', role: 'Pastor de compasión social', photo: null },
+    ] satisfies MiembroEquipo[],
+  },
+};
+
 /* --- Vida en familia ------------------------------------------------------- */
 
 export type FamilyActivity = {

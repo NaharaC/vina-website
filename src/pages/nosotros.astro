@@ -2,93 +2,198 @@
 import { Image } from 'astro:assets';
 import ArrowButton from '../components/ArrowButton.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { compassionFeature, site, stats, whatsappHref } from '../data/content';
+import FotoPendiente from '../components/FotoPendiente.astro';
+import { about, site, stats, whatsappHref } from '../data/content';
 
 const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') || '/#contacto';
-
-/**
- * Primera versión de la página. El relato está en bloques sueltos para poder
- * ir sumando o reordenando secciones sin rehacer la maqueta.
- * TODO: texto definitivo de la historia, fotos propias y equipo pastoral.
- */
-const historia = [
-  {
-    eyebrow: 'Cómo empezó',
-    title: 'Todo comenzó en el living de una casa',
-    body: 'Un grupo pequeño reuniéndose a orar fue el principio de lo que hoy es una familia de cientos de personas en Puerto Montt.',
-  },
-  {
-    eyebrow: 'Qué creemos',
-    title: 'Una familia compasiva imitando a Jesús',
-    body: 'La compasión no es un programa: es la forma en que entendemos la fe. Por eso la iglesia se extiende en salud, educación y ayuda social.',
-  },
-  {
-    eyebrow: 'Hacia dónde vamos',
-    title: 'Iglesia en movimiento',
-    body: 'Seguimos creciendo como comunidad y sirviendo a la ciudad, con la convicción de que la palabra declarada trae transformación.',
-  },
-];
 ---
 
+{/*
+  Sin `heroFoto`: la página abre sobre blanco, así que la barra de navegación
+  tiene que ir en tinta y no en blanco.
+*/}
 <BaseLayout
   title={`Nosotros — ${site.name}`}
-  description="La historia de Iglesia Viña Puerto Montt: cómo empezó, qué creemos y hacia dónde vamos."
-  heroFoto
+  description="La historia de Iglesia Viña Puerto Montt: cómo empezó, qué creemos y quiénes la pastorean."
 >
-  {/* Portada: la misma foto de la tarjeta "Nosotros" de la home */}
-  <section class="relative isolate flex min-h-[70svh] flex-col justify-end overflow-clip">
-    <Image
-      src={compassionFeature.image}
-      alt={compassionFeature.alt}
-      widths={[768, 1280, 1920]}
-      sizes="100vw"
-      class="absolute inset-0 -z-10 size-full object-cover brightness-[0.6] saturate-[0.8]"
-      loading="eager"
-      fetchpriority="high"
-    />
-    <div class="absolute inset-0 -z-10 bg-black/35" aria-hidden="true"></div>
-
-    <div class="container-page pb-14 lg:pb-20">
-      <p class="eyebrow !text-white/70">Iglesia Viña Puerto Montt</p>
+  {/* Portada: solo tipografía, mucho aire y el titular en peso normal */}
+  <section class="pt-36 pb-16 lg:pt-44 lg:pb-24" aria-labelledby="nosotros-titulo">
+    <div class="container-page">
+      <p class="eyebrow">{about.eyebrow}</p>
       <h1
-        class="mt-4 leading-[0.9] font-semibold tracking-[-0.045em] text-white"
-        style="font-size: clamp(2.75rem, 1rem + 6.2vw, 6.25rem)"
+        id="nosotros-titulo"
+        class="mt-6 max-w-5xl leading-[0.95] font-normal tracking-[-0.04em] text-ink text-balance"
+        style="font-size: clamp(2.5rem, 1rem + 5vw, 5rem)"
       >
-        Nosotros
+        {about.title}
       </h1>
-      <p class="subtitle-lg mt-5 max-w-xl !text-white/85">{compassionFeature.description}</p>
     </div>
   </section>
 
-  {/* Relato en bloques */}
-  <section class="py-16 lg:py-24" aria-label="Nuestra historia">
+  {/* Historia: la foto a un lado y el relato al otro, con la cita al pie */}
+  <section class="pb-20 lg:pb-28" aria-label="Nuestra historia">
     <div class="container-page">
-      <div class="flex flex-col gap-14 lg:gap-20">
-        {
-          historia.map((bloque) => (
-            <article class="border-t border-ink/15 pt-8 lg:grid lg:grid-cols-[minmax(0,16rem)_1fr] lg:gap-16">
-              <p class="eyebrow">{bloque.eyebrow}</p>
+      <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
+        <figure>
+          {
+            about.historia.foto ? (
+              <Image
+                src={about.historia.foto}
+                alt={about.historia.fotoCaption}
+                widths={[480, 768, 1080]}
+                sizes="(min-width: 64rem) 40rem, 92vw"
+                class="aspect-[4/3] w-full rounded-[1rem] object-cover"
+                loading="eager"
+              />
+            ) : (
+              <FotoPendiente
+                label="Foto antigua de la iglesia · horizontal 4:3"
+                class="aspect-[4/3] w-full rounded-[1rem]"
+              />
+            )
+          }
 
-              <div class="mt-4 lg:mt-0">
-                <h2 class="heading-lg max-w-3xl text-ink">{bloque.title}</h2>
-                <p class="subtitle-lg mt-4 max-w-2xl">{bloque.body}</p>
+          <figcaption class="mt-4 flex gap-3 text-sm text-muted">
+            <span aria-hidden="true">—</span>
+            {about.historia.fotoCaption}
+          </figcaption>
+        </figure>
+
+        <div class="mt-12 lg:mt-0">
+          <h2 class="heading-lg text-ink">{about.historia.title}</h2>
+
+          <div class="mt-5 flex flex-col gap-4">
+            {about.historia.body.map((parrafo) => <p class="subtitle-lg max-w-xl">{parrafo}</p>)}
+          </div>
+
+          {/* La cita, con quien la dice al pie: como la referencia */}
+          <figure class="mt-10 border-t border-ink/15 pt-8">
+            <blockquote class="max-w-xl text-lg leading-relaxed text-ink">
+              {about.cita.quote}
+            </blockquote>
+
+            <figcaption class="mt-6 flex items-center gap-4">
+              {
+                about.cita.photo ? (
+                  <Image
+                    src={about.cita.photo}
+                    alt={about.cita.name}
+                    widths={[64, 128]}
+                    sizes="56px"
+                    class="size-14 shrink-0 rounded-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <FotoPendiente label="Retrato" class="size-14 shrink-0 rounded-full !p-1" />
+                )
+              }
+
+              <div>
+                <p class="text-sm font-semibold text-ink">{about.cita.name}</p>
+                <p class="text-sm text-muted">{about.cita.role}</p>
               </div>
-            </article>
-          ))
-        }
+            </figcaption>
+          </figure>
+        </div>
       </div>
     </div>
   </section>
 
+  {/* Qué creemos: filas separadas por líneas, título a un lado y texto al otro */}
+  <section class="pb-20 lg:pb-28" aria-label="Qué creemos">
+    <div class="container-page">
+      {
+        about.valores.map((valor) => (
+          <div class="border-t border-ink/15 py-10 lg:grid lg:grid-cols-2 lg:gap-16 lg:py-14">
+            <h2 class="heading-lg max-w-md text-ink">{valor.title}</h2>
+            <p class="subtitle-lg mt-4 max-w-xl lg:mt-0">{valor.body}</p>
+          </div>
+        ))
+      }
+      <div class="border-t border-ink/15"></div>
+    </div>
+  </section>
+
+  {/* Fotos antiguas */}
+  <section class="pb-20 lg:pb-28" aria-labelledby="galeria-titulo">
+    <div class="container-page">
+      <h2 id="galeria-titulo" class="heading-lg text-ink">{about.galeria.title}</h2>
+      <p class="subtitle-lg mt-3 max-w-md">{about.galeria.description}</p>
+
+      <ul class="mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3">
+        {
+          about.galeria.fotos.map((foto) => (
+            <li>
+              <figure>
+                {foto.image ? (
+                  <Image
+                    src={foto.image}
+                    alt={foto.caption}
+                    widths={[320, 480, 720]}
+                    sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
+                    class="aspect-[4/3] w-full rounded-[1rem] object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <FotoPendiente
+                    label="Foto antigua · horizontal 4:3"
+                    class="aspect-[4/3] w-full rounded-[1rem]"
+                  />
+                )}
+
+                <figcaption class="mt-3 text-sm text-muted">{foto.caption}</figcaption>
+              </figure>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  {/* Equipo pastoral */}
+  <section class="pb-20 lg:pb-28" aria-labelledby="equipo-titulo">
+    <div class="container-page">
+      <h2 id="equipo-titulo" class="heading-lg text-ink">{about.equipo.title}</h2>
+      <p class="subtitle-lg mt-3 max-w-md">{about.equipo.description}</p>
+
+      <ul class="mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3">
+        {
+          about.equipo.miembros.map((miembro) => (
+            <li>
+              {miembro.photo ? (
+                <Image
+                  src={miembro.photo}
+                  alt={miembro.name}
+                  widths={[320, 480, 720]}
+                  sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
+                  class="aspect-[4/5] w-full rounded-[1rem] object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <FotoPendiente
+                  label="Retrato · vertical 4:5"
+                  class="aspect-[4/5] w-full rounded-[1rem]"
+                />
+              )}
+
+              <p class="mt-4 text-[0.9375rem] font-semibold text-ink">{miembro.name}</p>
+              <p class="text-sm text-muted">{miembro.role}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
   {/* Las mismas cifras de la home, para no repetir el dato en dos lugares */}
-  <section class="pb-16 lg:pb-24" aria-label="La iglesia en cifras">
+  <section class="pb-20 lg:pb-28" aria-label="La iglesia en cifras">
     <div class="container-page">
       <div class="grid gap-x-16 gap-y-12 border-t border-ink/15 pt-10 sm:grid-cols-2 lg:grid-cols-4">
         {
           stats.map((stat) => (
             <div>
               <p class="eyebrow">{stat.caption}</p>
-              <p class="mt-3 text-[2.5rem] leading-none font-semibold tracking-[-0.04em] text-ink">
+              <p class="mt-3 text-[2.5rem] leading-none font-normal tracking-[-0.04em] text-ink">
                 {stat.value}
               </p>
             </div>
