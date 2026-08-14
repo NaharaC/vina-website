@@ -6,131 +6,33 @@ const hasCarousel = testimonials.length > 1;
 ---
 
 {/*
-  La sección entra completa en pantalla: el bloque de título y el video se
-  reparten el alto disponible. El video corre solo y en silencio; el botón de
-  sonido es la única forma de que empiece a oírse (los navegadores no dejan
-  arrancar con audio sin que alguien lo pida).
-*/}
-{/*
-  `tramo-claro` saca esta sección del negro del tramo: fondo blanco y los
-  colores de siempre. El hueco de la foto sigue igual, porque va aparte.
+  Texto a la izquierda y video a la derecha, como el resto de las secciones a
+  dos columnas. El video corre solo y en silencio; el botón de sonido es la
+  única forma de que empiece a oírse (los navegadores no dejan arrancar con
+  audio sin que alguien lo pida).
+
+  `tramo-claro` saca la sección del negro del tramo que la envuelve: fondo
+  blanco y los colores de siempre.
 */}
 <section
-  class="tramo-claro flex min-h-svh flex-col justify-center py-12 lg:py-16"
+  class="tramo-claro flex min-h-svh items-center py-12 lg:py-16"
   aria-labelledby="testimonios-titulo"
 >
   <div class="container-page">
-    <div class="text-center">
-      <h2 id="testimonios-titulo" class="heading-lg text-ink">{testimonialsIntro.title}</h2>
-    </div>
+    <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+      <div>
+        <h2 id="testimonios-titulo" class="heading-lg text-ink">{testimonialsIntro.title}</h2>
 
-    <div
-      id="testimonios-track"
-      aria-roledescription={hasCarousel ? 'carrusel' : undefined}
-      aria-label={hasCarousel ? 'Testimonios' : undefined}
-      tabindex={hasCarousel ? 0 : undefined}
-      class:list={[
-        'no-scrollbar mt-8 flex gap-6 overflow-x-auto scroll-smooth lg:mt-10',
-        hasCarousel && 'snap-x snap-mandatory',
-      ]}
-    >
-      {
-        testimonials.map((testimonial, index) => (
-          <figure class="mx-auto aspect-video max-h-[58svh] w-full max-w-4xl shrink-0 snap-center overflow-hidden rounded-[1.75rem] bg-carbon lg:rounded-[2rem]">
-            <div class="relative size-full">
-              <video
-                class="testimonio-video size-full object-cover"
-                src={testimonial.video}
-                poster={testimonial.poster}
-                autoplay
-                muted
-                loop
-                playsinline
-                preload="metadata"
-                aria-label={testimonial.alt}
-              />
-
-              {/* el degradado solo cubre la franja donde va el nombre */}
-              <div
-                class="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent"
-                aria-hidden="true"
-              />
-
-              <figcaption class="absolute bottom-5 left-5 text-sm font-semibold text-white sm:bottom-7 sm:left-7 sm:text-base">
-                {testimonial.name}
-              </figcaption>
-
-              <button
-                type="button"
-                class="testimonio-sonido absolute right-5 bottom-5 inline-flex items-center gap-2.5 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-lg backdrop-saturate-150 transition-colors hover:bg-white/20 sm:right-7 sm:bottom-7"
-                data-indice={index}
-                aria-pressed="false"
-              >
-                <Icon
-                  name="lucide:volume-x"
-                  width={18}
-                  height={18}
-                  class="icono-silencio"
-                  aria-hidden="true"
-                />
-                <Icon
-                  name="lucide:volume-2"
-                  width={18}
-                  height={18}
-                  class="icono-sonido hidden"
-                  aria-hidden="true"
-                />
-                <span class="etiqueta-sonido">Activar sonido</span>
-              </button>
-            </div>
-          </figure>
-        ))
-      }
-    </div>
-
-    {
-      hasCarousel && (
-        <div class="mt-8 flex items-center justify-center gap-3">
-          <button
-            type="button"
-            data-carousel-prev
-            class="grid size-11 place-items-center rounded-xl bg-white text-carbon shadow-sm transition-colors hover:bg-white/70 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-white"
-          >
-            <span class="sr-only">Testimonio anterior</span>
-            <Icon name="lucide:arrow-left" width={18} height={18} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            data-carousel-next
-            class="grid size-11 place-items-center rounded-xl bg-white text-carbon shadow-sm transition-colors hover:bg-white/70 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-white"
-          >
-            <span class="sr-only">Testimonio siguiente</span>
-            <Icon name="lucide:arrow-right" width={18} height={18} aria-hidden="true" />
-          </button>
-        </div>
-      )
-    }
-
-    {/*
-      Cierre a media página, igual que la palabra profética: mucho aire a la
-      izquierda y el versículo en grande a la derecha, con su botón al pie. El
-      versículo vive aquí y no bajo el título, para no decirlo dos veces.
-    */}
-    <div class="mt-16 lg:mt-24 lg:grid lg:grid-cols-2 lg:gap-16">
-      <div class="lg:col-start-2">
-        <p class="eyebrow">{testimonialsIntro.reference}</p>
-
-        <blockquote
-          class="mt-6 text-[2rem] leading-[1.1] font-semibold tracking-[-0.04em] text-ink text-balance sm:text-[2.5rem] xl:text-[3.125rem]"
-        >
-          {testimonialsIntro.verse}
-        </blockquote>
+        <p class="subtitle-lg mt-4 max-w-md">
+          {testimonialsIntro.verse}<br />
+          {testimonialsIntro.reference}
+        </p>
 
         <a
           href={testimonialsIntro.action.href}
           target={testimonialsIntro.action.external ? '_blank' : undefined}
           rel={testimonialsIntro.action.external ? 'noopener noreferrer' : undefined}
-          class="group mt-10 inline-flex items-center gap-3 rounded-full bg-mist px-7 py-3.5 text-[0.9375rem] font-semibold text-carbon transition-colors hover:bg-[#e4e3de]"
+          class="group mt-8 inline-flex items-center gap-3 rounded-full bg-mist px-7 py-3.5 text-[0.9375rem] font-semibold text-carbon transition-colors hover:bg-[#e4e3de]"
         >
           {testimonialsIntro.action.label}
           {testimonialsIntro.action.external && (
@@ -144,6 +46,96 @@ const hasCarousel = testimonials.length > 1;
             aria-hidden="true"
           />
         </a>
+      </div>
+
+      <div>
+        <div
+          id="testimonios-track"
+          aria-roledescription={hasCarousel ? 'carrusel' : undefined}
+          aria-label={hasCarousel ? 'Testimonios' : undefined}
+          tabindex={hasCarousel ? 0 : undefined}
+          class:list={[
+            'no-scrollbar flex gap-6 overflow-x-auto scroll-smooth',
+            hasCarousel && 'snap-x snap-mandatory',
+          ]}
+        >
+          {
+            testimonials.map((testimonial, index) => (
+              <figure class="aspect-video w-full shrink-0 snap-center overflow-hidden rounded-[1.5rem] bg-carbon lg:rounded-[1.75rem]">
+                <div class="relative size-full">
+                  <video
+                    class="testimonio-video size-full object-cover"
+                    src={testimonial.video}
+                    poster={testimonial.poster}
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                    preload="metadata"
+                    aria-label={testimonial.alt}
+                  />
+
+                  {/* el degradado solo cubre la franja donde va el nombre */}
+                  <div
+                    class="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent"
+                    aria-hidden="true"
+                  />
+
+                  <figcaption class="absolute bottom-5 left-5 text-sm font-semibold text-white sm:bottom-7 sm:left-7 sm:text-base">
+                    {testimonial.name}
+                  </figcaption>
+
+                  <button
+                    type="button"
+                    class="testimonio-sonido absolute right-5 bottom-5 inline-flex items-center gap-2.5 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-lg backdrop-saturate-150 transition-colors hover:bg-white/20 sm:right-7 sm:bottom-7"
+                    data-indice={index}
+                    aria-pressed="false"
+                  >
+                    <Icon
+                      name="lucide:volume-x"
+                      width={18}
+                      height={18}
+                      class="icono-silencio"
+                      aria-hidden="true"
+                    />
+                    <Icon
+                      name="lucide:volume-2"
+                      width={18}
+                      height={18}
+                      class="icono-sonido hidden"
+                      aria-hidden="true"
+                    />
+                    <span class="etiqueta-sonido">Activar sonido</span>
+                  </button>
+                </div>
+              </figure>
+            ))
+          }
+        </div>
+
+        {
+          hasCarousel && (
+            <div class="mt-6 flex items-center gap-3">
+              <button
+                type="button"
+                data-carousel-prev
+                class="grid size-11 place-items-center rounded-xl bg-mist text-carbon transition-colors hover:bg-[#e4e3de] disabled:cursor-default disabled:opacity-40 disabled:hover:bg-mist"
+              >
+                <span class="sr-only">Testimonio anterior</span>
+                <Icon name="lucide:arrow-left" width={18} height={18} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                data-carousel-next
+                class="grid size-11 place-items-center rounded-xl bg-mist text-carbon transition-colors hover:bg-[#e4e3de] disabled:cursor-default disabled:opacity-40 disabled:hover:bg-mist"
+              >
+                <span class="sr-only">Testimonio siguiente</span>
+                <Icon name="lucide:arrow-right" width={18} height={18} aria-hidden="true" />
+              </button>
+            </div>
+          )
+        }
+
       </div>
     </div>
   </div>
