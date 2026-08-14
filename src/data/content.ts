@@ -504,7 +504,7 @@ export const about = {
 
   equipo: {
     title: 'Equipo pastoral',
-    description: 'Quienes cuidan y acompañan a la familia',
+    description: 'Conoce a nuestros pastores asociados',
     /** TODO: pendientes los nombres, los cargos y los retratos. */
     miembros: [
       { name: 'Nombre pendiente', role: 'Pastor principal', photo: null },
