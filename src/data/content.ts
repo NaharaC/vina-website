@@ -39,6 +39,8 @@ import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
 import nosotros from '../assets/img/nosotros.jpg';
+import equipoDanielNahara from '../assets/img/equipo-daniel-nahara.jpg';
+import equipoDanielNahara2 from '../assets/img/equipo-daniel-nahara-2.jpg';
 import predicacion from '../assets/img/predicacion.jpg';
 import radioCaminandoSeguras from '../assets/img/radio-caminando-seguras.jpg';
 import radioPastoresPuraVida from '../assets/img/radio-pastores-con-pura-vida.jpg';
@@ -440,6 +442,11 @@ export type MiembroEquipo = {
   role: string;
   /** `null` mientras no llegue el retrato. Formato vertical, 4:5. */
   photo: ImageMetadata | null;
+  /**
+   * Segunda foto, más personal: aparece al pasar el ratón por la tarjeta.
+   * Opcional; sin ella la tarjeta simplemente no cambia.
+   */
+  photoHover?: ImageMetadata | null;
 };
 
 export type FotoHistorica = {
@@ -508,7 +515,12 @@ export const about = {
     /** TODO: pendientes los nombres, los cargos y los retratos. */
     miembros: [
       { name: 'Nombre pendiente', role: 'Pastor principal', photo: null },
-      { name: 'Nombre pendiente', role: 'Pastora', photo: null },
+      {
+        name: 'Daniel Quinteros y Nahara Gutiérrez',
+        role: 'Pastores de Matrimonios Jóvenes',
+        photo: equipoDanielNahara,
+        photoHover: equipoDanielNahara2,
+      },
       { name: 'Nombre pendiente', role: 'Pastor', photo: null },
       { name: 'Nombre pendiente', role: 'Pastor de jóvenes', photo: null },
       { name: 'Nombre pendiente', role: 'Pastora de mujeres', photo: null },
