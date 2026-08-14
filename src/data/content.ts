@@ -460,7 +460,7 @@ export type FotoHistorica = {
 
 export const about = {
   eyebrow: 'Nosotros',
-  title: 'Más de 25 años siendo una familia compasiva en Puerto Montt',
+  title: 'Somos una familia compasiva imitando a Jesús',
 
   historia: {
     title: 'Cómo empezó',
