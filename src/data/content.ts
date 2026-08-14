@@ -40,6 +40,8 @@ import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
 import nosotros from '../assets/img/nosotros.jpg';
 import equipoDanielNahara from '../assets/img/equipo-daniel-nahara.jpg';
+import equipoRobertoAraceli from '../assets/img/equipo-roberto-araceli.jpg';
+import equipoRobertoAraceli2 from '../assets/img/equipo-roberto-araceli-2.jpg';
 import equipoDanielNahara2 from '../assets/img/equipo-daniel-nahara-2.jpg';
 import predicacion from '../assets/img/predicacion.jpg';
 import radioCaminandoSeguras from '../assets/img/radio-caminando-seguras.jpg';
@@ -514,7 +516,12 @@ export const about = {
     description: 'Conoce a nuestros pastores asociados',
     /** TODO: pendientes los nombres, los cargos y los retratos. */
     miembros: [
-      { name: 'Nombre pendiente', role: 'Pastor principal', photo: null },
+      {
+        name: 'Roberto Quinteros y Araceli Chaparro',
+        role: 'Pastores de Jóvenes',
+        photo: equipoRobertoAraceli,
+        photoHover: equipoRobertoAraceli2,
+      },
       {
         name: 'Daniel Quinteros y Nahara Gutiérrez',
         role: 'Pastores de Matrimonios Jóvenes',
