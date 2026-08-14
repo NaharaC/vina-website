@@ -40,13 +40,13 @@ const grupos = [
         grupos.map(({ programas, copia }) => (
           <ul class="flex shrink-0" aria-hidden={copia ? 'true' : undefined}>
             {programas.map((programa) => (
-              <li class="mr-5 shrink-0 lg:mr-7">
+              <li class="mr-3 shrink-0 lg:mr-4">
                 <Image
                   src={programa.poster}
                   alt={copia ? '' : `${programa.name}, ${programa.when}`}
-                  widths={[320, 480, 720]}
-                  sizes="(min-width: 64rem) 22rem, 15rem"
-                  class="h-[19rem] w-auto rounded-[1.25rem] object-cover sm:h-[24rem] lg:h-[27.5rem]"
+                  widths={[256, 384, 512]}
+                  sizes="(min-width: 64rem) 16rem, 12rem"
+                  class="h-[14rem] w-auto rounded-[1rem] object-cover sm:h-[17rem] lg:h-[20rem]"
                   loading="lazy"
                   decoding="async"
                 />
@@ -61,7 +61,7 @@ const grupos = [
 
 <style>
   .marquesina-pista {
-    animation: desfile 45s linear infinite;
+    animation: desfile 34s linear infinite;
   }
 
   /* al pasar el ratón se detiene, para poder mirar un afiche con calma */

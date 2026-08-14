@@ -408,7 +408,7 @@ export type ProgramaRadio = {
 
 export const radio = {
   title: 'Radio Pura Vida FM',
-  description: 'Nuestra programación semanal, en vivo y para todo Puerto Montt',
+  description: 'Conéctate a nuestros programas radiales',
   /**
    * Señal en vivo (Icecast, AAC 128 kbps). El servidor también responde por
    * HTTPS, que es lo que hay que usar: enlazar a http:// desde un sitio en
