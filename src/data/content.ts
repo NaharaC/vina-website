@@ -40,6 +40,8 @@ import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
 import nosotros from '../assets/img/nosotros.jpg';
 import equipoDanielNahara from '../assets/img/equipo-daniel-nahara.jpg';
+import equipoCarlosThiare from '../assets/img/equipo-carlos-thiare.jpg';
+import equipoCarlosThiare2 from '../assets/img/equipo-carlos-thiare-2.jpg';
 import equipoRobertoAraceli from '../assets/img/equipo-roberto-araceli.jpg';
 import equipoRobertoAraceli2 from '../assets/img/equipo-roberto-araceli-2.jpg';
 import equipoDanielNahara2 from '../assets/img/equipo-daniel-nahara-2.jpg';
@@ -528,7 +530,12 @@ export const about = {
         photo: equipoDanielNahara,
         photoHover: equipoDanielNahara2,
       },
-      { name: 'Nombre pendiente', role: 'Pastor', photo: null },
+      {
+        name: 'Carlos Moya y Thiare Pivet',
+        role: 'Pastores de Matrimonios',
+        photo: equipoCarlosThiare,
+        photoHover: equipoCarlosThiare2,
+      },
       { name: 'Nombre pendiente', role: 'Pastor de jóvenes', photo: null },
       { name: 'Nombre pendiente', role: 'Pastora de mujeres', photo: null },
       { name: 'Nombre pendiente', role: 'Pastor de compasión social', photo: null },
