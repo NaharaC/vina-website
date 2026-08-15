@@ -166,7 +166,7 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
                   se cambia la de arriba por la de abajo. Quien no tiene
                   segunda foto se queda con la suya, sin efecto.
                 */
-                <div class="group relative aspect-[4/5] w-full overflow-hidden rounded-[1rem]">
+                <div class="group relative aspect-square w-full overflow-hidden rounded-[1rem]">
                   <Image
                     src={miembro.photo}
                     alt={miembro.name}
@@ -191,10 +191,7 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
                   )}
                 </div>
               ) : (
-                <FotoPendiente
-                  label="Retrato · vertical 4:5"
-                  class="aspect-[4/5] w-full rounded-[1rem]"
-                />
+                <FotoPendiente label="Retrato · cuadrado 1:1" class="aspect-square w-full rounded-[1rem]" />
               )}
 
               <p class="mt-4 text-[0.9375rem] font-semibold text-ink">{miembro.name}</p>

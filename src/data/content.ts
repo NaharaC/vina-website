@@ -444,7 +444,7 @@ export const radio = {
 export type MiembroEquipo = {
   name: string;
   role: string;
-  /** `null` mientras no llegue el retrato. Formato vertical, 4:5. */
+  /** `null` mientras no llegue el retrato. Cuadrado, 1:1. */
   photo: ImageMetadata | null;
   /**
    * Segunda foto, más personal: aparece al pasar el ratón por la tarjeta.
