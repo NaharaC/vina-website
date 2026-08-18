@@ -13,17 +13,25 @@ import { familyLife } from '../data/content';
   cruzan el centro del viewport. En móvil no hay lista fija: cada grupo de
   fotos lleva su encabezado.
 */}
-<section id="vida-en-familia" class="py-12 lg:py-16" aria-labelledby="familia-titulo">
+<section id="vida-en-familia" class="py-20 lg:py-28" aria-labelledby="familia-titulo">
   <div class="container-page">
-    <div class="lg:grid lg:grid-cols-[1fr_minmax(0,26rem)] lg:gap-24">
-      {/* bloque fijo: título, bajada y la lista de actividades, todo junto */}
+    {/*
+      El nombre de la sección va en rótulo pequeño y con una línea debajo, no
+      en titular: los titulares grandes son los de las actividades, y con dos
+      tamaños grandes seguidos no se distinguía cuál era cuál.
+    */}
+    <div class="border-b border-ink/15 pb-5">
+      <h2 id="familia-titulo" class="eyebrow text-ink">{familyLife.title}</h2>
+    </div>
+
+    <div class="mt-12 lg:mt-16 lg:grid lg:grid-cols-[1fr_minmax(0,26rem)] lg:gap-24">
+      {/* bloque fijo: bajada y lista de actividades, todo junto */}
       <div class="lg:sticky lg:top-14 lg:self-start">
-        <h2 id="familia-titulo" class="heading-xl text-ink">{familyLife.title}</h2>
-        <p class="subtitle-lg mt-3 max-w-md">
+        <p class="subtitle-lg max-w-md">
           {familyLife.description}
         </p>
 
-        <ul class="mt-20 hidden lg:flex lg:flex-col lg:gap-3">
+        <ul class="mt-16 hidden lg:flex lg:flex-col lg:gap-3">
         {
           familyLife.activities.map((activity) => (
             <li class="vida-tab">
