@@ -36,6 +36,12 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    /*
+      Sin esto, al pasarse de largo arriba o abajo el rebote elástico de macOS
+      despega la página y deja ver lo que hay detrás: el blanco del lienzo
+      sobre el hero y la foto del pie por debajo.
+    */
+    overscroll-behavior-y: none;
   }
 
   body {

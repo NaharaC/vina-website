@@ -15,46 +15,48 @@ const grupos = [
 ];
 ---
 
-<section id="radio" class="overflow-hidden py-20 lg:py-28" aria-labelledby="radio-titulo">
+<section id="radio" class="py-20 lg:py-28" aria-labelledby="radio-titulo">
   <div class="container-page">
-    <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+    <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+      {/* Los afiches desfilan dentro del marco, sin salirse de la columna */}
+      <div class="marquesina overflow-hidden rounded-[1.5rem] bg-mist py-8">
+        <div class="marquesina-pista flex w-max">
+          {
+            grupos.map(({ programas, copia }) => (
+              <ul class="flex shrink-0" aria-hidden={copia ? 'true' : undefined}>
+                {programas.map((programa) => (
+                  <li class="ml-4 shrink-0 lg:ml-5">
+                    <Image
+                      src={programa.poster}
+                      alt={copia ? '' : `${programa.name}, ${programa.when}`}
+                      widths={[256, 384, 512]}
+                      sizes="(min-width: 64rem) 14rem, 11rem"
+                      class="h-[13rem] w-auto rounded-[0.75rem] object-cover sm:h-[16rem] lg:h-[17rem]"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </li>
+                ))}
+              </ul>
+            ))
+          }
+        </div>
+      </div>
+
       <div>
         <h2 id="radio-titulo" class="heading-lg text-ink">{radio.title}</h2>
         <p class="subtitle-lg mt-3 max-w-md">{radio.description}</p>
+
+        <div class="mt-7">
+          <ArrowButton
+            label={radio.action.label}
+            href={radio.action.href}
+            variant="accent"
+            size="md"
+            external={radio.action.external}
+          />
+        </div>
       </div>
-
-      <ArrowButton
-        label={radio.action.label}
-        href={radio.action.href}
-        variant="accent"
-        size="md"
-        external={radio.action.external}
-      />
-    </div>
-  </div>
-
-  {/* a sangre: los afiches entran y salen por los bordes de la pantalla */}
-  <div class="marquesina mt-12 lg:mt-16">
-    <div class="marquesina-pista flex w-max">
-      {
-        grupos.map(({ programas, copia }) => (
-          <ul class="flex shrink-0" aria-hidden={copia ? 'true' : undefined}>
-            {programas.map((programa) => (
-              <li class="mr-3 shrink-0 lg:mr-4">
-                <Image
-                  src={programa.poster}
-                  alt={copia ? '' : `${programa.name}, ${programa.when}`}
-                  widths={[256, 384, 512]}
-                  sizes="(min-width: 64rem) 16rem, 12rem"
-                  class="h-[14rem] w-auto rounded-[1rem] object-cover sm:h-[17rem] lg:h-[20rem]"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </li>
-            ))}
-          </ul>
-        ))
-      }
     </div>
   </div>
 </section>
