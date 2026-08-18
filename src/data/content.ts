@@ -215,8 +215,13 @@ export const mapsHref = `https://www.google.com/maps/search/?api=1&query=${mapsQ
  * El mismo punto, para incrustarlo en la página. `output=embed` es la forma
  * de Google que no pide clave; una imagen fija del mapa sí la pediría (Static
  * Maps API) y una captura de su mapa no se puede republicar.
+ *
+ * Aquí sí van las coordenadas y no el nombre: buscando por nombre, el mapa
+ * abre encima la ficha del negocio con la puntuación en estrellas, que no
+ * pinta nada en la página. Con el punto sale solo el marcador.
  */
-export const mapsEmbedHref = `https://maps.google.com/maps?q=${mapsQuery}&z=15&output=embed`;
+export const mapsEmbedHref =
+  'https://maps.google.com/maps?q=-41.4223822,-72.9157593&z=15&output=embed';
 
 export const ubicacion = {
   eyebrow: 'Dónde estamos',

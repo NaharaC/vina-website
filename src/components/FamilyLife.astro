@@ -20,18 +20,18 @@ import { familyLife } from '../data/content';
       en titular: los titulares grandes son los de las actividades, y con dos
       tamaños grandes seguidos no se distinguía cuál era cuál.
     */}
-    {/*
-      El rótulo se queda arriba mientras pasan las actividades, con el fondo
-      blanco para que no se le transparenten por debajo.
-    */}
-    <div class="border-b border-ink/15 pb-5 lg:sticky lg:top-14 lg:z-10 lg:bg-white lg:pt-3">
-      <h2 id="familia-titulo" class="eyebrow text-ink">{familyLife.title}</h2>
-    </div>
+    <div class="lg:grid lg:grid-cols-[1fr_minmax(0,26rem)] lg:gap-24">
+      {/*
+        Bloque fijo: rótulo, bajada y lista de actividades. El rótulo va aquí
+        dentro y no cruzando la página, porque su línea cortaba las fotos de
+        la columna de al lado.
+      */}
+      <div class="lg:sticky lg:top-14 lg:self-start">
+        <div class="border-b border-ink/15 pb-5">
+          <h2 id="familia-titulo" class="eyebrow text-ink">{familyLife.title}</h2>
+        </div>
 
-    <div class="mt-12 lg:mt-16 lg:grid lg:grid-cols-[1fr_minmax(0,26rem)] lg:gap-24">
-      {/* bloque fijo: bajada y lista de actividades, justo debajo del rótulo */}
-      <div class="lg:sticky lg:top-32 lg:self-start">
-        <p class="subtitle-lg max-w-md">
+        <p class="subtitle-lg mt-8 max-w-md">
           {familyLife.description}
         </p>
 

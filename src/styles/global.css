@@ -206,6 +206,16 @@
   }
 }
 
+/*
+  Variante con aire arriba. La foto se amplía un poco y se alinea por su
+  borde superior: así lo que retrata queda más abajo en el encuadre, en vez
+  de pegado al filo de la sección.
+*/
+.foto-fija.foto-baja {
+  background-size: auto 125%;
+  background-position: center top;
+}
+
 /* Titulares en peso normal: el peso lo pone el tamaño, no la seminegrita. */
 .tema-editorial .heading-xl,
 .tema-editorial .heading-lg {

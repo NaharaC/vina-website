@@ -40,12 +40,12 @@ const fondo = await getImage({ src: fondoEditorial, width: 2200, format: 'webp' 
   <FamilyLife />
 
   {/*
-    Dar y el testimonio van juntos en el tramo oscuro y comparten la misma
-    foto de fondo. `--foto` es lo único que hay que cambiar para cambiarla.
+    El testimonio y Dar van juntos en el tramo oscuro. La foto de fondo es de
+    Dar; `--foto` es lo único que hay que cambiar para cambiarla.
   */}
   <div class="tema-editorial" style={`--foto: url('${fondo.src}')`}>
-    <Giving />
     <Testimonials />
+    <Giving />
   </div>
 
   <Radio />
