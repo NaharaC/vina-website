@@ -530,7 +530,7 @@ export const about = {
 
   /** Lo que viene. Aquí cada uno lleva una línea explicando de qué se trata. */
   sueños: {
-    title: 'Soñamos con',
+    title: 'Seguimos soñando con',
     items: [
       {
         title: 'Primera Universidad Cristiana del sur de Chile',
