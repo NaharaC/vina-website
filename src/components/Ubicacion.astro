@@ -1,0 +1,52 @@
+---
+import ArrowButton from './ArrowButton.astro';
+import { mapsEmbedHref, mapsHref, ubicacion } from '../data/content';
+---
+
+{/*
+  El mapa se comporta como una imagen enlazada: no se puede arrastrar ni hacer
+  zoom —`pointer-events: none`— y encima va una capa que lleva a Google Maps.
+  Así no atrapa el scroll en el móvil, que es lo que suele pasar con un mapa
+  incrustado en medio de una página.
+*/}
+<section id="ubicacion" class="pb-20 lg:pb-28" aria-labelledby="ubicacion-titulo">
+  <div class="container-page">
+    <div class="border-b border-ink/15 pb-5">
+      <h2 id="ubicacion-titulo" class="eyebrow text-ink">{ubicacion.eyebrow}</h2>
+    </div>
+
+    <div class="relative mt-10 overflow-hidden rounded-[1.5rem] lg:mt-14">
+      <iframe
+        src={mapsEmbedHref}
+        title={`Mapa con la ubicación de la iglesia: ${ubicacion.address}`}
+        class="pointer-events-none block h-[24rem] w-full border-0 sm:h-[28rem] lg:h-[32rem]"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+      {/*
+        Capa que hace clicable el mapa entero. Va fuera del orden de
+        tabulación: quien navegue con teclado o lector de pantalla usa el
+        botón «Cómo llegar», que dice a dónde va.
+      */}
+      <a
+        href={mapsHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="absolute inset-0"
+        tabindex="-1"
+        aria-hidden="true"></a>
+
+      {/* la tarjeta, como en prédicas: flota sobre la imagen */}
+      <div class="pointer-events-none absolute inset-x-4 bottom-4 sm:inset-x-8 sm:bottom-8">
+        <div class="pointer-events-auto max-w-md rounded-[1.25rem] bg-white px-6 py-6 sm:px-8 sm:py-7">
+          <p class="heading-md text-ink">{ubicacion.title}</p>
+          <p class="subtitle mt-2">{ubicacion.address}</p>
+
+          <div class="mt-5">
+            <ArrowButton label={ubicacion.cta} href={mapsHref} variant="accent" size="sm" external />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

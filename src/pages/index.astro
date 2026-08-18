@@ -13,6 +13,7 @@ import PropheticStatement from '../components/PropheticStatement.astro';
 import Predicaciones from '../components/Predicaciones.astro';
 import Radio from '../components/Radio.astro';
 import Stats from '../components/Stats.astro';
+import Ubicacion from '../components/Ubicacion.astro';
 import Testimonials from '../components/Testimonials.astro';
 import { site } from '../data/content';
 import fondoEditorial from '../assets/img/dar-manos.jpg';
@@ -30,6 +31,7 @@ const fondo = await getImage({ src: fondoEditorial, width: 2200, format: 'webp' 
   <Hero />
   <PropheticStatement />
   <MainMeetings />
+  <Ubicacion />
   <FamilyCollage />
   <Stats />
   <Partners />

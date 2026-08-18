@@ -201,10 +201,29 @@ export const welcome = {
 /** Canal donde se transmiten las reuniones en vivo. */
 export const youtubeChannel = 'https://www.youtube.com/@lavinatvpmontt';
 
-/** Búsqueda en Google Maps con la dirección de la iglesia. */
-export const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-  `${organization.streetAddress}, ${organization.addressLocality}`
-)}`;
+/*
+  Se busca por el nombre de la ficha y no por la dirección: «La Vara Kilómetro
+  8, Parcela 154» es rural y Google la resolvía en cualquier punto de Puerto
+  Montt, sin marcador. Con el nombre cae justo en la iglesia.
+*/
+const mapsQuery = encodeURIComponent('Iglesia Cristiana La Viña Puerto Montt');
+
+/** Ficha de la iglesia en Google Maps. */
+export const mapsHref = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+
+/**
+ * El mismo punto, para incrustarlo en la página. `output=embed` es la forma
+ * de Google que no pide clave; una imagen fija del mapa sí la pediría (Static
+ * Maps API) y una captura de su mapa no se puede republicar.
+ */
+export const mapsEmbedHref = `https://maps.google.com/maps?q=${mapsQuery}&z=15&output=embed`;
+
+export const ubicacion = {
+  eyebrow: 'Dónde estamos',
+  title: 'Nos reunimos acá',
+  address: `${organization.streetAddress}, ${organization.addressLocality}`,
+  cta: 'Cómo llegar',
+};
 
 /**
  * Cada forma de participar dice su canal completo ("En línea por Zoom", no
