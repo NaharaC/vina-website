@@ -103,6 +103,28 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
     </div>
   </section>
 
+  {/*
+    Los proyectos, uno a uno: el título se queda quieto a la izquierda y a la
+    derecha se va encendiendo el que llega al centro de la pantalla.
+  */}
+  <section class="pb-20 lg:pb-28" aria-labelledby="proyectos-titulo">
+    <div class="container-page lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
+      <h2 id="proyectos-titulo" class="heading-lg max-w-md text-ink lg:sticky lg:top-[42vh]">
+        {about.proyectos.title}
+      </h2>
+
+      <ul id="proyectos-lista" class="mt-12 flex flex-col gap-20 lg:mt-0 lg:gap-32 lg:py-[28vh]">
+        {
+          about.proyectos.items.map((item) => (
+            <li class="proyecto text-[1.75rem] leading-[1.15] font-normal tracking-[-0.03em] text-balance sm:text-[2.25rem] xl:text-[2.75rem]">
+              {item}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
   {/* Qué creemos: filas separadas por líneas, título a un lado y texto al otro */}
   <section class="pb-20 lg:pb-28" aria-label="Qué creemos">
     <div class="container-page">
@@ -212,3 +234,72 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  /*
+    Sin JavaScript se leen todos en negro. El script enciende el realce y a
+    partir de ahí manda el que está en el centro.
+  */
+  #proyectos-lista[data-realce] .proyecto {
+    color: color-mix(in srgb, var(--color-ink) 22%, transparent);
+    transition: color 400ms ease;
+  }
+
+  #proyectos-lista[data-realce] .proyecto[data-activo='true'] {
+    color: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #proyectos-lista[data-realce] .proyecto {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Se enciende el proyecto que esté más cerca del centro de la pantalla. Se
+    mira la geometría en cada scroll en vez de escuchar cruces: con un
+    IntersectionObserver, al bajar de golpe se saltaba el del medio porque
+    entraba y salía de la franja dentro del mismo salto.
+  */
+  const lista = document.getElementById('proyectos-lista');
+  const proyectos = [...(lista?.querySelectorAll<HTMLElement>('.proyecto') ?? [])];
+
+  if (lista && proyectos.length) {
+    lista.dataset.realce = 'on';
+
+    const activar = () => {
+      const centro = window.innerHeight / 2;
+      let elegido = proyectos[0];
+      let menor = Infinity;
+
+      for (const proyecto of proyectos) {
+        const caja = proyecto.getBoundingClientRect();
+        const distancia = Math.abs(caja.top + caja.height / 2 - centro);
+        if (distancia < menor) {
+          menor = distancia;
+          elegido = proyecto;
+        }
+      }
+
+      for (const proyecto of proyectos) {
+        proyecto.dataset.activo = String(proyecto === elegido);
+      }
+    };
+
+    // una vez por fotograma como mucho, aunque lleguen mil eventos de scroll
+    let pedido = 0;
+    const alDesplazar = () => {
+      if (pedido) return;
+      pedido = requestAnimationFrame(() => {
+        pedido = 0;
+        activar();
+      });
+    };
+
+    activar();
+    window.addEventListener('scroll', alDesplazar, { passive: true });
+    window.addEventListener('resize', alDesplazar);
+  }
+</script>

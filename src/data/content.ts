@@ -515,6 +515,19 @@ export const about = {
     },
   ],
 
+  /*
+    Se leen de a uno mientras se baja: el que va llegando al centro de la
+    pantalla se enciende y los demás se apagan.
+  */
+  proyectos: {
+    title: 'Nuestros proyectos de compasión social',
+    items: [
+      'Proyecto educativo Educa Montealto',
+      'Centro Médico Viña Puerto Montt',
+      'Entrega de canastas de alimento «Dadores de Amor»',
+    ],
+  },
+
   equipo: {
     title: 'Equipo pastoral',
     description: 'Conoce a nuestros pastores asociados',
