@@ -26,7 +26,7 @@ const { id, title, items, cinta = 'derecha', class: className = '' } = Astro.pro
 const izquierda = cinta === 'izquierda';
 ---
 
-<section class:list={['pb-20 lg:pb-28', className]} aria-labelledby={`${id}-titulo`}>
+<section class:list={['pb-28 lg:pb-48', className]} aria-labelledby={`${id}-titulo`}>
   <div class="container-page lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
     <h2
       id={`${id}-titulo`}
