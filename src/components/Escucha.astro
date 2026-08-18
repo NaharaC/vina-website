@@ -1,0 +1,151 @@
+---
+import { Image } from 'astro:assets';
+import ArrowButton from './ArrowButton.astro';
+import SectionHeading from './SectionHeading.astro';
+import { predicaciones, radio } from '../data/content';
+---
+
+{/*
+  Prédicas y radio eran dos secciones seguidas que decían lo mismo —«escúchanos
+  cuando quieras»— y se pisaban. Aquí van juntas, como las dos formas de
+  escuchar a la iglesia desde casa: una tarjeta cada una.
+*/}
+<section id="escucha" class="seccion" aria-labelledby="escucha-titulo">
+  <div class="container-page">
+    <SectionHeading
+      id="escucha-titulo"
+      eyebrow="Escucha"
+      title="Llévate la iglesia contigo"
+      subtitle="Nuestras predicaciones y la programación de la radio, cuando quieras"
+    />
+
+    <div class="mt-12 grid gap-6 md:grid-cols-2 lg:mt-16 lg:gap-8">
+      {/* Predicaciones: la foto manda y el texto va al pie */}
+      <article class="flex flex-col overflow-hidden rounded-[1.5rem] bg-mist">
+        <Image
+          src={predicaciones.image}
+          alt={predicaciones.alt}
+          widths={[480, 768, 1080]}
+          sizes="(min-width: 48rem) 42rem, 92vw"
+          class="aspect-[4/3] w-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+
+        <div class="flex flex-1 flex-col p-6 lg:p-8">
+          <h3 class="heading-md text-ink">Predicaciones</h3>
+          <p class="subtitle mt-2 max-w-sm">{predicaciones.description}</p>
+
+          <div class="mt-6 pt-2">
+            {
+              predicaciones.actions.map(
+                (action) =>
+                  action.href && (
+                    <ArrowButton
+                      label={action.label}
+                      href={action.href}
+                      variant="accent"
+                      external={action.external}
+                    />
+                  )
+              )
+            }
+          </div>
+        </div>
+      </article>
+
+      {/* Radio: los afiches se turnan, uno a la vez */}
+      <article class="flex flex-col overflow-hidden rounded-[1.5rem] bg-mist">
+        <div class="afiches relative aspect-[4/3] w-full overflow-hidden">
+          {
+            radio.programas.map((programa, indice) => (
+              <Image
+                src={programa.poster}
+                alt={`${programa.name}, ${programa.when}`}
+                widths={[320, 480, 720]}
+                sizes="(min-width: 48rem) 24rem, 80vw"
+                class="afiche absolute inset-1/2 h-[calc(100%-3rem)] w-auto -translate-x-1/2 -translate-y-1/2 rounded-[0.75rem] object-cover"
+                data-activo={indice === 0 ? 'true' : 'false'}
+                loading="lazy"
+                decoding="async"
+              />
+            ))
+          }
+        </div>
+
+        <div class="flex flex-1 flex-col p-6 lg:p-8">
+          <h3 class="heading-md text-ink">{radio.title}</h3>
+          <p class="subtitle mt-2 max-w-sm">{radio.description}</p>
+
+          <div class="mt-6 pt-2">
+            <ArrowButton
+              label={radio.action.label}
+              href={radio.action.href}
+              variant="accent"
+              external={radio.action.external}
+            />
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+{/*
+  Global y acotado a `.afiches`: los estilos con ámbito de Astro no alcanzan a
+  las imágenes, que las pinta `<Image>`. Sin esto salen los seis a la vez.
+*/}
+<style is:global>
+  .afiches .afiche {
+    opacity: 0;
+    transition: opacity 700ms ease;
+  }
+
+  .afiches .afiche[data-activo='true'] {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .afiches .afiche {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Turno de cada afiche. Solo corre cuando la tarjeta está a la vista: si no,
+    se pasarían todos mientras nadie mira.
+  */
+  const marco = document.querySelector<HTMLElement>('.afiches');
+  const afiches = [...(marco?.querySelectorAll<HTMLElement>('.afiche') ?? [])];
+
+  if (marco && afiches.length > 1) {
+    let actual = 0;
+    let reloj = 0;
+
+    const arrancar = () => {
+      if (reloj) return;
+      reloj = window.setInterval(() => {
+        actual = (actual + 1) % afiches.length;
+        afiches.forEach((afiche, i) => (afiche.dataset.activo = String(i === actual)));
+      }, 3500);
+    };
+
+    const parar = () => {
+      clearInterval(reloj);
+      reloj = 0;
+    };
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => (e.isIntersecting ? arrancar() : parar()), {
+        threshold: 0.3,
+      }).observe(marco);
+    } else {
+      arrancar();
+    }
+
+    marco.addEventListener('mouseenter', parar);
+    marco.addEventListener('mouseleave', arrancar);
+  }
+</script>

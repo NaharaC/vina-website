@@ -10,8 +10,7 @@ import Hero from '../components/Hero.astro';
 import MainMeetings from '../components/MainMeetings.astro';
 import Partners from '../components/Partners.astro';
 import PropheticStatement from '../components/PropheticStatement.astro';
-import Predicaciones from '../components/Predicaciones.astro';
-import Radio from '../components/Radio.astro';
+import Escucha from '../components/Escucha.astro';
 import Stats from '../components/Stats.astro';
 import Ubicacion from '../components/Ubicacion.astro';
 import Testimonials from '../components/Testimonials.astro';
@@ -28,15 +27,23 @@ const fondo = await getImage({ src: fondoEditorial, width: 2200, format: 'webp' 
 ---
 
 <BaseLayout title={`${site.name} — ${site.tagline}`} heroFoto>
+  {/*
+    El home se lee en cuatro actos: la bienvenida, cuándo y dónde venir,
+    quiénes somos y cómo se vive la iglesia. Antes lo práctico —las reuniones y
+    el mapa— quedaba después de la declaración, y las dos secciones de escuchar
+    caían separadas por media página.
+  */}
   <Hero />
-  <PropheticStatement />
+
   <MainMeetings />
   <Ubicacion />
+
+  <PropheticStatement />
   <FamilyCollage />
   <Stats />
   <Partners />
   <CompassionateFamily />
-  <Predicaciones />
+
   <FamilyLife />
 
   {/*
@@ -48,6 +55,6 @@ const fondo = await getImage({ src: fondoEditorial, width: 2200, format: 'webp' 
     <Giving />
   </div>
 
-  <Radio />
+  <Escucha />
   <Contact />
 </BaseLayout>

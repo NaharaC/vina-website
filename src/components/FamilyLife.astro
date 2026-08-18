@@ -72,7 +72,7 @@ import { familyLife } from '../data/content';
       <div class="mt-10 flex flex-col gap-14 lg:mt-0 lg:gap-6">
         {
           familyLife.activities.map((activity) => (
-            <div class="vida-group flex flex-col gap-5 lg:gap-6">
+            <div class="vida-group flex flex-col gap-5 lg:gap-4">
               <div class="lg:hidden">
                 <h3 class="heading-md text-ink">{activity.title}</h3>
                 <p class="mt-1 text-sm text-muted">{activity.when}</p>
@@ -93,17 +93,28 @@ import { familyLife } from '../data/content';
                 </p>
               </div>
 
-              {activity.images.map((image, index) => (
-                <Image
-                  src={image}
-                  alt={index === 0 ? activity.alt : ''}
-                  widths={[420, 640, 900]}
-                  sizes="(min-width: 64rem) 416px, 90vw"
-                  class="w-full rounded-[1.25rem] object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-              ))}
+              {/*
+                En mosaico de dos y no apiladas: con tres o cuatro fotos por
+                actividad la columna medía tres pantallas y la lista de al lado
+                se quedaba sola en medio de un vacío. La primera va entera,
+                porque es la que presenta la actividad.
+              */}
+              <div class="grid grid-cols-2 gap-3 lg:gap-4">
+                {activity.images.map((image, index) => (
+                  <Image
+                    src={image}
+                    alt={index === 0 ? activity.alt : ''}
+                    widths={[320, 480, 720]}
+                    sizes="(min-width: 64rem) 208px, 45vw"
+                    class:list={[
+                      'h-full w-full rounded-[1rem] object-cover',
+                      index === 0 ? 'col-span-2 aspect-[4/3]' : 'aspect-square',
+                    ]}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ))}
+              </div>
             </div>
           ))
         }
