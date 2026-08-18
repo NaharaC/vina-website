@@ -1,7 +1,15 @@
 ---
-import { Image } from 'astro:assets';
+import { getImage } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
 import { predicaciones } from '../data/content';
+
+/*
+  La foto va como fondo y no como <img> porque se queda quieta mientras la
+  página se desliza por encima, igual que en la sección de Dar. De paso, al
+  anclarse a la ventana el encuadre deja de recortarse por arriba: antes la
+  sección era más apaisada que la foto y le cortaba la cabeza al pastor.
+*/
+const fondo = await getImage({ src: predicaciones.image, width: 2200, format: 'webp' });
 ---
 
 {/*
@@ -11,19 +19,10 @@ import { predicaciones } from '../data/content';
 */}
 <section
   id="predicaciones"
-  class="relative isolate flex min-h-[85svh] items-center overflow-clip py-16 lg:py-24"
+  class="foto-fija relative isolate flex min-h-[85svh] items-center overflow-clip py-16 lg:py-24"
+  style={`--foto: url('${fondo.src}')`}
   aria-labelledby="predicaciones-titulo"
 >
-  <Image
-    src={predicaciones.image}
-    alt={predicaciones.alt}
-    widths={[768, 1280, 1920]}
-    sizes="100vw"
-    class="absolute inset-0 -z-10 size-full object-cover"
-    loading="lazy"
-    decoding="async"
-  />
-
   <div class="container-page">
     <div class="max-w-xl rounded-[1.5rem] bg-white px-8 py-10 sm:px-12 sm:py-14 lg:px-14">
       <p class="eyebrow">Predicaciones</p>

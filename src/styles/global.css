@@ -181,9 +181,13 @@
   `background-attachment: fixed` la ancla a la ventana del navegador y no al
   elemento. Como todos los huecos la piden con el mismo encuadre, enseñan el
   mismo trozo de una única foto que se queda quieta mientras la página se
-  desliza por encima.
+  desliza por encima. Además el encuadre lo manda la ventana, no la sección,
+  así que una foto apaisada deja de recortarse por arriba y por abajo.
+
+  No va dentro de `.tema-editorial` a propósito: cualquier sección puede
+  usarlo pasándole la foto en `--foto`.
 */
-.tema-editorial .foto-fija {
+.foto-fija {
   background-image: var(--foto);
   background-attachment: fixed;
   background-position: center;
@@ -197,7 +201,7 @@
   viendo y el scroll no se atasca.
 */
 @media (hover: none) {
-  .tema-editorial .foto-fija {
+  .foto-fija {
     background-attachment: scroll;
   }
 }
