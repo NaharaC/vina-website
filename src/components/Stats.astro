@@ -1,4 +1,5 @@
 ---
+import SectionHeading from './SectionHeading.astro';
 import { stats } from '../data/content';
 
 // dos por fila: cada fila lleva su propio filete y su divisor central
@@ -10,9 +11,11 @@ const rows = [stats.slice(0, 2), stats.slice(2)];
   (arriba, al medio y abajo). El divisor vertical va recortado por arriba y
   por abajo, así no toca ninguna de ellas.
 */}
-<section class="py-10 lg:py-14" aria-label="La iglesia en cifras">
+<section class="seccion" aria-labelledby="cifras-titulo">
   <div class="container-page">
-    <div class="border-y border-ink/15">
+    <SectionHeading eyebrow="La iglesia en cifras" id="cifras-titulo" class="mb-10 lg:mb-14" />
+
+    <div class="border-b border-ink/15">
       {
         rows.map((row, index) => (
           <div

@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import ArrowButton from './ArrowButton.astro';
+import SectionHeading from './SectionHeading.astro';
 import { familyLife } from '../data/content';
 ---
 
@@ -13,7 +14,7 @@ import { familyLife } from '../data/content';
   cruzan el centro del viewport. En móvil no hay lista fija: cada grupo de
   fotos lleva su encabezado.
 */}
-<section id="vida-en-familia" class="py-20 lg:py-28" aria-labelledby="familia-titulo">
+<section id="vida-en-familia" class="seccion" aria-labelledby="familia-titulo">
   <div class="container-page">
     {/*
       El nombre de la sección va en rótulo pequeño y con una línea debajo, no
@@ -27,9 +28,7 @@ import { familyLife } from '../data/content';
         la columna de al lado.
       */}
       <div class="lg:sticky lg:top-14 lg:self-start">
-        <div class="border-b border-ink/15 pb-5">
-          <h2 id="familia-titulo" class="eyebrow text-ink">{familyLife.title}</h2>
-        </div>
+        <SectionHeading eyebrow={familyLife.title} id="familia-titulo" />
 
         <p class="subtitle-lg mt-8 max-w-md">
           {familyLife.description}

@@ -248,6 +248,34 @@
   letter-spacing: -0.04em;
 }
 
+/* ---------------------------------------------------------------------------
+   Ritmo vertical
+
+   Una sola medida de aire para todas las secciones de contenido. Las que van
+   a pantalla completa (hero, video, foto a sangre) llevan el suyo, porque ahí
+   manda el alto de la ventana.
+   --------------------------------------------------------------------------- */
+.seccion {
+  padding-block: 5rem;
+}
+
+@media (width >= 40rem) {
+  .seccion {
+    padding-block: 6.5rem;
+  }
+}
+
+@media (width >= 64rem) {
+  .seccion {
+    padding-block: 8.5rem;
+  }
+}
+
+/* Media sección: para pares de secciones que se leen como un bloque. */
+.seccion-fin {
+  padding-block-start: 0;
+}
+
 /* Carruseles horizontales sin barra de scroll visible */
 @utility no-scrollbar {
   scrollbar-width: none;

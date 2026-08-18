@@ -1,38 +1,48 @@
 ---
+/**
+ * Encabezado de sección, el mismo en toda la home.
+ *
+ * Rótulo en versalitas, línea fina y —si hace falta— el título grande y una
+ * bajada. Las secciones cuyo contenido ya trae tipografía grande (las
+ * actividades, los proyectos) usan solo el rótulo: con dos cuerpos grandes
+ * seguidos no se distingue cuál es el título de la sección.
+ */
 interface Props {
-  title: string;
-  /** id del <h2>, para enlazarlo con aria-labelledby de la sección */
-  id?: string;
+  /** Rótulo en versalitas. Es lo único obligatorio. */
+  eyebrow: string;
+  title?: string;
   subtitle?: string;
-  /** rótulo en versalitas sobre el título */
-  eyebrow?: string;
-  align?: 'left' | 'center';
-  size?: 'lg' | 'xl';
-  /** `p` para copias que solo reservan espacio: no duplica el <h2> del documento */
+  /** id del título, para enlazarlo con el `aria-labelledby` de la sección */
+  id?: string;
+  /** `p` cuando el <h2> real vive dentro del contenido de la sección */
   as?: 'h2' | 'p';
   class?: string;
 }
 
-const {
-  title,
-  id,
-  subtitle,
-  eyebrow,
-  align = 'left',
-  size = 'lg',
-  as: Tag = 'h2',
-  class: className = '',
-} = Astro.props;
+const { eyebrow, title, subtitle, id, as: Tag = 'h2', class: className = '' } = Astro.props;
 ---
 
-<div class:list={[align === 'center' ? 'text-center' : 'text-left', className]}>
-  {eyebrow && <p class="eyebrow mb-4">{eyebrow}</p>}
-
-  <Tag id={id} class:list={[size === 'xl' ? 'heading-xl' : 'heading-lg', 'text-ink']}>{title}</Tag>
+<div class:list={['border-b border-ink/15 pb-5', className]}>
+  {/* sin título, el rótulo es el encabezado y carga con el id */}
+  {
+    title ? (
+      <p class="eyebrow">{eyebrow}</p>
+    ) : (
+      <Tag id={id} class="eyebrow text-ink">
+        {eyebrow}
+      </Tag>
+    )
+  }
 
   {
-    subtitle && (
-      <p class:list={['subtitle-lg mt-3 max-w-2xl', align === 'center' && 'mx-auto']}>{subtitle}</p>
+    title && (
+      <div class="mt-6 md:flex md:items-end md:justify-between md:gap-12">
+        <Tag id={id} class="heading-lg max-w-2xl text-ink text-balance">
+          {title}
+        </Tag>
+
+        {subtitle && <p class="subtitle-lg mt-3 max-w-md md:mt-0 md:shrink-0 md:pb-1">{subtitle}</p>}
+      </div>
     )
   }
 </div>

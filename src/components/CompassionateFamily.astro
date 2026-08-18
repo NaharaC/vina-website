@@ -4,51 +4,40 @@ import SectionHeading from './SectionHeading.astro';
 import { compassionCards, compassionFeature } from '../data/content';
 
 const heading = {
-  title: 'Una Familia Compasiva',
+  eyebrow: 'Compasión social',
+  title: 'Una familia compasiva',
   subtitle: 'Conócenos y conoce nuestros trabajos de compasión social',
 };
 ---
 
-<section id="compasion" class="py-12 lg:py-16" aria-labelledby="compasion-titulo">
+<section id="compasion" class="seccion" aria-labelledby="compasion-titulo">
   <div class="container-page">
     {/*
-      En escritorio el título y la tarjeta de "Nosotros" forman un solo bloque
-      que queda fijo mientras la columna de la derecha sigue pasando. El
-      `items-start` del grid es lo que le da recorrido: sin él la celda se
-      estiraría a todo el alto y no habría nada que fijar. En móvil, con una
-      sola columna, no aplica.
+      El encabezado va a todo el ancho, por encima de las dos columnas: dentro
+      de la columna estrecha el título partía en tres líneas y la línea del
+      rótulo se quedaba a media página.
     */}
-    <div class="grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
-      {/* 4rem deja el bloque bien arriba; la píldora flotante (~71px con su
-          margen) sólo asoma al subir y apenas roza el borde del título. */}
-      <div class="lg:sticky lg:top-16 lg:self-start">
-        <SectionHeading
-          id="compasion-titulo"
-          title={heading.title}
-          subtitle={heading.subtitle}
-          class="mb-7"
-        />
+    <SectionHeading
+      id="compasion-titulo"
+      eyebrow={heading.eyebrow}
+      title={heading.title}
+      subtitle={heading.subtitle}
+      class="mb-12 lg:mb-16"
+    />
+
+    {/*
+      En escritorio la tarjeta de "Nosotros" queda fija mientras la columna de
+      la derecha sigue pasando. El `items-start` del grid es lo que le da
+      recorrido: sin él la celda se estiraría a todo el alto y no habría nada
+      que fijar. En móvil, con una sola columna, no aplica.
+    */}
+    <div class="grid items-start gap-10 md:grid-cols-2 md:gap-8 lg:gap-14">
+      <div class="lg:sticky lg:top-24 lg:self-start">
         <CompassionCard card={compassionFeature} feature />
       </div>
 
       <div>
-        {/*
-          Copia invisible del título. Reserva en la columna derecha el mismo
-          alto que ocupa a la izquierda, para que la primera tarjeta arranque
-          justo a la altura de la imagen de "Nosotros". Sale del mismo
-          componente y con el mismo texto: si el título cambia o parte en dos
-          líneas, el hueco se ajusta solo. Va como <p> para no duplicar el <h2>.
-        */}
-        <div class="invisible hidden lg:block" aria-hidden="true">
-          <SectionHeading
-            title={heading.title}
-            subtitle={heading.subtitle}
-            as="p"
-            class="mb-7"
-          />
-        </div>
-
-        <div class="flex flex-col gap-10 lg:gap-12">
+        <div class="flex flex-col gap-10 md:gap-8 lg:gap-12">
           {
             compassionCards.map((card, index) =>
               index < compassionCards.length - 1 ? (

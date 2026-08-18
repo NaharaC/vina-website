@@ -1,5 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
+import SectionHeading from './SectionHeading.astro';
 import { testimonials, testimonialsIntro } from '../data/content';
 
 const hasCarousel = testimonials.length > 1;
@@ -14,19 +15,18 @@ const hasCarousel = testimonials.length > 1;
   `tramo-claro` saca la sección del negro del tramo que la envuelve: fondo
   blanco y los colores de siempre.
 */}
-<section
-  class="tramo-claro flex min-h-svh items-center py-12 lg:py-16"
-  aria-labelledby="testimonios-titulo"
->
+<section class="tramo-claro seccion" aria-labelledby="testimonios-titulo">
   <div class="container-page">
-    <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-      <div>
-        <h2 id="testimonios-titulo" class="heading-lg text-ink">{testimonialsIntro.title}</h2>
+    <SectionHeading eyebrow={testimonialsIntro.title} id="testimonios-titulo" />
 
-        <p class="subtitle-lg mt-4 max-w-md">
-          {testimonialsIntro.verse}<br />
-          {testimonialsIntro.reference}
-        </p>
+    <div class="mt-12 grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:mt-16 lg:gap-16">
+      <div>
+        {/* el versículo es lo que se lee grande: el rótulo ya dice la sección */}
+        <blockquote class="heading-lg max-w-md text-ink text-balance">
+          {testimonialsIntro.verse}
+        </blockquote>
+
+        <p class="subtitle mt-4">{testimonialsIntro.reference}</p>
 
         <a
           href={testimonialsIntro.action.href}
