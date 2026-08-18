@@ -171,9 +171,14 @@
   --color-mist: rgba(255, 255, 255, 0.07);
   --fondo: #090909;
 
-  background-color: var(--fondo);
   color: #fff;
 }
+
+/*
+  El ámbito no pinta fondo: cada sección de dentro trae el suyo —una foto o
+  el blanco de `tramo-claro`—, y un negro por detrás asomaría por las
+  esquinas redondeadas.
+*/
 
 /*
   La foto detrás del papel.

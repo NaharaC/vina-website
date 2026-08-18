@@ -8,12 +8,12 @@ import { giving } from '../data/content';
   porque en el móvil la barra del navegador aparece y desaparece: con `vh` la
   sección cambiaría de alto y daría saltos al hacer scroll.
 
-  La foto sale del tramo oscuro que la envuelve (`.tema-editorial`), así que
-  la misma imagen reaparece más abajo por el hueco del testimonio.
+  La foto sale del tramo que la envuelve (`.tema-editorial`), que es quien
+  la recibe en `--foto`.
 */}
 <section
   id="dar"
-  class="foto-fija relative flex min-h-svh items-center py-12 lg:py-16"
+  class="foto-fija relative flex min-h-svh items-center overflow-clip rounded-[2rem] py-12 lg:rounded-[2.75rem] lg:py-16"
   aria-labelledby="dar-titulo"
 >
   {/* velo parejo, no degradado: el texto blanco cruza las zonas claras */}
