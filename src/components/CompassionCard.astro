@@ -61,7 +61,7 @@ const { card, feature = false } = Astro.props;
       {
         card.href && (
           <ArrowButton
-            label="Ver más"
+            label={card.ctaLabel ?? 'Ver más'}
             href={card.href}
             variant="accent"
             external={card.external}

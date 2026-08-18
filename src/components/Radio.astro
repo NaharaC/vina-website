@@ -2,45 +2,31 @@
 import { Image } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
 import { radio } from '../data/content';
-
-/*
-  La marquesina va con los afiches repetidos dos veces: la animación desplaza
-  la pista justo la mitad de su ancho, así el segundo grupo cae exactamente
-  donde estaba el primero y el bucle no tiene costura. La copia es decorativa
-  —`aria-hidden`— para que un lector de pantalla no lea la lista dos veces.
-*/
-const grupos = [
-  { programas: radio.programas, copia: false },
-  { programas: radio.programas, copia: true },
-];
 ---
 
 <section id="radio" class="py-20 lg:py-28" aria-labelledby="radio-titulo">
   <div class="container-page">
     <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-      {/* Los afiches desfilan dentro del marco, sin salirse de la columna */}
-      <div class="marquesina overflow-hidden rounded-[1.5rem] bg-mist py-8">
-        <div class="marquesina-pista flex w-max">
-          {
-            grupos.map(({ programas, copia }) => (
-              <ul class="flex shrink-0" aria-hidden={copia ? 'true' : undefined}>
-                {programas.map((programa) => (
-                  <li class="ml-4 shrink-0 lg:ml-5">
-                    <Image
-                      src={programa.poster}
-                      alt={copia ? '' : `${programa.name}, ${programa.when}`}
-                      widths={[256, 384, 512]}
-                      sizes="(min-width: 64rem) 14rem, 11rem"
-                      class="h-[13rem] w-auto rounded-[0.75rem] object-cover sm:h-[16rem] lg:h-[17rem]"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </li>
-                ))}
-              </ul>
-            ))
-          }
-        </div>
+      {/*
+        Los afiches van uno encima de otro y se turnan: se ve uno a la vez y
+        el cambio es un fundido. Sin JavaScript se queda el primero, que es
+        una foto correcta y no un hueco.
+      */}
+      <div class="afiches relative mx-auto aspect-[4/5] w-full max-w-[22rem] lg:mx-0">
+        {
+          radio.programas.map((programa, indice) => (
+            <Image
+              src={programa.poster}
+              alt={`${programa.name}, ${programa.when}`}
+              widths={[320, 480, 720]}
+              sizes="(min-width: 64rem) 22rem, 80vw"
+              class="afiche absolute inset-0 size-full rounded-[1.25rem] object-cover"
+              data-activo={indice === 0 ? 'true' : 'false'}
+              loading={indice === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          ))
+        }
       </div>
 
       <div>
@@ -61,33 +47,75 @@ const grupos = [
   </div>
 </section>
 
-<style>
-  .marquesina-pista {
-    animation: desfile 34s linear infinite;
-  }
-
-  /* al pasar el ratón se detiene, para poder mirar un afiche con calma */
-  .marquesina:hover .marquesina-pista {
-    animation-play-state: paused;
-  }
-
-  @keyframes desfile {
-    to {
-      transform: translateX(-50%);
-    }
-  }
-
+{/*
+  Global y acotado a `.afiches` a propósito: los estilos con ámbito de Astro
+  no alcanzan a las imágenes, que las pinta el componente `<Image>`. Sin esto
+  los seis afiches salían a la vez, apilados.
+*/}
+<style is:global>
   /*
-    Sin animación, la tira se queda quieta y se arrastra con el dedo o la
-    rueda: si no, solo se verían los dos primeros afiches.
+    Sin JavaScript solo se ve el primero: los demás quedan detrás, no
+    ocultos, para que sigan contando como contenido de la página.
   */
-  @media (prefers-reduced-motion: reduce) {
-    .marquesina {
-      overflow-x: auto;
-    }
+  .afiches .afiche {
+    opacity: 0;
+    transition: opacity 700ms ease;
+  }
 
-    .marquesina-pista {
-      animation: none;
+  .afiches .afiche[data-activo='true'] {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .afiches .afiche {
+      transition: none;
     }
   }
 </style>
+
+<script>
+  /*
+    Turno de cada afiche. Solo corre cuando la sección está a la vista: si no,
+    se pasarían todos mientras nadie mira y al llegar se vería uno cualquiera.
+  */
+  const marco = document.querySelector<HTMLElement>('.afiches');
+  const afiches = [...(marco?.querySelectorAll<HTMLElement>('.afiche') ?? [])];
+
+  if (marco && afiches.length > 1) {
+    const ESPERA = 3500;
+    let actual = 0;
+    let reloj = 0;
+
+    const mostrar = (indice: number) => {
+      afiches.forEach((afiche, i) => {
+        afiche.dataset.activo = String(i === indice);
+      });
+    };
+
+    const arrancar = () => {
+      if (reloj) return;
+      reloj = window.setInterval(() => {
+        actual = (actual + 1) % afiches.length;
+        mostrar(actual);
+      }, ESPERA);
+    };
+
+    const parar = () => {
+      clearInterval(reloj);
+      reloj = 0;
+    };
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(
+        ([entrada]) => (entrada.isIntersecting ? arrancar() : parar()),
+        { threshold: 0.3 }
+      ).observe(marco);
+    } else {
+      arrancar();
+    }
+
+    // al pasar el ratón se detiene, para mirar un afiche con calma
+    marco.addEventListener('mouseenter', parar);
+    marco.addEventListener('mouseleave', arrancar);
+  }
+</script>

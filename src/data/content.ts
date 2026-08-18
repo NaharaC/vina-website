@@ -329,6 +329,8 @@ export const partners: Partner[] = [
 /* --- Una familia compasiva -------------------------------------------------- */
 
 export type CompassionCard = {
+  /** Texto del botón. Por defecto, «Ver más». */
+  ctaLabel?: string;
   title: string;
   description: string;
   image: ImageMetadata;
@@ -342,6 +344,7 @@ export type CompassionCard = {
 
 export const compassionFeature: CompassionCard = {
   title: 'Nosotros',
+  ctaLabel: 'Conócenos',
   description: 'Todo comenzó en el living de una casa y en el corazón de Dios',
   image: nosotros,
   alt: 'Congregación con las manos levantadas en adoración',
