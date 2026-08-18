@@ -1,0 +1,145 @@
+---
+/**
+ * Título quieto a un lado y, al otro, una cinta de ítems que se van
+ * encendiendo al pasar por el centro de la pantalla.
+ *
+ * El título arranca a la altura del primer ítem y se queda ahí clavado
+ * mientras la cinta sigue subiendo.
+ */
+export type ItemCinta = {
+  title: string;
+  /** Opcional: una línea de detalle bajo el título. */
+  body?: string;
+};
+
+interface Props {
+  /** Para el `aria-labelledby`; tiene que ser único en la página. */
+  id: string;
+  title: string;
+  items: ItemCinta[];
+  /** De qué lado va la cinta. El título va al otro. */
+  cinta?: 'derecha' | 'izquierda';
+  class?: string;
+}
+
+const { id, title, items, cinta = 'derecha', class: className = '' } = Astro.props;
+const izquierda = cinta === 'izquierda';
+---
+
+<section class:list={['pb-20 lg:pb-28', className]} aria-labelledby={`${id}-titulo`}>
+  <div class="container-page lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
+    <h2
+      id={`${id}-titulo`}
+      class:list={[
+        'heading-lg max-w-md text-ink lg:sticky lg:top-[40vh]',
+        izquierda && 'lg:order-2',
+      ]}
+    >
+      {title}
+    </h2>
+
+    {/*
+      Sin relleno arriba: así el primer ítem empieza a la misma altura que el
+      título. El de abajo es para que el último alcance a llegar al centro.
+    */}
+    <ul
+      class:list={[
+        'cinta mt-10 flex flex-col gap-16 lg:mt-0 lg:gap-28 lg:pb-[28vh]',
+        izquierda && 'lg:order-1',
+      ]}
+    >
+      {
+        items.map((item) => (
+          <li class="cinta-item">
+            <p class="text-[1.75rem] leading-[1.15] font-normal tracking-[-0.03em] text-balance sm:text-[2.25rem] xl:text-[2.75rem]">
+              {item.title}
+            </p>
+
+            {item.body && <p class="cinta-detalle mt-4 max-w-xl text-[0.9375rem] leading-relaxed sm:text-[1.0625rem]">{item.body}</p>}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  /*
+    Sin JavaScript se leen todos en negro. El script enciende el realce y a
+    partir de ahí manda el que está en el centro.
+  */
+  .cinta[data-realce] .cinta-item {
+    color: color-mix(in srgb, var(--color-ink) 22%, transparent);
+    transition: color 400ms ease;
+  }
+
+  .cinta[data-realce] .cinta-item[data-activo='true'] {
+    color: var(--color-ink);
+  }
+
+  /* el detalle siempre va un punto por debajo del título del ítem */
+  .cinta-detalle {
+    color: var(--color-muted);
+  }
+
+  .cinta[data-realce] .cinta-item .cinta-detalle {
+    color: inherit;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cinta[data-realce] .cinta-item {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Se enciende el ítem que esté más cerca del centro de la pantalla. Se mira
+    la geometría en cada scroll en vez de escuchar cruces: con un
+    IntersectionObserver, al bajar de golpe se saltaba el del medio porque
+    entraba y salía de la franja dentro del mismo salto.
+  */
+  const cintas = document.querySelectorAll<HTMLElement>('.cinta');
+
+  if (cintas.length) {
+    const grupos = [...cintas].map((cinta) => {
+      cinta.dataset.realce = 'on';
+      return [...cinta.querySelectorAll<HTMLElement>('.cinta-item')];
+    });
+
+    const activar = () => {
+      const centro = window.innerHeight / 2;
+
+      for (const items of grupos) {
+        let elegido = items[0];
+        let menor = Infinity;
+
+        for (const item of items) {
+          const caja = item.getBoundingClientRect();
+          const distancia = Math.abs(caja.top + caja.height / 2 - centro);
+          if (distancia < menor) {
+            menor = distancia;
+            elegido = item;
+          }
+        }
+
+        for (const item of items) item.dataset.activo = String(item === elegido);
+      }
+    };
+
+    // una vez por fotograma como mucho, aunque lleguen mil eventos de scroll
+    let pedido = 0;
+    const alDesplazar = () => {
+      if (pedido) return;
+      pedido = requestAnimationFrame(() => {
+        pedido = 0;
+        activar();
+      });
+    };
+
+    activar();
+    window.addEventListener('scroll', alDesplazar, { passive: true });
+    window.addEventListener('resize', alDesplazar);
+  }
+</script>

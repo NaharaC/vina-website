@@ -522,9 +522,32 @@ export const about = {
   proyectos: {
     title: 'Nuestros proyectos de compasión social',
     items: [
-      'Proyecto educativo Educa Montealto',
-      'Centro Médico Viña Puerto Montt',
-      'Entrega de canastas de alimento «Dadores de Amor»',
+      { title: 'Proyecto educativo Educa Montealto' },
+      { title: 'Centro Médico Viña Puerto Montt' },
+      { title: 'Entrega de canastas de alimento «Dadores de Amor»' },
+    ],
+  },
+
+  /** Lo que viene. Aquí cada uno lleva una línea explicando de qué se trata. */
+  sueños: {
+    title: 'Soñamos con',
+    items: [
+      {
+        title: 'Primera Universidad Cristiana del sur de Chile',
+        body: 'En el terreno adquirido recientemente se proyecta la Universidad «Velos», primera universidad cristiana del sur de Chile.',
+      },
+      {
+        title: 'Academia y CFT',
+        body: 'También se proyecta nuestro Centro de Formación Técnica, complementado con un programa de capacitación para emprendedores locales, abriendo puertas de futuro para niños, adolescentes y jóvenes de nuestra región.',
+      },
+      {
+        title: 'Proyecto Hospital Clínico La Viña',
+        body: 'En fe, sobre este nuevo terreno, construiremos este centro clínico, ampliando nuestra capacidad de servicio y sanidad en la comuna.',
+      },
+      {
+        title: 'Proyecto de Residencia de Niños y Familias de Acogida',
+        body: 'Anhelamos brindar un entorno seguro, de amor, restauración y cuidado integral a niños que lo necesitan, acompañando y capacitando a familias que abren sus corazones bajo esta hermosa labor de acogida.',
+      },
     ],
   },
 
