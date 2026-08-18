@@ -34,32 +34,36 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
   <section class="pb-20 lg:pb-28" aria-label="Nuestra historia">
     <div class="container-page">
       <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
-        <figure>
-          {
-            about.historia.foto ? (
-              <Image
-                src={about.historia.foto}
-                alt={about.historia.fotoCaption}
-                widths={[480, 768, 1080]}
-                sizes="(min-width: 64rem) 40rem, 92vw"
-                class="aspect-[4/3] w-full rounded-[1rem] object-cover"
-                loading="eager"
-              />
+        {/*
+          La pila de fotos: crecen hacia abajo, cada una con su pie y con su
+          propia proporción. El texto de al lado se queda quieto mientras
+          pasan, como en la referencia.
+        */}
+        <div class="flex flex-col gap-12">
+          {about.historia.fotos.map((foto, i) =>
+            foto.image ? (
+              <figure>
+                <Image
+                  src={foto.image}
+                  alt={foto.caption}
+                  widths={[480, 768, 1080]}
+                  sizes="(min-width: 64rem) 40rem, 92vw"
+                  class="h-auto w-full rounded-[1rem]"
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                />
+
+                <figcaption class="mt-4 flex gap-3 text-sm text-muted">
+                  <span aria-hidden="true">—</span>
+                  {foto.caption}
+                </figcaption>
+              </figure>
             ) : (
-              <FotoPendiente
-                label="Foto antigua de la iglesia · horizontal 4:3"
-                class="aspect-[4/3] w-full rounded-[1rem]"
-              />
+              <FotoPendiente label={foto.caption} class="aspect-[4/3] w-full rounded-[1rem]" />
             )
-          }
+          )}
+        </div>
 
-          <figcaption class="mt-4 flex gap-3 text-sm text-muted">
-            <span aria-hidden="true">—</span>
-            {about.historia.fotoCaption}
-          </figcaption>
-        </figure>
-
-        <div class="mt-12 lg:mt-0">
+        <div class="mt-12 lg:sticky lg:top-28 lg:mt-0">
           <h2 class="heading-lg text-ink">{about.historia.title}</h2>
 
           <div class="mt-5 flex flex-col gap-4">
@@ -111,42 +115,6 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
         ))
       }
       <div class="border-t border-ink/15"></div>
-    </div>
-  </section>
-
-  {/* Fotos antiguas */}
-  <section class="pb-20 lg:pb-28" aria-labelledby="galeria-titulo">
-    <div class="container-page">
-      <h2 id="galeria-titulo" class="heading-lg text-ink">{about.galeria.title}</h2>
-      <p class="subtitle-lg mt-3 max-w-md">{about.galeria.description}</p>
-
-      <ul class="mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3">
-        {
-          about.galeria.fotos.map((foto) => (
-            <li>
-              <figure>
-                {foto.image ? (
-                  <Image
-                    src={foto.image}
-                    alt={foto.caption}
-                    widths={[320, 480, 720]}
-                    sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
-                    class="aspect-[4/3] w-full rounded-[1rem] object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <FotoPendiente
-                    label="Foto antigua · horizontal 4:3"
-                    class="aspect-[4/3] w-full rounded-[1rem]"
-                  />
-                )}
-
-                <figcaption class="mt-3 text-sm text-muted">{foto.caption}</figcaption>
-              </figure>
-            </li>
-          ))
-        }
-      </ul>
     </div>
   </section>
 

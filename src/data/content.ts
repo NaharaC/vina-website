@@ -34,6 +34,11 @@ import familiaSentadosMesa1 from '../assets/img/familia-sentados-mesa-1.jpg';
 import familiaSentadosMesa2 from '../assets/img/familia-sentados-mesa-2.jpg';
 import familiaSentadosMesa3 from '../assets/img/familia-sentados-mesa-3.jpg';
 import heroCongregacion from '../assets/img/hero-congregacion.jpg';
+import historiaBautizosChamiza from '../assets/img/historia-bautizos-chamiza.jpg';
+import historiaCampamentoNinos from '../assets/img/historia-campamento-ninos.jpg';
+import historiaConstruccion from '../assets/img/historia-construccion.jpg';
+import historiaEdificioBlanco from '../assets/img/historia-edificio-blanco.jpg';
+import historiaMatrimonioPastores from '../assets/img/historia-matrimonio-pastores.jpg';
 import logoCentroMedico from '../assets/img/logo-centro-medico.png';
 import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
@@ -456,7 +461,7 @@ export type MiembroEquipo = {
 export type FotoHistorica = {
   /** Pie de foto: año, lugar o qué se ve. */
   caption: string;
-  /** `null` mientras no llegue. Horizontal, 4:3. */
+  /** `null` mientras no llegue. Cada una se muestra con su proporción. */
   image: ImageMetadata | null;
 };
 
@@ -471,8 +476,19 @@ export const about = {
       'Un grupo pequeño reuniéndose a orar fue el principio de lo que hoy es una familia de cientos de personas en Puerto Montt.',
       'Con los años, esa casa se hizo chica y la iglesia se fue extendiendo a la ciudad: primero en reuniones y redes, después en salud, educación y proyectos sociales.',
     ],
-    foto: null as ImageMetadata | null,
-    fotoCaption: 'Los primeros años de la iglesia',
+    /*
+      Van una debajo de otra, cada una con su pie, mientras el texto de al
+      lado se queda quieto. Cada foto conserva su proporción: las hay
+      verticales y apaisadas, y recortarlas todas al mismo marco obligaba a
+      cortar justo lo que se quiere ver.
+    */
+    fotos: [
+      { caption: 'El matrimonio de los pastores', image: historiaMatrimonioPastores },
+      { caption: 'El edificio blanco', image: historiaEdificioBlanco },
+      { caption: 'Construcciones', image: historiaConstruccion },
+      { caption: 'Campamento de niños', image: historiaCampamentoNinos },
+      { caption: 'Bautizos en Chamiza', image: historiaBautizosChamiza },
+    ] satisfies FotoHistorica[],
   },
 
   /** TODO: pendiente la cita real y quién la dice. */
@@ -498,20 +514,6 @@ export const about = {
       body: 'Cada reunión, red y actividad existe para que nadie tenga que llegar solo: hay lugar para quien viene por primera vez y para quien lleva años.',
     },
   ],
-
-  galeria: {
-    title: 'Nuestra historia en fotos',
-    description: 'Del living de una casa a una familia de cientos de personas',
-    /** TODO: pendientes las fotos antiguas y sus pies. */
-    fotos: [
-      { caption: 'Pendiente', image: null },
-      { caption: 'Pendiente', image: null },
-      { caption: 'Pendiente', image: null },
-      { caption: 'Pendiente', image: null },
-      { caption: 'Pendiente', image: null },
-      { caption: 'Pendiente', image: null },
-    ] satisfies FotoHistorica[],
-  },
 
   equipo: {
     title: 'Equipo pastoral',
