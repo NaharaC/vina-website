@@ -4,32 +4,36 @@ import ArrowButton from './ArrowButton.astro';
 import { predicaciones } from '../data/content';
 ---
 
-{/* A pantalla completa, con el contenido centrado. `svh` y no `vh`: en el móvil
-    la barra del navegador entra y sale, y con `vh` la sección daría saltos. */}
+{/*
+  La foto ocupa la sección entera y encima flota la tarjeta blanca con el
+  texto, pegada al margen de la izquierda. `svh` y no `vh`: en el móvil la
+  barra del navegador entra y sale, y con `vh` la sección daría saltos.
+*/}
 <section
   id="predicaciones"
-  class="flex min-h-svh items-center py-12 lg:py-16"
+  class="relative isolate flex min-h-[85svh] items-center overflow-clip py-16 lg:py-24"
   aria-labelledby="predicaciones-titulo"
 >
+  <Image
+    src={predicaciones.image}
+    alt={predicaciones.alt}
+    widths={[768, 1280, 1920]}
+    sizes="100vw"
+    class="absolute inset-0 -z-10 size-full object-cover"
+    loading="lazy"
+    decoding="async"
+  />
+
   <div class="container-page">
-    <div class="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
-      <Image
-        src={predicaciones.image}
-        alt={predicaciones.alt}
-        widths={[480, 720, 1080]}
-        sizes="(min-width: 64rem) 580px, 90vw"
-        class="aspect-[16/10] w-full rounded-[1.5rem] object-cover"
-        loading="lazy"
-        decoding="async"
-      />
+    <div class="max-w-xl rounded-[1.5rem] bg-white px-8 py-10 sm:px-12 sm:py-14 lg:px-14">
+      <p class="eyebrow">Predicaciones</p>
 
-      <div>
+      {/* el hueco de la referencia: el rótulo arriba y el bloque abajo */}
+      <div class="mt-16 lg:mt-24">
         <h2 id="predicaciones-titulo" class="heading-lg text-ink">{predicaciones.title}</h2>
-        <p class="subtitle-lg mt-3 max-w-md">
-          {predicaciones.description}
-        </p>
+        <p class="subtitle-lg mt-4 max-w-md">{predicaciones.description}</p>
 
-        <div class="mt-7 flex flex-wrap gap-3">
+        <div class="mt-8 flex flex-wrap gap-3">
           {
             predicaciones.actions.map(
               (action) =>
@@ -38,6 +42,7 @@ import { predicaciones } from '../data/content';
                     label={action.label}
                     href={action.href}
                     variant="accent"
+                    size="md"
                     external={action.external}
                   />
                 )
