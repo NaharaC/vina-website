@@ -16,7 +16,7 @@ import { testimonials, testimonialsIntro } from '../data/content';
     <SectionHeading eyebrow={testimonialsIntro.title} id="testimonios-titulo" />
 
     <div class="mt-12 md:flex md:items-end md:justify-between md:gap-12 lg:mt-16">
-      <blockquote class="heading-lg max-w-lg text-ink text-balance">
+      <blockquote class="heading-md max-w-lg text-ink text-balance">
         {testimonialsIntro.verse}
         <footer class="subtitle mt-4">{testimonialsIntro.reference}</footer>
       </blockquote>
@@ -55,7 +55,8 @@ import { testimonials, testimonialsIntro } from '../data/content';
         testimonials.map((testimonial, index) => (
           <figure
             class="diapositiva w-[88vw] shrink-0 snap-center sm:w-[70vw] lg:w-[62vw]"
-            data-activo={index === 0 ? 'true' : 'false'}
+            data-activo="false"
+            data-inicial={testimonial.inicial ? 'true' : undefined}
           >
             <div class="relative aspect-video overflow-hidden rounded-[1.5rem] bg-carbon lg:rounded-[1.75rem]">
               <video
@@ -118,7 +119,7 @@ import { testimonials, testimonialsIntro } from '../data/content';
           <button
             type="button"
             data-carousel-prev
-            class="flecha absolute top-1/2 left-3 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-opacity hover:bg-ink disabled:pointer-events-none disabled:opacity-0 sm:left-6 lg:size-12"
+            class="flecha absolute top-1/2 left-3 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-opacity hover:bg-ink sm:left-6 lg:size-12"
           >
             <span class="sr-only">Testimonio anterior</span>
             <Icon name="lucide:chevron-left" width={22} height={22} aria-hidden="true" />
@@ -127,7 +128,7 @@ import { testimonials, testimonialsIntro } from '../data/content';
           <button
             type="button"
             data-carousel-next
-            class="flecha absolute top-1/2 right-3 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-opacity hover:bg-ink disabled:pointer-events-none disabled:opacity-0 sm:right-6 lg:size-12"
+            class="flecha absolute top-1/2 right-3 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-opacity hover:bg-ink sm:right-6 lg:size-12"
           >
             <span class="sr-only">Testimonio siguiente</span>
             <Icon name="lucide:chevron-right" width={22} height={22} aria-hidden="true" />
@@ -209,22 +210,55 @@ import { testimonials, testimonialsIntro } from '../data/content';
   /* --- Carrusel ------------------------------------------------------------ */
 
   const pista = document.getElementById('testimonios-track');
-  const diapositivas = [...(pista?.querySelectorAll<HTMLElement>('.diapositiva') ?? [])];
+  const reales = [...(pista?.querySelectorAll<HTMLElement>('.diapositiva') ?? [])];
   const anterior = document.querySelector<HTMLButtonElement>('[data-carousel-prev]');
   const siguiente = document.querySelector<HTMLButtonElement>('[data-carousel-next]');
 
-  if (pista && diapositivas.length > 1 && anterior && siguiente) {
+  if (pista && reales.length > 1 && anterior && siguiente) {
+    /*
+      Para que la cinta no tenga principio ni fin se clona la última al
+      principio y la primera al final. Al llegar a un clon se salta sin
+      animación a su original, que está a un juego de distancia: el salto no
+      se ve porque las dos muestran lo mismo.
+
+      Los clones van con el póster y no con el video: son de paso, y cargar
+      dos videos más para verlos un instante no compensa.
+    */
+    const clonar = (diapositiva: HTMLElement) => {
+      const clon = diapositiva.cloneNode(true) as HTMLElement;
+      clon.dataset.clon = 'true';
+      clon.removeAttribute('data-inicial');
+      clon.setAttribute('aria-hidden', 'true');
+      clon.querySelector('.testimonio-sonido')?.remove();
+
+      const video = clon.querySelector('video');
+      if (video) {
+        const poster = document.createElement('img');
+        poster.src = video.getAttribute('poster') ?? '';
+        poster.alt = '';
+        poster.className = video.className;
+        video.replaceWith(poster);
+      }
+
+      return clon;
+    };
+
+    pista.prepend(clonar(reales[reales.length - 1]));
+    pista.append(clonar(reales[0]));
+
+    const todas = [...pista.querySelectorAll<HTMLElement>('.diapositiva')];
+
     /*
       El del centro se elige por geometría y no por el índice del scroll: con
       las diapositivas asomando por los bordes, «cuánto se ha desplazado» no
       dice cuál se está mirando.
     */
-    const alCentro = () => {
+    const cualEstaAlCentro = () => {
       const centro = pista.getBoundingClientRect().left + pista.clientWidth / 2;
       let elegida = 0;
       let menor = Infinity;
 
-      diapositivas.forEach((diapositiva, i) => {
+      todas.forEach((diapositiva, i) => {
         const caja = diapositiva.getBoundingClientRect();
         const distancia = Math.abs(caja.left + caja.width / 2 - centro);
         if (distancia < menor) {
@@ -233,8 +267,14 @@ import { testimonials, testimonialsIntro } from '../data/content';
         }
       });
 
-      diapositivas.forEach((diapositiva, i) => {
-        const activa = i === elegida;
+      return elegida;
+    };
+
+    const marcar = () => {
+      const centro = cualEstaAlCentro();
+
+      todas.forEach((diapositiva, i) => {
+        const activa = i === centro;
         diapositiva.dataset.activo = String(activa);
 
         /*
@@ -251,35 +291,59 @@ import { testimonials, testimonialsIntro } from '../data/content';
         }
       });
 
-      // sin nada hacia ese lado, la flecha se apaga
-      const max = pista.scrollWidth - pista.clientWidth;
-      anterior.disabled = pista.scrollLeft <= 1;
-      siguiente.disabled = pista.scrollLeft >= max - 1;
+      return centro;
+    };
+
+    const centrar = (diapositiva: HTMLElement, suave = true) => {
+      const destino =
+        diapositiva.offsetLeft - (pista.clientWidth - diapositiva.offsetWidth) / 2;
+      pista.scrollTo({ left: destino, behavior: suave ? 'smooth' : 'auto' });
+    };
+
+    /** Del clon al original: mismo sitio en la cinta, sin que se note. */
+    const saltarSiEsClon = () => {
+      const centro = cualEstaAlCentro();
+      if (!todas[centro]?.dataset.clon) return;
+
+      // el clon del final es el primero de todos; el del principio, el último
+      const original = centro === 0 ? todas[todas.length - 2] : todas[1];
+      centrar(original, false);
+      marcar();
     };
 
     const irA = (paso: number) => {
-      const actual = diapositivas.findIndex((d) => d.dataset.activo === 'true');
-      const destino = diapositivas[Math.min(diapositivas.length - 1, Math.max(0, actual + paso))];
-      destino?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      const centro = cualEstaAlCentro();
+      const destino = todas[centro + paso];
+      if (destino) centrar(destino);
     };
 
     anterior.addEventListener('click', () => irA(-1));
     siguiente.addEventListener('click', () => irA(1));
 
     let pedido = 0;
+    let quieto = 0;
     pista.addEventListener(
       'scroll',
       () => {
-        if (pedido) return;
-        pedido = requestAnimationFrame(() => {
-          pedido = 0;
-          alCentro();
-        });
+        if (!pedido) {
+          pedido = requestAnimationFrame(() => {
+            pedido = 0;
+            marcar();
+          });
+        }
+
+        // el salto espera a que el desplazamiento pare, si no se pelea con él
+        clearTimeout(quieto);
+        quieto = window.setTimeout(saltarSiEsClon, 140);
       },
       { passive: true }
     );
 
-    window.addEventListener('resize', alCentro);
-    alCentro();
+    window.addEventListener('resize', marcar);
+
+    // arranca centrada en la que lo pida, o en la primera
+    const inicial = todas.find((d) => d.dataset.inicial === 'true') ?? todas[1];
+    centrar(inicial, false);
+    marcar();
   }
 </script>

@@ -659,6 +659,8 @@ export type Testimonial = {
   name: string;
   /** En qué obró Dios, en dos o tres palabras: «Sanidad física», «Provisión». */
   summary: string;
+  /** El que se muestra al centro cuando la página carga. Solo uno. */
+  inicial?: boolean;
   video: string;
   poster: string;
   alt: string;
@@ -691,6 +693,7 @@ export const testimonials: Testimonial[] = [
   {
     name: 'Flor',
     summary: '',
+    inicial: true,
     video: '/videos/testimonio-flor.mp4',
     poster: '/videos/testimonio-flor-poster.jpg',
     alt: 'Flor contando su testimonio',
