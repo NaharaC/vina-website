@@ -657,6 +657,8 @@ export const familyLife = {
  */
 export type Testimonial = {
   name: string;
+  /** En qué obró Dios, en dos o tres palabras: «Sanidad física», «Provisión». */
+  summary: string;
   video: string;
   poster: string;
   alt: string;
@@ -677,12 +679,28 @@ export const testimonialsIntro = {
   } satisfies NavLink,
 };
 
+/** TODO: falta el resumen del milagro de cada uno; se ve bajo el nombre. */
 export const testimonials: Testimonial[] = [
   {
     name: 'Andrea',
+    summary: '',
     video: '/videos/testimonio-andrea.mp4',
     poster: '/videos/testimonio-andrea-poster.jpg',
     alt: 'Andrea contando su testimonio',
+  },
+  {
+    name: 'Flor',
+    summary: '',
+    video: '/videos/testimonio-flor.mp4',
+    poster: '/videos/testimonio-flor-poster.jpg',
+    alt: 'Flor contando su testimonio',
+  },
+  {
+    name: 'Carlos',
+    summary: '',
+    video: '/videos/testimonio-carlos.mp4',
+    poster: '/videos/testimonio-carlos-poster.jpg',
+    alt: 'Carlos contando su testimonio',
   },
 ];
 
