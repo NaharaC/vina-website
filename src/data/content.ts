@@ -44,6 +44,7 @@ import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
 import nosotros from '../assets/img/nosotros.jpg';
+import darManos from '../assets/img/dar-manos.jpg';
 import equipoDanielNahara from '../assets/img/equipo-daniel-nahara.jpg';
 import equipoCarlosThiare from '../assets/img/equipo-carlos-thiare.jpg';
 import equipoCarlosThiare2 from '../assets/img/equipo-carlos-thiare-2.jpg';
@@ -691,6 +692,8 @@ export const giving = {
   verse: '“Hay más dicha en dar que en recibir”',
   reference: 'Hechos 20:35b',
   title: 'Sé parte de nuestros trabajos de compasión social',
+  image: darManos,
+  alt: 'Manos abiertas recibiendo y entregando',
   action: { label: 'Dar', href: contactChannels.givingUrl, external: true } satisfies NavLink,
 };
 

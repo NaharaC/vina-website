@@ -1,15 +1,8 @@
 ---
-import { getImage } from 'astro:assets';
+import { Image } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
 import { predicaciones } from '../data/content';
 
-/*
-  La foto va como fondo y no como <img> porque se queda quieta mientras la
-  página se desliza por encima, igual que en la sección de Dar. De paso, al
-  anclarse a la ventana el encuadre deja de recortarse por arriba: antes la
-  sección era más apaisada que la foto y le cortaba la cabeza al pastor.
-*/
-const fondo = await getImage({ src: predicaciones.image, width: 2200, format: 'webp' });
 ---
 
 {/*
@@ -17,12 +10,27 @@ const fondo = await getImage({ src: predicaciones.image, width: 2200, format: 'w
   texto, pegada al margen de la izquierda. `svh` y no `vh`: en el móvil la
   barra del navegador entra y sale, y con `vh` la sección daría saltos.
 */}
+{/*
+  La foto va quieta —como <img> y no como fondo fijo— y enmarcada con el mismo
+  margen fino que el hero, para que no llegue a filo con el borde de la
+  ventana. El encuadre se ancla arriba: la sección es más apaisada que la foto
+  y, centrado, le cortaba la cabeza al pastor.
+*/}
 <section
   id="predicaciones"
-  class="foto-fija foto-baja relative isolate flex min-h-[85svh] items-center overflow-clip rounded-[2rem] py-16 lg:rounded-[2.75rem] lg:py-24"
-  style={`--foto: url('${fondo.src}')`}
+  class="relative isolate mx-2 flex min-h-[85svh] items-center overflow-clip rounded-[2rem] py-16 lg:mx-3 lg:rounded-[2.75rem] lg:py-24"
   aria-labelledby="predicaciones-titulo"
 >
+  <Image
+    src={predicaciones.image}
+    alt={predicaciones.alt}
+    widths={[768, 1280, 1920]}
+    sizes="100vw"
+    class="absolute inset-0 -z-10 size-full object-cover object-top"
+    loading="lazy"
+    decoding="async"
+  />
+
   <div class="container-page">
     <div class="max-w-xl rounded-[1.5rem] bg-white px-8 py-10 sm:px-12 sm:py-14 lg:px-14">
       <p class="eyebrow">Predicaciones</p>

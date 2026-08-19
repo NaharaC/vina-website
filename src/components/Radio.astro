@@ -15,15 +15,15 @@ import { radio } from '../data/content';
         el cambio es un fundido. Sin JavaScript se queda el primero, que es
         una foto correcta y no un hueco.
       */}
-      <div class="afiches relative mx-auto aspect-[4/5] w-full max-w-[22rem] md:mx-0">
+      <div class="afiches relative aspect-video w-full overflow-hidden rounded-[1.25rem]">
         {
           radio.programas.map((programa, indice) => (
             <Image
               src={programa.poster}
               alt={`${programa.name}, ${programa.when}`}
               widths={[320, 480, 720]}
-              sizes="(min-width: 64rem) 22rem, 80vw"
-              class="afiche absolute inset-0 size-full rounded-[1.25rem] object-cover"
+              sizes="(min-width: 48rem) 40rem, 92vw"
+              class="afiche absolute inset-0 size-full object-cover"
               data-activo={indice === 0 ? 'true' : 'false'}
               loading={indice === 0 ? 'eager' : 'lazy'}
               decoding="async"

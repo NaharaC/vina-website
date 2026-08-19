@@ -1,45 +1,55 @@
 ---
+import { Image } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
+import SectionHeading from './SectionHeading.astro';
 import { giving } from '../data/content';
 ---
 
 {/*
-  Sección a pantalla completa, con la foto de fondo. `svh` en vez de `vh`
-  porque en el móvil la barra del navegador aparece y desaparece: con `vh` la
-  sección cambiaría de alto y daría saltos al hacer scroll.
-
-  La foto sale del tramo que la envuelve (`.tema-editorial`), que es quien
-  la recibe en `--foto`.
+  Dar en dos columnas y sobre claro. Antes ocupaba la pantalla entera con la
+  foto de fondo y el texto centrado encima, igual que el hero, prédicas y
+  contacto: cuatro secciones a foto completa competían entre ellas y la
+  llamada a ofrendar se perdía entre las demás. Aquí el versículo es el bloque
+  grande, el botón queda a la vista sin bajar, y la foto acompaña al lado.
 */}
-<section
-  id="dar"
-  class="foto-fija relative flex min-h-svh items-center overflow-clip rounded-[2rem] py-12 lg:rounded-[2.75rem] lg:py-16"
-  aria-labelledby="dar-titulo"
->
-  {/* velo parejo, no degradado: el texto blanco cruza las zonas claras */}
-  <div class="absolute inset-0 bg-[#090909]/55" aria-hidden="true"></div>
+<section id="dar" class="seccion" aria-labelledby="dar-titulo">
+  <div class="container-page">
+    <SectionHeading eyebrow="Dar" id="dar-titulo" />
 
-  <div class="container-page relative">
-    <div class="mx-auto max-w-2xl text-center">
-      <p class="subtitle-lg text-ink/80">
-        {giving.verse}<br />
-        {giving.reference}
-      </p>
+    <div class="mt-12 grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:mt-16 lg:gap-16">
+      <div>
+        <blockquote class="heading-lg max-w-md text-ink text-balance">
+          {giving.verse}
+        </blockquote>
 
-      <h2 id="dar-titulo" class="heading-xl mt-6 text-ink text-balance">{giving.title}</h2>
+        <p class="subtitle mt-4">{giving.reference}</p>
 
-      {
-        giving.action.href && (
-          <ArrowButton
-            label={giving.action.label}
-            href={giving.action.href}
-            variant="accent"
-            size="lg"
-            external={giving.action.external}
-            class="mt-10"
-          />
-        )
-      }
+        <p class="subtitle-lg mt-8 max-w-md">{giving.title}</p>
+
+        {
+          giving.action.href && (
+            <div class="mt-8">
+              <ArrowButton
+                label={giving.action.label}
+                href={giving.action.href}
+                variant="accent"
+                size="lg"
+                external={giving.action.external}
+              />
+            </div>
+          )
+        }
+      </div>
+
+      <Image
+        src={giving.image}
+        alt={giving.alt}
+        widths={[480, 768, 1080]}
+        sizes="(min-width: 48rem) 40rem, 92vw"
+        class="aspect-[4/3] w-full rounded-[1.5rem] object-cover"
+        loading="lazy"
+        decoding="async"
+      />
     </div>
   </div>
 </section>

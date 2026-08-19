@@ -1,5 +1,4 @@
 ---
-import { getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CompassionateFamily from '../components/CompassionateFamily.astro';
 import Contact from '../components/Contact.astro';
@@ -16,15 +15,6 @@ import Stats from '../components/Stats.astro';
 import Ubicacion from '../components/Ubicacion.astro';
 import Testimonials from '../components/Testimonials.astro';
 import { site } from '../data/content';
-import fondoEditorial from '../assets/img/dar-manos.jpg';
-
-/*
-  La foto que se ve por detrás de Dar y del testimonio. Va como fondo en CSS
-  (y no como <img>) porque tiene que asomar por dos huecos a la vez, como si
-  estuviera clavada detrás del papel: la sección de Dar entera y el rectángulo
-  que enmarca el video del testimonio.
-*/
-const fondo = await getImage({ src: fondoEditorial, width: 2200, format: 'webp' });
 ---
 
 <BaseLayout title={`${site.name} — ${site.tagline}`} heroFoto>
@@ -39,14 +29,8 @@ const fondo = await getImage({ src: fondoEditorial, width: 2200, format: 'webp' 
   <Predicaciones />
   <FamilyLife />
 
-  {/*
-    El testimonio y Dar van juntos en el tramo oscuro. La foto de fondo es de
-    Dar; `--foto` es lo único que hay que cambiar para cambiarla.
-  */}
-  <div class="tema-editorial" style={`--foto: url('${fondo.src}')`}>
-    <Testimonials />
-    <Giving />
-  </div>
+  <Testimonials />
+  <Giving />
 
   <Radio />
   <Contact />
