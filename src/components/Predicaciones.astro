@@ -11,50 +11,50 @@ import { predicaciones } from '../data/content';
   barra del navegador entra y sale, y con `vh` la sección daría saltos.
 */}
 {/*
-  La foto va quieta —como <img> y no como fondo fijo— y enmarcada con el mismo
-  margen fino que el hero, para que no llegue a filo con el borde de la
-  ventana. El encuadre se ancla arriba: la sección es más apaisada que la foto
-  y, centrado, le cortaba la cabeza al pastor.
+  La foto va quieta —como <img> y no como fondo fijo— y llega hasta donde
+  llegan las demás secciones, no hasta el borde de la ventana. El encuadre se
+  ancla arriba: el bloque es más apaisado que la foto y, centrado, le cortaba
+  la cabeza al pastor.
 */}
-<section
-  id="predicaciones"
-  class="relative isolate mx-2 flex min-h-[85svh] items-center overflow-clip rounded-[2rem] py-16 lg:mx-3 lg:rounded-[2.75rem] lg:py-24"
-  aria-labelledby="predicaciones-titulo"
->
-  <Image
-    src={predicaciones.image}
-    alt={predicaciones.alt}
-    widths={[768, 1280, 1920]}
-    sizes="100vw"
-    class="absolute inset-0 -z-10 size-full object-cover object-top"
-    loading="lazy"
-    decoding="async"
-  />
-
+<section id="predicaciones" aria-labelledby="predicaciones-titulo">
   <div class="container-page">
-    <div class="max-w-xl rounded-[1.5rem] bg-white px-8 py-10 sm:px-12 sm:py-14 lg:px-14">
-      <p class="eyebrow">Predicaciones</p>
+    <div
+      class="relative isolate flex min-h-[85svh] items-center overflow-clip rounded-[2rem] px-5 py-16 sm:px-10 lg:rounded-[2.75rem] lg:px-14 lg:py-24"
+    >
+      <Image
+        src={predicaciones.image}
+        alt={predicaciones.alt}
+        widths={[768, 1280, 1920]}
+        sizes="(min-width: 84rem) 78rem, 100vw"
+        class="absolute inset-0 -z-10 size-full object-cover object-top"
+        loading="lazy"
+        decoding="async"
+      />
 
-      {/* el hueco de la referencia: el rótulo arriba y el bloque abajo */}
-      <div class="mt-16 lg:mt-24">
-        <h2 id="predicaciones-titulo" class="heading-lg text-ink">{predicaciones.title}</h2>
-        <p class="subtitle-lg mt-4 max-w-md">{predicaciones.description}</p>
+      <div class="max-w-xl rounded-[1.5rem] bg-white px-8 py-10 sm:px-12 sm:py-14 lg:px-14">
+        <p class="eyebrow">Predicaciones</p>
 
-        <div class="mt-8 flex flex-wrap gap-3">
-          {
-            predicaciones.actions.map(
-              (action) =>
-                action.href && (
-                  <ArrowButton
-                    label={action.label}
-                    href={action.href}
-                    variant="accent"
-                    size="md"
-                    external={action.external}
-                  />
-                )
-            )
-          }
+        {/* el hueco de la referencia: el rótulo arriba y el bloque abajo */}
+        <div class="mt-16 lg:mt-24">
+          <h2 id="predicaciones-titulo" class="heading-lg text-ink">{predicaciones.title}</h2>
+          <p class="subtitle-lg mt-4 max-w-md">{predicaciones.description}</p>
+
+          <div class="mt-8 flex flex-wrap gap-3">
+            {
+              predicaciones.actions.map(
+                (action) =>
+                  action.href && (
+                    <ArrowButton
+                      label={action.label}
+                      href={action.href}
+                      variant="accent"
+                      size="md"
+                      external={action.external}
+                    />
+                  )
+              )
+            }
+          </div>
         </div>
       </div>
     </div>
