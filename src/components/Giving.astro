@@ -1,55 +1,66 @@
 ---
 import { Image } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
-import SectionHeading from './SectionHeading.astro';
 import { giving } from '../data/content';
 ---
 
 {/*
-  Dar en dos columnas y sobre claro. Antes ocupaba la pantalla entera con la
-  foto de fondo y el texto centrado encima, igual que el hero, prédicas y
-  contacto: cuatro secciones a foto completa competían entre ellas y la
-  llamada a ofrendar se perdía entre las demás. Aquí el versículo es el bloque
-  grande, el botón queda a la vista sin bajar, y la foto acompaña al lado.
+  Un solo bloque de color, el único de toda la página. El sitio es blanco,
+  negro y fotos, con el naranja reservado para los botones; usarlo aquí a
+  campo completo convierte la sección en el punto donde el ojo se detiene, que
+  es justo lo que tiene que pasar en la que pide una acción.
+
+  Dentro, el reparto de siempre: el versículo en grande a un lado y la foto
+  llenando el otro de borde a borde del panel.
 */}
 <section id="dar" class="seccion" aria-labelledby="dar-titulo">
   <div class="container-page">
-    <SectionHeading eyebrow="Dar" id="dar-titulo" />
+    <div class="overflow-hidden rounded-[2rem] bg-accent lg:rounded-[2.75rem]">
+      <div class="grid lg:grid-cols-[1.05fr_1fr]">
+        <div class="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+          <p class="eyebrow !text-white/70">Dar</p>
 
-    <div class="mt-12 grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:mt-16 lg:gap-16">
-      <div>
-        <blockquote class="heading-lg max-w-md text-ink text-balance">
-          {giving.verse}
-        </blockquote>
+          <blockquote
+            id="dar-titulo"
+            class="mt-6 text-[2rem] leading-[1.05] font-normal tracking-[-0.04em] text-balance text-white sm:text-[2.5rem] xl:text-[3.25rem]"
+          >
+            {giving.verse}
+          </blockquote>
 
-        <p class="subtitle mt-4">{giving.reference}</p>
+          <p class="mt-5 text-[0.9375rem] text-white/70">{giving.reference}</p>
 
-        <p class="subtitle-lg mt-8 max-w-md">{giving.title}</p>
+          <p class="mt-8 max-w-sm text-[1.0625rem] leading-relaxed text-white/90">
+            {giving.title}
+          </p>
 
-        {
-          giving.action.href && (
-            <div class="mt-8">
-              <ArrowButton
-                label={giving.action.label}
-                href={giving.action.href}
-                variant="accent"
-                size="lg"
-                external={giving.action.external}
-              />
-            </div>
-          )
-        }
+          {
+            giving.action.href && (
+              <div class="mt-10">
+                <ArrowButton
+                  label={giving.action.label}
+                  href={giving.action.href}
+                  variant="light"
+                  size="lg"
+                  external={giving.action.external}
+                />
+              </div>
+            )
+          }
+        </div>
+
+        {/* la foto llena su mitad: sin marco ni esquinas propias */}
+        <div class="relative order-first min-h-[16rem] sm:min-h-[22rem] lg:order-none lg:min-h-[34rem]">
+          <Image
+            src={giving.image}
+            alt={giving.alt}
+            widths={[480, 768, 1080]}
+            sizes="(min-width: 64rem) 40rem, 100vw"
+            class="absolute inset-0 size-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
       </div>
-
-      <Image
-        src={giving.image}
-        alt={giving.alt}
-        widths={[480, 768, 1080]}
-        sizes="(min-width: 48rem) 40rem, 92vw"
-        class="aspect-[4/3] w-full rounded-[1.5rem] object-cover"
-        loading="lazy"
-        decoding="async"
-      />
     </div>
   </div>
 </section>
