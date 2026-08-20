@@ -1,49 +1,114 @@
 ---
 import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
 import ArrowButton from './ArrowButton.astro';
-import SectionHeading from './SectionHeading.astro';
 import { radio } from '../data/content';
+import logoRadio from '../assets/img/aliado-puravida-radio.png';
 ---
 
+{/*
+  Un panel gris claro con los afiches pasando a un lado y el texto al otro, al
+  modo de la referencia. Los círculos de detrás son el guiño de la emisora:
+  van recortados por el panel, como una señal saliendo del aire.
+*/}
 <section id="radio" class="seccion" aria-labelledby="radio-titulo">
   <div class="container-page">
-    <SectionHeading eyebrow="Nuestra radio" />
+    <div class="relative isolate overflow-hidden rounded-[2rem] bg-mist lg:rounded-[2.75rem]">
+      {/* decoración: no aporta información, así que no se anuncia */}
+      <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+        {/* el grande sale por la esquina, como en la referencia */}
+        <div
+          class="absolute -right-24 -bottom-32 size-[22rem] rounded-full bg-white/70 lg:size-[30rem]"
+        >
+        </div>
 
-    <div class="mt-12 grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:mt-16 lg:gap-16">
-      {/*
-        Los afiches van uno encima de otro y se turnan: se ve uno a la vez y
-        el cambio es un fundido. Sin JavaScript se queda el primero, que es
-        una foto correcta y no un hueco.
-      */}
-      <div class="afiches relative aspect-video w-full overflow-hidden rounded-[1.25rem]">
-        {
-          radio.programas.map((programa, indice) => (
-            <Image
-              src={programa.poster}
-              alt={`${programa.name}, ${programa.when}`}
-              widths={[320, 480, 720]}
-              sizes="(min-width: 48rem) 40rem, 92vw"
-              class="afiche absolute inset-0 size-full object-cover"
-              data-activo={indice === 0 ? 'true' : 'false'}
-              loading={indice === 0 ? 'eager' : 'lazy'}
-              decoding="async"
-            />
-          ))
-        }
+        {/*
+          El de la emisora va entero: recortado por el borde parecía un error,
+          no un recurso. Abajo a la derecha, lejos del botón.
+        */}
+        <div
+          class="absolute right-8 bottom-8 hidden size-28 place-items-center rounded-full bg-white sm:grid lg:right-14 lg:bottom-12 lg:size-36"
+        >
+          <Image
+            src={logoRadio}
+            alt=""
+            widths={[160, 320]}
+            sizes="150px"
+            class="w-16 lg:w-20"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
       </div>
 
-      <div>
-        <h2 id="radio-titulo" class="heading-lg text-ink">{radio.title}</h2>
-        <p class="subtitle-lg mt-3 max-w-md">{radio.description}</p>
+      <div class="grid items-center gap-10 p-6 sm:p-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14 lg:p-14">
+        {/* los afiches: uno a la vez, con flechas y puntos para moverlos */}
+        <div class="carrusel-radio">
+          <div class="afiches relative aspect-video w-full overflow-hidden rounded-[1.25rem]">
+            {
+              radio.programas.map((programa, indice) => (
+                <Image
+                  src={programa.poster}
+                  alt={`${programa.name}, ${programa.when}`}
+                  widths={[480, 720, 1080]}
+                  sizes="(min-width: 64rem) 40rem, 92vw"
+                  class="afiche absolute inset-0 size-full object-cover"
+                  data-activo={indice === 0 ? 'true' : 'false'}
+                  loading={indice === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              ))
+            }
 
-        <div class="mt-7">
-          <ArrowButton
-            label={radio.action.label}
-            href={radio.action.href}
-            variant="accent"
-            size="md"
-            external={radio.action.external}
-          />
+            <button
+              type="button"
+              data-afiche-anterior
+              class="absolute top-1/2 left-3 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:left-4 sm:size-11"
+            >
+              <span class="sr-only">Programa anterior</span>
+              <Icon name="lucide:chevron-left" width={20} height={20} aria-hidden="true" />
+            </button>
+
+            <button
+              type="button"
+              data-afiche-siguiente
+              class="absolute top-1/2 right-3 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:right-4 sm:size-11"
+            >
+              <span class="sr-only">Programa siguiente</span>
+              <Icon name="lucide:chevron-right" width={20} height={20} aria-hidden="true" />
+            </button>
+          </div>
+
+          <div class="mt-5 flex items-center justify-center gap-2.5">
+            {
+              radio.programas.map((programa, indice) => (
+                <button
+                  type="button"
+                  class="punto h-2 rounded-full bg-ink/25 transition-all duration-300 hover:bg-ink/40"
+                  data-punto={indice}
+                  data-activo={indice === 0 ? 'true' : 'false'}
+                >
+                  <span class="sr-only">Ver {programa.name}</span>
+                </button>
+              ))
+            }
+          </div>
+        </div>
+
+        <div class="lg:pr-4">
+          <p class="eyebrow">Nuestra radio</p>
+          <h2 id="radio-titulo" class="heading-lg mt-4 text-ink">{radio.title}</h2>
+          <p class="subtitle-lg mt-3 max-w-sm">{radio.description}</p>
+
+          <div class="mt-8">
+            <ArrowButton
+              label={radio.action.label}
+              href={radio.action.href}
+              variant="accent"
+              size="md"
+              external={radio.action.external}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -51,15 +116,10 @@ import { radio } from '../data/content';
 </section>
 
 {/*
-  Global y acotado a `.afiches` a propósito: los estilos con ámbito de Astro
-  no alcanzan a las imágenes, que las pinta el componente `<Image>`. Sin esto
-  los seis afiches salían a la vez, apilados.
+  Global y acotado al carrusel: los estilos con ámbito de Astro no alcanzan a
+  las imágenes, que las pinta `<Image>`. Sin esto salen los seis a la vez.
 */}
 <style is:global>
-  /*
-    Sin JavaScript solo se ve el primero: los demás quedan detrás, no
-    ocultos, para que sigan contando como contenido de la página.
-  */
   .afiches .afiche {
     opacity: 0;
     transition: opacity 700ms ease;
@@ -69,8 +129,19 @@ import { radio } from '../data/content';
     opacity: 1;
   }
 
+  /* el punto del que se está viendo se alarga, en vez de solo oscurecerse */
+  .carrusel-radio .punto {
+    width: 0.5rem;
+  }
+
+  .carrusel-radio .punto[data-activo='true'] {
+    width: 1.75rem;
+    background-color: var(--color-ink);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .afiches .afiche {
+    .afiches .afiche,
+    .carrusel-radio .punto {
       transition: none;
     }
   }
@@ -78,29 +149,29 @@ import { radio } from '../data/content';
 
 <script>
   /*
-    Turno de cada afiche. Solo corre cuando la sección está a la vista: si no,
-    se pasarían todos mientras nadie mira y al llegar se vería uno cualquiera.
+    Los afiches se turnan solos, y con las flechas o los puntos se manda a
+    mano. Cualquier toque reinicia la cuenta: si no, el cambio automático
+    llegaría encima de lo que se acaba de elegir.
   */
-  const marco = document.querySelector<HTMLElement>('.afiches');
+  const carrusel = document.querySelector<HTMLElement>('.carrusel-radio');
+  const marco = carrusel?.querySelector<HTMLElement>('.afiches');
   const afiches = [...(marco?.querySelectorAll<HTMLElement>('.afiche') ?? [])];
+  const puntos = [...(carrusel?.querySelectorAll<HTMLElement>('.punto') ?? [])];
 
-  if (marco && afiches.length > 1) {
-    const ESPERA = 3500;
+  if (carrusel && marco && afiches.length > 1) {
+    const ESPERA = 4000;
     let actual = 0;
     let reloj = 0;
 
     const mostrar = (indice: number) => {
-      afiches.forEach((afiche, i) => {
-        afiche.dataset.activo = String(i === indice);
-      });
+      actual = (indice + afiches.length) % afiches.length;
+      afiches.forEach((afiche, i) => (afiche.dataset.activo = String(i === actual)));
+      puntos.forEach((punto, i) => (punto.dataset.activo = String(i === actual)));
     };
 
     const arrancar = () => {
       if (reloj) return;
-      reloj = window.setInterval(() => {
-        actual = (actual + 1) % afiches.length;
-        mostrar(actual);
-      }, ESPERA);
+      reloj = window.setInterval(() => mostrar(actual + 1), ESPERA);
     };
 
     const parar = () => {
@@ -108,16 +179,31 @@ import { radio } from '../data/content';
       reloj = 0;
     };
 
+    /** A mano: se muestra y se reinicia la cuenta desde cero. */
+    const irA = (indice: number) => {
+      mostrar(indice);
+      parar();
+      arrancar();
+    };
+
+    carrusel
+      .querySelector('[data-afiche-anterior]')
+      ?.addEventListener('click', () => irA(actual - 1));
+    carrusel
+      .querySelector('[data-afiche-siguiente]')
+      ?.addEventListener('click', () => irA(actual + 1));
+
+    puntos.forEach((punto, i) => punto.addEventListener('click', () => irA(i)));
+
+    // no corre mientras la sección no está a la vista
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(
-        ([entrada]) => (entrada.isIntersecting ? arrancar() : parar()),
-        { threshold: 0.3 }
-      ).observe(marco);
+      new IntersectionObserver(([e]) => (e.isIntersecting ? arrancar() : parar()), {
+        threshold: 0.3,
+      }).observe(marco);
     } else {
       arrancar();
     }
 
-    // al pasar el ratón se detiene, para mirar un afiche con calma
     marco.addEventListener('mouseenter', parar);
     marco.addEventListener('mouseleave', arrancar);
   }
