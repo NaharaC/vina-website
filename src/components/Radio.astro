@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import ArrowButton from './ArrowButton.astro';
 import { radio } from '../data/content';
-import logoRadio from '../assets/img/aliado-puravida-radio.png';
+import logoRadio from '../assets/img/radio-logo-blanco.png';
 ---
 
 {/*
@@ -15,30 +15,25 @@ import logoRadio from '../assets/img/aliado-puravida-radio.png';
   <div class="container-page">
     <div class="relative isolate overflow-hidden rounded-[2rem] bg-mist lg:rounded-[2.75rem]">
       {/* decoración: no aporta información, así que no se anuncia */}
+      {/*
+        El círculo y el logo van los dos en blanco a media tinta, como manchas
+        de fondo: sobre el gris del panel se insinúan sin llamar la atención.
+      */}
       <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-        {/* el grande sale por la esquina, como en la referencia */}
         <div
-          class="absolute -right-24 -bottom-32 size-[22rem] rounded-full bg-white/70 lg:size-[30rem]"
+          class="absolute -right-24 -bottom-32 size-[22rem] rounded-full bg-white/60 lg:size-[30rem]"
         >
         </div>
 
-        {/*
-          El de la emisora va entero: recortado por el borde parecía un error,
-          no un recurso. Abajo a la derecha, lejos del botón.
-        */}
-        <div
-          class="absolute right-8 bottom-8 hidden size-28 place-items-center rounded-full bg-white sm:grid lg:right-14 lg:bottom-12 lg:size-36"
-        >
-          <Image
-            src={logoRadio}
-            alt=""
-            widths={[160, 320]}
-            sizes="150px"
-            class="w-16 lg:w-20"
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
+        <Image
+          src={logoRadio}
+          alt=""
+          widths={[320, 640, 900]}
+          sizes="(min-width: 64rem) 26rem, 15rem"
+          class="absolute right-6 bottom-6 w-40 opacity-80 sm:w-56 lg:right-12 lg:bottom-10 lg:w-[26rem]"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
 
       <div class="grid items-center gap-10 p-6 sm:p-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14 lg:p-14">
@@ -60,23 +55,6 @@ import logoRadio from '../assets/img/aliado-puravida-radio.png';
               ))
             }
 
-            <button
-              type="button"
-              data-afiche-anterior
-              class="absolute top-1/2 left-3 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:left-4 sm:size-11"
-            >
-              <span class="sr-only">Programa anterior</span>
-              <Icon name="lucide:chevron-left" width={20} height={20} aria-hidden="true" />
-            </button>
-
-            <button
-              type="button"
-              data-afiche-siguiente
-              class="absolute top-1/2 right-3 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:right-4 sm:size-11"
-            >
-              <span class="sr-only">Programa siguiente</span>
-              <Icon name="lucide:chevron-right" width={20} height={20} aria-hidden="true" />
-            </button>
           </div>
 
           <div class="mt-5 flex items-center justify-center gap-2.5">
@@ -185,13 +163,6 @@ import logoRadio from '../assets/img/aliado-puravida-radio.png';
       parar();
       arrancar();
     };
-
-    carrusel
-      .querySelector('[data-afiche-anterior]')
-      ?.addEventListener('click', () => irA(actual - 1));
-    carrusel
-      .querySelector('[data-afiche-siguiente]')
-      ?.addEventListener('click', () => irA(actual + 1));
 
     puntos.forEach((punto, i) => punto.addEventListener('click', () => irA(i)));
 
