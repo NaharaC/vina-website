@@ -1,130 +1,94 @@
 ---
-import { Image } from 'astro:assets';
-import ArrowButton from './ArrowButton.astro';
 import { Icon } from 'astro-icon/components';
+import ArrowButton from './ArrowButton.astro';
 import { formasDeDar, giving } from '../data/content';
 ---
 
 {/*
-  Un solo bloque de color, el único de toda la página. El sitio es blanco,
-  negro y fotos, con el naranja reservado para los botones; usarlo aquí a
-  campo completo convierte la sección en el punto donde el ojo se detiene, que
-  es justo lo que tiene que pasar en la que pide una acción.
-
-  Dentro, el reparto de siempre: el versículo en grande a un lado y la foto
-  llenando el otro de borde a borde del panel.
+  La sección entera va sobre gris, con el versículo en grande y debajo las
+  tres formas de dar como fichas altas. La que se mira se ensancha y las otras
+  se encogen; el contenido aparece dentro del hueco que la ficha ya tiene
+  reservado, así que al abrirse no da saltos de alto.
 */}
 <section id="dar" class="seccion" aria-labelledby="dar-titulo">
   <div class="container-page">
-    <div class="overflow-hidden rounded-[2rem] bg-accent lg:rounded-[2.75rem]">
-      <div class="grid lg:grid-cols-[1.05fr_1fr]">
-        <div class="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
-          <p class="eyebrow !text-white/70">Dar</p>
+    <div class="rounded-[2rem] bg-mist px-6 py-12 sm:px-10 sm:py-16 lg:rounded-[2.75rem] lg:px-14 lg:py-20">
+      <p class="eyebrow">Dar</p>
 
-          <blockquote
-            id="dar-titulo"
-            class="mt-6 text-[2rem] leading-[1.05] font-normal tracking-[-0.04em] text-balance text-white sm:text-[2.5rem] xl:text-[3.25rem]"
-          >
-            {giving.verse}
-          </blockquote>
+      <p class="subtitle-lg mt-8 max-w-sm">{giving.title}</p>
 
-          <p class="mt-5 text-[0.9375rem] text-white/70">{giving.reference}</p>
+      <blockquote
+        id="dar-titulo"
+        class="mt-4 max-w-3xl text-[2rem] leading-[1.02] font-semibold tracking-[-0.045em] text-balance text-ink sm:text-[2.75rem] xl:text-[3.5rem]"
+      >
+        {giving.verse}
+      </blockquote>
 
-          <p class="mt-8 max-w-sm text-[1.0625rem] leading-relaxed text-white/90">
-            {giving.title}
-          </p>
+      <p class="subtitle mt-4">{giving.reference}</p>
 
-        </div>
-
-        {/* la foto llena su mitad: sin marco ni esquinas propias */}
-        <div class="relative order-first min-h-[16rem] sm:min-h-[22rem] lg:order-none lg:min-h-[34rem]">
-          <Image
-            src={giving.image}
-            alt={giving.alt}
-            widths={[480, 768, 1080]}
-            sizes="(min-width: 64rem) 40rem, 100vw"
-            class="absolute inset-0 size-full object-cover"
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
-      </div>
-    </div>
-
-    {/*
-      Las tres formas de dar. En escritorio conviven en fila y la que se mira
-      se ensancha mientras las otras se encogen; en móvil se apilan y se abren
-      y cierran una a una.
-    */}
-    <div class="formas mt-6 flex flex-col gap-4 lg:mt-8 lg:flex-row" data-abierta="transferencia">
-      {
-        formasDeDar.map((forma, indice) => (
-          <div
-            class="forma group relative overflow-hidden rounded-[1.5rem] bg-mist transition-[flex-grow] duration-500 ease-out lg:flex-1"
-            data-forma={forma.id}
-            data-abierta={indice === 0 ? 'true' : 'false'}
-          >
-            <button
-              type="button"
-              class="flex w-full items-center gap-4 p-6 text-left lg:p-7"
-              data-abre={forma.id}
-              aria-expanded={indice === 0 ? 'true' : 'false'}
-              aria-controls={`dar-${forma.id}`}
+      <div
+        class="formas mt-12 flex flex-col gap-4 lg:mt-16 lg:flex-row lg:gap-5"
+        data-abierta="online"
+      >
+        {
+          formasDeDar.map((forma) => (
+            <article
+              class="forma flex flex-col rounded-[1.5rem] bg-[#e4e3de] p-6 transition-[flex-grow] duration-500 ease-out lg:min-h-[26rem] lg:basis-0 lg:p-8"
+              data-forma={forma.id}
+              data-abierta={forma.id === 'online' ? 'true' : 'false'}
             >
-              <span class="grid size-11 shrink-0 place-items-center rounded-full bg-white text-ink">
-                <Icon name={forma.icon} width={20} height={20} aria-hidden="true" />
-              </span>
-
-              <span class="min-w-0 flex-1">
-                <span class="block text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">
-                  {forma.title}
+              <button
+                type="button"
+                class="flex w-full items-start justify-between gap-4 text-left"
+                data-abre={forma.id}
+                aria-expanded={forma.id === 'online' ? 'true' : 'false'}
+                aria-controls={`dar-${forma.id}`}
+              >
+                <span class="grid size-11 shrink-0 place-items-center rounded-full bg-white text-ink">
+                  <Icon name={forma.icon} width={20} height={20} aria-hidden="true" />
                 </span>
-                <span class="forma-resumen mt-0.5 block text-sm text-muted">{forma.summary}</span>
-              </span>
 
-              <Icon
-                name="lucide:plus"
-                width={20}
-                height={20}
-                class="forma-mas shrink-0 text-ink transition-transform duration-500"
-                aria-hidden="true"
-              />
-            </button>
+                <span class="sr-only">{forma.title}</span>
 
-            <div id={`dar-${forma.id}`} class="forma-cuerpo px-6 lg:px-7">
-              <div class="pb-6 lg:pb-7">
+                <Icon
+                  name="lucide:plus"
+                  width={20}
+                  height={20}
+                  class="forma-mas mt-2.5 shrink-0 text-ink transition-transform duration-500"
+                  aria-hidden="true"
+                />
+              </button>
+
+              {/*
+                El cuerpo ocupa el hueco libre de la ficha y se apoya abajo,
+                justo encima del título. Cerrada, se desvanece: la ficha ya
+                tiene ese alto reservado, así que nada se mueve.
+              */}
+              <div
+                id={`dar-${forma.id}`}
+                class="forma-cuerpo mt-8 flex flex-1 flex-col justify-end lg:mt-0"
+              >
                 {forma.cuentas && (
-                  <ul class="grid gap-5 border-t border-ink/10 pt-6 sm:grid-cols-2 xl:grid-cols-3">
+                  <ul class="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
                     {forma.cuentas.map((cuenta) => (
                       <li>
                         <p class="eyebrow">{cuenta.destino}</p>
-                        <p class="mt-3 text-[0.9375rem] font-semibold text-ink">{cuenta.titular}</p>
-                        <dl class="mt-2 space-y-0.5 text-[0.9375rem] text-muted">
-                          <div class="flex gap-2">
-                            <dt class="sr-only">RUT</dt>
-                            <dd>RUT {cuenta.rut}</dd>
-                          </div>
-                          <div class="flex gap-2">
-                            <dt class="sr-only">Banco</dt>
-                            <dd>{cuenta.banco}</dd>
-                          </div>
-                          <div class="flex gap-2">
-                            <dt class="sr-only">Cuenta</dt>
-                            <dd>{cuenta.cuenta}</dd>
-                          </div>
-                          <div class="flex gap-2">
-                            <dt class="sr-only">Correo</dt>
-                            <dd class="break-all">{cuenta.correo}</dd>
-                          </div>
-                        </dl>
+                        <p class="mt-2 text-[0.9375rem] font-semibold text-ink">{cuenta.titular}</p>
+                        <p class="mt-1 text-[0.9375rem] leading-relaxed text-muted">
+                          RUT {cuenta.rut}
+                          <br />
+                          {cuenta.banco}
+                          <br />
+                          {cuenta.cuenta}
+                          <br />
+                          {cuenta.correo}
+                        </p>
                       </li>
                     ))}
                   </ul>
                 )}
 
-                {forma.detalle && (
-                  <p class="subtitle max-w-md border-t border-ink/10 pt-6">{forma.detalle}</p>
-                )}
+                {forma.detalle && <p class="subtitle max-w-md">{forma.detalle}</p>}
 
                 {forma.action?.href && (
                   <div class="mt-6">
@@ -137,57 +101,91 @@ import { formasDeDar, giving } from '../data/content';
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        ))
-      }
+
+              <div class="mt-8 lg:mt-10">
+                <h3 class="text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">
+                  {forma.title}
+                </h3>
+                <p class="forma-resumen mt-2 text-[0.9375rem] leading-relaxed text-muted">
+                  {forma.summary}
+                </p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
     </div>
   </div>
 </section>
 
 <style>
-  /*
-    Cerrada, la ficha se queda en su cabecera; abierta, deja ver el cuerpo. Se
-    anima `grid-template-rows` en vez de `height` para no tener que saber
-    cuánto mide el contenido.
-  */
   .forma-cuerpo {
-    display: grid;
-    grid-template-rows: 0fr;
     opacity: 0;
-    transition:
-      grid-template-rows 500ms ease,
-      opacity 300ms ease;
-  }
-
-  .forma-cuerpo > div {
-    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 350ms ease;
   }
 
   .forma[data-abierta='true'] .forma-cuerpo {
-    grid-template-rows: 1fr;
     opacity: 1;
+    pointer-events: auto;
   }
 
   .forma[data-abierta='true'] .forma-mas {
     transform: rotate(45deg);
   }
 
-  /* en fila, la abierta se lleva el ancho y las otras se encogen */
-  @media (width >= 64rem) {
-    .forma {
-      flex-grow: 1;
+  /*
+    En móvil no hay sitio para dejar el hueco reservado, así que ahí la ficha
+    sí crece y encoge: se anima el alto por filas de rejilla, para no tener
+    que medir el contenido.
+  */
+  @media (width < 64rem) {
+    .forma-cuerpo {
+      display: grid;
+      grid-template-rows: 0fr;
+      margin-top: 0;
+      transition:
+        grid-template-rows 450ms ease,
+        opacity 350ms ease,
+        margin-top 450ms ease;
     }
 
-    .forma[data-abierta='true'] {
-      flex-grow: 3;
+    .forma-cuerpo > * {
+      overflow: hidden;
+    }
+
+    .forma[data-abierta='true'] .forma-cuerpo {
+      grid-template-rows: 1fr;
+      margin-top: 1.5rem;
+    }
+  }
+
+  /* en fila, la abierta se lleva el ancho y las otras se encogen */
+  @media (width >= 64rem) {
+    /*
+      `flex-basis: 0` es lo que hace que el reparto sea el de los números y no
+      el del contenido: con base automática, el ancho del título de cada ficha
+      se colaba en la cuenta y la abierta se quedaba corta.
+    */
+    .forma {
+      flex: 1 1 0;
+      /*
+        Sin esto una ficha no baja del ancho de su título —«Transferencia
+        bancaria» pedía 215px— y la abierta se queda con lo que sobre en vez
+        de con lo que le toca.
+      */
+      min-width: 0;
     }
 
     /*
-      Cerrada y estrecha, la bajada se parte en seis líneas y estira la ficha:
-      ahí basta con el icono y el nombre. En móvil sí se muestra, porque las
-      fichas ocupan el ancho completo.
+      Bastante más que las otras dos: con menos, las tres cuentas de la
+      transferencia se aprietan y los correos se parten a mitad de palabra.
     */
+    .forma[data-abierta='true'] {
+      flex-grow: 4;
+    }
+
+    /* estrecha, la bajada se parte en seis líneas: ahí sobra */
     .forma[data-abierta='false'] .forma-resumen {
       display: none;
     }
