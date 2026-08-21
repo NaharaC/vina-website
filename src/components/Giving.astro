@@ -1,7 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
-import { giving } from '../data/content';
+import { Icon } from 'astro-icon/components';
+import { formasDeDar, giving } from '../data/content';
 ---
 
 {/*
@@ -33,19 +34,6 @@ import { giving } from '../data/content';
             {giving.title}
           </p>
 
-          {
-            giving.action.href && (
-              <div class="mt-10">
-                <ArrowButton
-                  label={giving.action.label}
-                  href={giving.action.href}
-                  variant="light"
-                  size="lg"
-                  external={giving.action.external}
-                />
-              </div>
-            )
-          }
         </div>
 
         {/* la foto llena su mitad: sin marco ni esquinas propias */}
@@ -62,5 +50,185 @@ import { giving } from '../data/content';
         </div>
       </div>
     </div>
+
+    {/*
+      Las tres formas de dar. En escritorio conviven en fila y la que se mira
+      se ensancha mientras las otras se encogen; en móvil se apilan y se abren
+      y cierran una a una.
+    */}
+    <div class="formas mt-6 flex flex-col gap-4 lg:mt-8 lg:flex-row" data-abierta="transferencia">
+      {
+        formasDeDar.map((forma, indice) => (
+          <div
+            class="forma group relative overflow-hidden rounded-[1.5rem] bg-mist transition-[flex-grow] duration-500 ease-out lg:flex-1"
+            data-forma={forma.id}
+            data-abierta={indice === 0 ? 'true' : 'false'}
+          >
+            <button
+              type="button"
+              class="flex w-full items-center gap-4 p-6 text-left lg:p-7"
+              data-abre={forma.id}
+              aria-expanded={indice === 0 ? 'true' : 'false'}
+              aria-controls={`dar-${forma.id}`}
+            >
+              <span class="grid size-11 shrink-0 place-items-center rounded-full bg-white text-ink">
+                <Icon name={forma.icon} width={20} height={20} aria-hidden="true" />
+              </span>
+
+              <span class="min-w-0 flex-1">
+                <span class="block text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">
+                  {forma.title}
+                </span>
+                <span class="forma-resumen mt-0.5 block text-sm text-muted">{forma.summary}</span>
+              </span>
+
+              <Icon
+                name="lucide:plus"
+                width={20}
+                height={20}
+                class="forma-mas shrink-0 text-ink transition-transform duration-500"
+                aria-hidden="true"
+              />
+            </button>
+
+            <div id={`dar-${forma.id}`} class="forma-cuerpo px-6 lg:px-7">
+              <div class="pb-6 lg:pb-7">
+                {forma.cuentas && (
+                  <ul class="grid gap-5 border-t border-ink/10 pt-6 sm:grid-cols-2 xl:grid-cols-3">
+                    {forma.cuentas.map((cuenta) => (
+                      <li>
+                        <p class="eyebrow">{cuenta.destino}</p>
+                        <p class="mt-3 text-[0.9375rem] font-semibold text-ink">{cuenta.titular}</p>
+                        <dl class="mt-2 space-y-0.5 text-[0.9375rem] text-muted">
+                          <div class="flex gap-2">
+                            <dt class="sr-only">RUT</dt>
+                            <dd>RUT {cuenta.rut}</dd>
+                          </div>
+                          <div class="flex gap-2">
+                            <dt class="sr-only">Banco</dt>
+                            <dd>{cuenta.banco}</dd>
+                          </div>
+                          <div class="flex gap-2">
+                            <dt class="sr-only">Cuenta</dt>
+                            <dd>{cuenta.cuenta}</dd>
+                          </div>
+                          <div class="flex gap-2">
+                            <dt class="sr-only">Correo</dt>
+                            <dd class="break-all">{cuenta.correo}</dd>
+                          </div>
+                        </dl>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {forma.detalle && (
+                  <p class="subtitle max-w-md border-t border-ink/10 pt-6">{forma.detalle}</p>
+                )}
+
+                {forma.action?.href && (
+                  <div class="mt-6">
+                    <ArrowButton
+                      label={forma.action.label}
+                      href={forma.action.href}
+                      variant="accent"
+                      external={forma.action.external}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
   </div>
 </section>
+
+<style>
+  /*
+    Cerrada, la ficha se queda en su cabecera; abierta, deja ver el cuerpo. Se
+    anima `grid-template-rows` en vez de `height` para no tener que saber
+    cuánto mide el contenido.
+  */
+  .forma-cuerpo {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 500ms ease,
+      opacity 300ms ease;
+  }
+
+  .forma-cuerpo > div {
+    overflow: hidden;
+  }
+
+  .forma[data-abierta='true'] .forma-cuerpo {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .forma[data-abierta='true'] .forma-mas {
+    transform: rotate(45deg);
+  }
+
+  /* en fila, la abierta se lleva el ancho y las otras se encogen */
+  @media (width >= 64rem) {
+    .forma {
+      flex-grow: 1;
+    }
+
+    .forma[data-abierta='true'] {
+      flex-grow: 3;
+    }
+
+    /*
+      Cerrada y estrecha, la bajada se parte en seis líneas y estira la ficha:
+      ahí basta con el icono y el nombre. En móvil sí se muestra, porque las
+      fichas ocupan el ancho completo.
+    */
+    .forma[data-abierta='false'] .forma-resumen {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .forma,
+    .forma-cuerpo,
+    .forma-mas {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Solo una abierta a la vez. Se abre al pasar el ratón —como en la
+    referencia— y también al pulsar, que es lo único que existe en táctil.
+  */
+  const grupo = document.querySelector<HTMLElement>('.formas');
+  const fichas = [...(grupo?.querySelectorAll<HTMLElement>('.forma') ?? [])];
+
+  if (grupo && fichas.length) {
+    const abrir = (id: string) => {
+      for (const ficha of fichas) {
+        const abierta = ficha.dataset.forma === id;
+        ficha.dataset.abierta = String(abierta);
+        ficha.querySelector('[data-abre]')?.setAttribute('aria-expanded', String(abierta));
+      }
+    };
+
+    for (const ficha of fichas) {
+      const id = ficha.dataset.forma;
+      if (!id) continue;
+
+      ficha.querySelector('[data-abre]')?.addEventListener('click', () => abrir(id));
+
+      // el hover solo manda donde hay ratón: en táctil dispara al tocar y estorba
+      if (window.matchMedia('(hover: hover)').matches) {
+        ficha.addEventListener('mouseenter', () => abrir(id));
+      }
+    }
+  }
+</script>

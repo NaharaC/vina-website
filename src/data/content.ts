@@ -716,6 +716,84 @@ export const testimonials: Testimonial[] = [
 
 /* --- Dar ------------------------------------------------------------------- */
 
+/*
+  Las tres formas de dar. La de transferencia lleva las tres cuentas, una por
+  destino: lo que se ofrenda a la iglesia, a educación y a salud va a
+  personas jurídicas distintas y no se pueden mezclar.
+*/
+export type CuentaBancaria = {
+  destino: string;
+  titular: string;
+  rut: string;
+  banco: string;
+  cuenta: string;
+  correo: string;
+};
+
+export type FormaDeDar = {
+  id: string;
+  title: string;
+  icon: string;
+  summary: string;
+  cuentas?: CuentaBancaria[];
+  action?: NavLink;
+  /** Texto suelto, para las formas que no llevan cuentas ni botón. */
+  detalle?: string;
+};
+
+export const formasDeDar: FormaDeDar[] = [
+  {
+    id: 'transferencia',
+    title: 'Transferencia bancaria',
+    icon: 'lucide:building-2',
+    summary: 'Elige el destino de tu ofrenda y transfiere desde tu banco',
+    cuentas: [
+      {
+        destino: 'Sostenimiento de la iglesia',
+        titular: 'Iglesia Cristiana La Viña de Puerto Montt',
+        rut: '65.454.670-3',
+        banco: 'Scotiabank',
+        cuenta: 'Cuenta corriente 02-80394-41',
+        correo: 'finanzasvinapm@gmail.com',
+      },
+      {
+        destino: 'Proyectos de educación',
+        titular: 'Fundación Pura Vida',
+        rut: '65.080.453-8',
+        banco: 'Scotiabank',
+        cuenta: 'Cuenta corriente 0097-25170-54',
+        correo: 'finanzasvinapm@gmail.com',
+      },
+      {
+        destino: 'Proyectos de salud',
+        titular: 'ONG para el Desarrollo BILAV',
+        rut: '65.065.856-6',
+        banco: 'Scotiabank',
+        cuenta: 'Cuenta corriente 97-20396-75',
+        correo: 'finanzasvinapm@gmail.com',
+      },
+    ],
+  },
+  {
+    id: 'online',
+    title: 'En línea',
+    icon: 'lucide:credit-card',
+    summary: 'Da con tu tarjeta o cuenta bancaria, de forma rápida y segura',
+    detalle:
+      'Fintoc te conecta directo con tu banco: no guardamos ni vemos los datos de tu cuenta.',
+    action: { label: 'Dar en línea', href: contactChannels.givingUrl, external: true },
+  },
+  {
+    id: 'efectivo',
+    title: 'Efectivo',
+    icon: 'lucide:hand-coins',
+    summary: 'Entrégalo en persona, en cualquiera de nuestras reuniones',
+    /** TODO: confirmar cómo se recibe en la reunión (caja, sobre, a quién). */
+    detalle:
+      'Puedes entregar tu diezmo u ofrenda presencialmente cuando nos reunimos. Si tienes dudas, escríbenos y te orientamos.',
+  },
+];
+
 export const giving = {
   verse: '“Hay más dicha en dar que en recibir”',
   reference: 'Hechos 20:35b',
