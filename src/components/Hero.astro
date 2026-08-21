@@ -1,23 +1,27 @@
 ---
-import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { hero, heroActions } from '../data/content';
 ---
 
 <section class="relative">
-  {/* Foto enmarcada: un margen blanco fino la separa del borde del viewport */}
+  {/* Video enmarcado: un margen blanco fino lo separa del borde del viewport */}
   <div class="relative mx-2 mt-2 overflow-hidden rounded-[2rem] lg:mx-3 lg:mt-3 lg:rounded-[2.75rem]">
-    {/* Es el LCP de la página: carga inmediata y con prioridad alta. */}
-    <Image
-      src={hero.image}
-      alt={hero.alt}
-      widths={[768, 1280, 1920, 2400]}
-      sizes="100vw"
+    {/*
+      El video corre solo, en silencio y en bucle. El póster es su primer
+      fotograma: se ve de inmediato mientras el video carga, y es lo único que
+      queda si el navegador no lo reproduce o si se pide menos movimiento.
+    */}
+    <video
+      id="hero-video"
       class="h-[36rem] w-full object-cover object-center sm:h-[42rem] lg:h-[46rem]"
-      loading="eager"
-      fetchpriority="high"
-      decoding="async"
-    />
+      src={hero.video}
+      poster={hero.poster}
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      aria-label={hero.alt}></video>
     <div
       class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/25 to-black/45"
       aria-hidden="true"
@@ -90,3 +94,17 @@ import { hero, heroActions } from '../data/content';
     </div>
   </div>
 </section>
+
+<script>
+  /*
+    Con «reducir movimiento» activado el video se queda en su póster: para eso
+    se para y se le quita el arranque automático, en vez de esconderlo.
+  */
+  const video = document.getElementById('hero-video') as HTMLVideoElement | null;
+
+  if (video && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    video.pause();
+    video.removeAttribute('autoplay');
+    video.currentTime = 0;
+  }
+</script>

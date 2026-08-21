@@ -122,8 +122,15 @@ export const nav: NavLink[] = [
 /* --- Hero ------------------------------------------------------------------ */
 
 export const hero = {
+  /*
+    La portada abre con video. El original venía a 1920x1080 y 111 MB: aquí va
+    a 720p, sin pista de audio —nunca suena— y bien comprimido, porque detrás
+    del velo y del titular no se nota y sí se nota lo que tarda en cargar.
+  */
+  video: '/videos/hero-vinapm.mp4',
+  poster: '/videos/hero-vinapm-poster.jpg',
   image: heroCongregacion,
-  alt: 'Congregación adorando durante una reunión en Iglesia Viña Puerto Montt',
+  alt: 'Recorrido por la vida de Iglesia Viña Puerto Montt: encuentros, adoración y proyectos',
   panelTitle: '¡Te estábamos esperando!',
   panelSubtitle: 'Ven y sé parte',
 };
