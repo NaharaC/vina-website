@@ -1,80 +1,76 @@
 ---
 import { Icon } from 'astro-icon/components';
 import ArrowButton from './ArrowButton.astro';
+import SectionHeading from './SectionHeading.astro';
 import { formasDeDar, giving } from '../data/content';
 ---
 
 {/*
-  La sección entera va sobre gris, con el versículo en grande y debajo las
-  tres formas de dar como fichas altas. La que se mira se ensancha y las otras
-  se encogen; el contenido aparece dentro del hueco que la ficha ya tiene
-  reservado, así que al abrirse no da saltos de alto.
+  La sección cabe en una pantalla: encabezado arriba y, debajo, las tres
+  formas de dar como fichas de alto fijo. Ese alto es el que necesita la de
+  transferencia, que es la que más contenido tiene, así que abrir una u otra
+  ya no mueve nada.
 */}
 <section id="dar" class="seccion" aria-labelledby="dar-titulo">
   <div class="container-page">
-    <div class="rounded-[2rem] bg-mist px-6 py-12 sm:px-10 sm:py-16 lg:rounded-[2.75rem] lg:px-14 lg:py-20">
-      <p class="eyebrow">Dar</p>
-
-      <p class="subtitle-lg mt-8 max-w-sm">{giving.title}</p>
-
-      <blockquote
+    <div class="rounded-[2rem] bg-mist px-6 py-10 sm:px-10 sm:py-12 lg:rounded-[2.75rem] lg:px-12 lg:py-14">
+      <SectionHeading
         id="dar-titulo"
-        class="mt-4 max-w-3xl text-[2rem] leading-[1.02] font-semibold tracking-[-0.045em] text-balance text-ink sm:text-[2.75rem] xl:text-[3.5rem]"
-      >
-        {giving.verse}
-      </blockquote>
-
-      <p class="subtitle mt-4">{giving.reference}</p>
+        eyebrow="Dar"
+        title={giving.title}
+        subtitle={`${giving.verse} — ${giving.reference}`}
+      />
 
       <div
-        class="formas mt-12 flex flex-col gap-4 lg:mt-16 lg:flex-row lg:gap-5"
+        class="formas mt-8 flex flex-col gap-3 lg:mt-10 lg:h-[25rem] lg:flex-row lg:gap-4"
         data-abierta="online"
       >
         {
           formasDeDar.map((forma) => (
             <article
-              class="forma flex flex-col rounded-[1.5rem] bg-[#e4e3de] p-6 transition-[flex-grow] duration-500 ease-out lg:min-h-[26rem] lg:basis-0 lg:p-8"
+              class="forma flex flex-col overflow-hidden rounded-[1.5rem] bg-[#e4e3de] p-5 transition-[flex-grow] duration-500 ease-out lg:h-full lg:p-7"
               data-forma={forma.id}
               data-abierta={forma.id === 'online' ? 'true' : 'false'}
             >
               <button
                 type="button"
-                class="flex w-full items-start justify-between gap-4 text-left"
+                class="flex w-full items-start justify-between gap-3 text-left"
                 data-abre={forma.id}
                 aria-expanded={forma.id === 'online' ? 'true' : 'false'}
                 aria-controls={`dar-${forma.id}`}
               >
-                <span class="grid size-11 shrink-0 place-items-center rounded-full bg-white text-ink">
-                  <Icon name={forma.icon} width={20} height={20} aria-hidden="true" />
+                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-white text-ink lg:size-11">
+                  <Icon name={forma.icon} width={19} height={19} aria-hidden="true" />
                 </span>
 
                 <span class="sr-only">{forma.title}</span>
 
+                {/* al abrirse desaparece: no hay nada que cerrar, solo se cambia de opción */}
                 <Icon
                   name="lucide:plus"
                   width={20}
                   height={20}
-                  class="forma-mas mt-2.5 shrink-0 text-ink transition-transform duration-500"
+                  class="forma-mas mt-2 shrink-0 text-ink transition-opacity duration-300"
                   aria-hidden="true"
                 />
               </button>
 
               {/*
-                El cuerpo ocupa el hueco libre de la ficha y se apoya abajo,
-                justo encima del título. Cerrada, se desvanece: la ficha ya
-                tiene ese alto reservado, así que nada se mueve.
+                El cuerpo vive en el hueco que la ficha ya tiene reservado y se
+                apoya abajo, encima del nombre. Cerrado se desvanece, pero
+                sigue ocupando su sitio: por eso nada se mueve al abrir.
               */}
               <div
                 id={`dar-${forma.id}`}
-                class="forma-cuerpo mt-8 flex flex-1 flex-col justify-end lg:mt-0"
+                class="forma-cuerpo mt-6 flex min-h-0 flex-1 flex-col justify-end lg:mt-4"
               >
                 {forma.cuentas && (
-                  <ul class="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+                  <ul class="grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
                     {forma.cuentas.map((cuenta) => (
                       <li>
                         <p class="eyebrow">{cuenta.destino}</p>
-                        <p class="mt-2 text-[0.9375rem] font-semibold text-ink">{cuenta.titular}</p>
-                        <p class="mt-1 text-[0.9375rem] leading-relaxed text-muted">
+                        <p class="mt-2 text-sm font-semibold text-ink">{cuenta.titular}</p>
+                        <p class="mt-1 text-sm leading-relaxed text-muted">
                           RUT {cuenta.rut}
                           <br />
                           {cuenta.banco}
@@ -83,6 +79,38 @@ import { formasDeDar, giving } from '../data/content';
                           <br />
                           {cuenta.correo}
                         </p>
+
+                        {/*
+                          Copiar el bloque entero y no dato a dato: al pegarlo
+                          en el banco se necesitan todos juntos.
+                        */}
+                        <button
+                          type="button"
+                          class="copiar mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-white/70"
+                          data-copiar={[
+                            cuenta.titular,
+                            `RUT ${cuenta.rut}`,
+                            cuenta.banco,
+                            cuenta.cuenta,
+                            cuenta.correo,
+                          ].join('\n')}
+                        >
+                          <Icon
+                            name="lucide:copy"
+                            width={13}
+                            height={13}
+                            class="copiar-icono"
+                            aria-hidden="true"
+                          />
+                          <Icon
+                            name="lucide:check"
+                            width={13}
+                            height={13}
+                            class="copiar-listo hidden"
+                            aria-hidden="true"
+                          />
+                          <span class="copiar-texto">Copiar datos</span>
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -91,7 +119,7 @@ import { formasDeDar, giving } from '../data/content';
                 {forma.detalle && <p class="subtitle max-w-md">{forma.detalle}</p>}
 
                 {forma.action?.href && (
-                  <div class="mt-6">
+                  <div class="mt-5">
                     <ArrowButton
                       label={forma.action.label}
                       href={forma.action.href}
@@ -102,11 +130,11 @@ import { formasDeDar, giving } from '../data/content';
                 )}
               </div>
 
-              <div class="mt-8 lg:mt-10">
-                <h3 class="text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">
+              <div class="mt-6 lg:mt-7">
+                <h3 class="forma-nombre text-[0.9375rem] font-semibold tracking-[-0.02em] text-ink lg:text-[1.0625rem]">
                   {forma.title}
                 </h3>
-                <p class="forma-resumen mt-2 text-[0.9375rem] leading-relaxed text-muted">
+                <p class="forma-resumen mt-1.5 text-sm leading-relaxed text-muted">
                   {forma.summary}
                 </p>
               </div>
@@ -131,17 +159,21 @@ import { formasDeDar, giving } from '../data/content';
   }
 
   .forma[data-abierta='true'] .forma-mas {
-    transform: rotate(45deg);
+    opacity: 0;
   }
 
   /*
-    En móvil no hay sitio para dejar el hueco reservado, así que ahí la ficha
-    sí crece y encoge: se anima el alto por filas de rejilla, para no tener
-    que medir el contenido.
+    En móvil no hay hueco que reservar, así que ahí la ficha sí crece y
+    encoge: se anima por filas de rejilla, para no medir el contenido.
   */
   @media (width < 64rem) {
     .forma-cuerpo {
       display: grid;
+      /*
+        En rejilla, el `justify-end` que alinea abajo en escritorio pasa a
+        empujar el contenido a la derecha: aquí se anula.
+      */
+      justify-content: stretch;
       grid-template-rows: 0fr;
       margin-top: 0;
       transition:
@@ -156,39 +188,43 @@ import { formasDeDar, giving } from '../data/content';
 
     .forma[data-abierta='true'] .forma-cuerpo {
       grid-template-rows: 1fr;
-      margin-top: 1.5rem;
+      margin-top: 1.25rem;
     }
   }
 
-  /* en fila, la abierta se lleva el ancho y las otras se encogen */
   @media (width >= 64rem) {
     /*
-      `flex-basis: 0` es lo que hace que el reparto sea el de los números y no
-      el del contenido: con base automática, el ancho del título de cada ficha
-      se colaba en la cuenta y la abierta se quedaba corta.
+      `flex-basis: 0` y `min-width: 0` son lo que hace que el reparto sea el
+      de los números y no el del contenido: con base automática, el ancho del
+      título de cada ficha se colaba en la cuenta.
     */
     .forma {
       flex: 1 1 0;
-      /*
-        Sin esto una ficha no baja del ancho de su título —«Transferencia
-        bancaria» pedía 215px— y la abierta se queda con lo que sobre en vez
-        de con lo que le toca.
-      */
       min-width: 0;
     }
 
-    /*
-      Bastante más que las otras dos: con menos, las tres cuentas de la
-      transferencia se aprietan y los correos se parten a mitad de palabra.
-    */
+    /* la abierta se lleva casi todo: las tres cuentas necesitan sitio */
     .forma[data-abierta='true'] {
-      flex-grow: 4;
+      flex-grow: 6;
     }
 
-    /* estrecha, la bajada se parte en seis líneas: ahí sobra */
+    /* estrecha no cabe ni la bajada ni el nombre entero: se deja el nombre */
     .forma[data-abierta='false'] .forma-resumen {
       display: none;
     }
+
+    .forma[data-abierta='false'] .forma-nombre {
+      font-size: 0.9375rem;
+    }
+  }
+
+  /* aviso de copiado */
+  .copiar[data-copiado='true'] .copiar-icono {
+    display: none;
+  }
+
+  .copiar[data-copiado='true'] .copiar-listo {
+    display: block;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -228,5 +264,42 @@ import { formasDeDar, giving } from '../data/content';
         ficha.addEventListener('mouseenter', () => abrir(id));
       }
     }
+  }
+
+  /* --- Copiar los datos de una cuenta --------------------------------------- */
+
+  for (const boton of document.querySelectorAll<HTMLButtonElement>('.copiar')) {
+    const datos = boton.dataset.copiar;
+    if (!datos) continue;
+
+    const etiqueta = boton.querySelector('.copiar-texto');
+
+    boton.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(datos);
+      } catch {
+        /*
+          Sin permiso de portapapeles —o sin https— queda el camino viejo:
+          un campo fuera de pantalla que se selecciona y se copia.
+        */
+        const campo = document.createElement('textarea');
+        campo.value = datos;
+        campo.setAttribute('readonly', '');
+        campo.style.position = 'absolute';
+        campo.style.left = '-9999px';
+        document.body.appendChild(campo);
+        campo.select();
+        document.execCommand('copy');
+        campo.remove();
+      }
+
+      boton.dataset.copiado = 'true';
+      if (etiqueta) etiqueta.textContent = 'Copiado';
+
+      window.setTimeout(() => {
+        delete boton.dataset.copiado;
+        if (etiqueta) etiqueta.textContent = 'Copiar datos';
+      }, 2000);
+    });
   }
 </script>
