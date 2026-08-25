@@ -22,21 +22,21 @@ import { formasDeDar, giving } from '../data/content';
       />
 
       <div
-        class="formas mt-8 flex flex-col gap-3 lg:mt-10 lg:h-[25rem] lg:flex-row lg:gap-4"
-        data-abierta="online"
+        class="formas mt-8 flex flex-col gap-3 lg:mt-10 lg:h-[27.5rem] lg:flex-row lg:gap-4"
+        data-hay-abierta="false"
       >
         {
           formasDeDar.map((forma) => (
             <article
               class="forma flex flex-col overflow-hidden rounded-[1.5rem] bg-[#e4e3de] p-5 transition-[flex-grow] duration-500 ease-out lg:h-full lg:p-7"
               data-forma={forma.id}
-              data-abierta={forma.id === 'online' ? 'true' : 'false'}
+              data-abierta="false"
             >
               <button
                 type="button"
                 class="flex w-full items-start justify-between gap-3 text-left"
                 data-abre={forma.id}
-                aria-expanded={forma.id === 'online' ? 'true' : 'false'}
+                aria-expanded="false"
                 aria-controls={`dar-${forma.id}`}
               >
                 <span class="grid size-10 shrink-0 place-items-center rounded-full bg-white text-ink lg:size-11">
@@ -65,11 +65,11 @@ import { formasDeDar, giving } from '../data/content';
                 class="forma-cuerpo mt-6 flex min-h-0 flex-1 flex-col justify-end lg:mt-4"
               >
                 {forma.cuentas && (
-                  <ul class="grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+                  <ul class="grid gap-x-6 gap-y-7 sm:grid-cols-2 sm:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-3">
                     {forma.cuentas.map((cuenta) => (
-                      <li>
+                      <li class="flex flex-col items-start sm:grid sm:row-span-4 sm:grid-rows-subgrid sm:gap-0">
                         <p class="eyebrow">{cuenta.destino}</p>
-                        <p class="mt-2 text-sm font-semibold text-ink">{cuenta.titular}</p>
+                        <p class="mt-2 text-sm font-semibold text-ink sm:mt-2">{cuenta.titular}</p>
                         <p class="mt-1 text-sm leading-relaxed text-muted">
                           RUT {cuenta.rut}
                           <br />
@@ -86,7 +86,7 @@ import { formasDeDar, giving } from '../data/content';
                         */}
                         <button
                           type="button"
-                          class="copiar mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-white/70"
+                          class="copiar mt-5 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-white/70"
                           data-copiar={[
                             cuenta.titular,
                             `RUT ${cuenta.rut}`,
@@ -208,13 +208,22 @@ import { formasDeDar, giving } from '../data/content';
       flex-grow: 6;
     }
 
-    /* estrecha no cabe ni la bajada ni el nombre entero: se deja el nombre */
-    .forma[data-abierta='false'] .forma-resumen {
-      display: none;
+    /*
+      Mientras no hay ninguna abierta, las tres son iguales y el texto va más
+      grande: es el momento en que hay que entender qué opciones existen.
+    */
+    .formas[data-hay-abierta='false'] .forma-nombre {
+      font-size: 1.375rem;
+      letter-spacing: -0.03em;
     }
 
-    .forma[data-abierta='false'] .forma-nombre {
-      font-size: 0.9375rem;
+    .formas[data-hay-abierta='false'] .forma-resumen {
+      font-size: 1rem;
+    }
+
+    /* con una abierta, las otras se quedan solo con su nombre */
+    .formas[data-hay-abierta='true'] .forma[data-abierta='false'] .forma-resumen {
+      display: none;
     }
   }
 
@@ -245,24 +254,38 @@ import { formasDeDar, giving } from '../data/content';
   const fichas = [...(grupo?.querySelectorAll<HTMLElement>('.forma') ?? [])];
 
   if (grupo && fichas.length) {
+    /** `id` vacío = ninguna abierta, que es como arranca y como vuelve a quedar. */
     const abrir = (id: string) => {
       for (const ficha of fichas) {
         const abierta = ficha.dataset.forma === id;
         ficha.dataset.abierta = String(abierta);
         ficha.querySelector('[data-abre]')?.setAttribute('aria-expanded', String(abierta));
       }
+
+      grupo.dataset.hayAbierta = String(Boolean(id));
     };
 
     for (const ficha of fichas) {
       const id = ficha.dataset.forma;
       if (!id) continue;
 
-      ficha.querySelector('[data-abre]')?.addEventListener('click', () => abrir(id));
+      // pulsar abre y vuelve a pulsar cierra: en táctil no hay otra forma
+      ficha.querySelector('[data-abre]')?.addEventListener('click', () => {
+        abrir(ficha.dataset.abierta === 'true' ? '' : id);
+      });
 
       // el hover solo manda donde hay ratón: en táctil dispara al tocar y estorba
       if (window.matchMedia('(hover: hover)').matches) {
         ficha.addEventListener('mouseenter', () => abrir(id));
       }
+    }
+
+    /*
+      Al salir del grupo se cierran todas: así el estado de reposo vuelve a ser
+      el de las tres opciones a la vista, en igualdad.
+    */
+    if (window.matchMedia('(hover: hover)').matches) {
+      grupo.addEventListener('mouseleave', () => abrir(''));
     }
   }
 

@@ -743,6 +743,15 @@ export type FormaDeDar = {
 
 export const formasDeDar: FormaDeDar[] = [
   {
+    id: 'online',
+    title: 'En línea',
+    icon: 'lucide:credit-card',
+    summary: 'Da con tu tarjeta o cuenta bancaria, de forma rápida y segura',
+    detalle:
+      'Fintoc te conecta directo con tu banco: no guardamos ni vemos los datos de tu cuenta.',
+    action: { label: 'Dar en línea', href: contactChannels.givingUrl, external: true },
+  },
+  {
     id: 'transferencia',
     title: 'Transferencia bancaria',
     icon: 'lucide:building-2',
@@ -773,15 +782,6 @@ export const formasDeDar: FormaDeDar[] = [
         correo: 'finanzasvinapm@gmail.com',
       },
     ],
-  },
-  {
-    id: 'online',
-    title: 'En línea',
-    icon: 'lucide:credit-card',
-    summary: 'Da con tu tarjeta o cuenta bancaria, de forma rápida y segura',
-    detalle:
-      'Fintoc te conecta directo con tu banco: no guardamos ni vemos los datos de tu cuenta.',
-    action: { label: 'Dar en línea', href: contactChannels.givingUrl, external: true },
   },
   {
     id: 'efectivo',
