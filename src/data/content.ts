@@ -162,13 +162,6 @@ export const heroActions: HeroAction[] = [
     icon: 'lucide:handshake',
     iconClass: 'bg-icon-maroon',
   },
-  {
-    title: 'Actividades',
-    description: 'Quiero ser parte de las actividades',
-    href: '#vida-en-familia',
-    icon: 'lucide:calendar-days',
-    iconClass: 'bg-icon-amber',
-  },
 ];
 
 /* --- Bienvenido a casa (video) --------------------------------------------- */
