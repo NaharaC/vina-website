@@ -47,6 +47,7 @@ import nosotros from '../assets/img/nosotros.jpg';
 import darManos from '../assets/img/dar-manos.jpg';
 import equipoDanielNahara from '../assets/img/equipo-daniel-nahara.jpg';
 import equipoCarlosThiare from '../assets/img/equipo-carlos-thiare.jpg';
+import fintocLogo from '../assets/img/fintoc-logo.svg';
 import equipoCarlosThiare2 from '../assets/img/equipo-carlos-thiare-2.jpg';
 import equipoRobertoAraceli from '../assets/img/equipo-roberto-araceli.jpg';
 import equipoRobertoAraceli2 from '../assets/img/equipo-roberto-araceli-2.jpg';
@@ -735,6 +736,9 @@ export type FormaDeDar = {
   title: string;
   icon: string;
   summary: string;
+  /** Logo de quien procesa el pago, si lo hay. */
+  logo?: ImageMetadata;
+  logoAlt?: string;
   cuentas?: CuentaBancaria[];
   action?: NavLink;
   /** Texto suelto, para las formas que no llevan cuentas ni botón. */
@@ -746,9 +750,10 @@ export const formasDeDar: FormaDeDar[] = [
     id: 'online',
     title: 'En línea',
     icon: 'lucide:credit-card',
-    summary: 'Da con tu tarjeta o cuenta bancaria, de forma rápida y segura',
-    detalle:
-      'Fintoc te conecta directo con tu banco: no guardamos ni vemos los datos de tu cuenta.',
+    summary: 'Realiza tu diezmo u ofrenda de manera fácil, rápida y segura a través de Fintoc',
+    detalle: 'Fintoc te conecta directo con tu banco',
+    logo: fintocLogo,
+    logoAlt: 'Fintoc',
     action: { label: 'Dar en línea', href: contactChannels.givingUrl, external: true },
   },
   {
@@ -788,9 +793,8 @@ export const formasDeDar: FormaDeDar[] = [
     title: 'Efectivo',
     icon: 'lucide:hand-coins',
     summary: 'Entrégalo en persona, en cualquiera de nuestras reuniones',
-    /** TODO: confirmar cómo se recibe en la reunión (caja, sobre, a quién). */
     detalle:
-      'Puedes entregar tu diezmo u ofrenda presencialmente cuando nos reunimos. Si tienes dudas, escríbenos y te orientamos.',
+      'En el momento de dar encontrarás canastos repartidos por el salón, con el equipo de finanzas. Ahí mismo hay sobres, por si prefieres usarlos.',
   },
 ];
 
