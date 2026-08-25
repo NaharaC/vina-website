@@ -34,10 +34,16 @@ const contactIsExternal = contactHref.startsWith('http');
       class="rounded-[1.75rem] bg-carbon/70 shadow-lg shadow-black/10 backdrop-blur-md lg:rounded-full"
     >
       <div id="nav-row" class="flex items-center gap-4 px-5 py-3">
-        {/* dos tamaños de logo: el `hidden` va en un contenedor por lo mismo que abajo */}
+        {/*
+          Dos logos: el del móvil y el de escritorio, que además lleva el
+          icono suelto para cuando la barra se encoge. El `hidden` va en un
+          contenedor por lo mismo que abajo, y el contenedor es `flex` para
+          que no cuelgue del renglón: como bloque, el hueco del descuelgue
+          de la línea empuja el logo hacia arriba dentro de la píldora.
+        */}
         <Logo class="text-white lg:hidden" width={116} />
-        <span id="nav-logo" class="hidden lg:block">
-          <Logo class="text-white" width={104} />
+        <span id="nav-logo" class="hidden lg:flex lg:items-center">
+          <Logo class="text-white" width={104} iconWidth={34} />
         </span>
 
         <ul
@@ -64,7 +70,7 @@ const contactIsExternal = contactHref.startsWith('http');
           `.inline-flex` después de `.hidden` y ambas tienen la misma
           especificidad.
         */}
-        <div id="nav-cta" class="hidden lg:block">
+        <div id="nav-cta" class="hidden lg:flex lg:items-center">
           <ArrowButton
             label="Contactar"
             href={contactHref}
@@ -243,10 +249,28 @@ const contactIsExternal = contactHref.startsWith('http');
         font-size 450ms ease;
     }
 
-    /* el img vive dentro del componente Logo: sin :global el scope no lo alcanza */
-    #nav-logo :global(img) {
-      width: 86px;
-      transition: width 450ms ease;
+    /*
+      Encogida en píldora no cabe la marca entera: manda el icono suelto.
+      Arriba del todo, con la barra a todo el ancho, vuelve la marca.
+
+      Las imágenes viven dentro del componente Logo: sin :global el scope
+      no las alcanza.
+    */
+    #nav-logo :global(.marca) {
+      display: none;
+      width: 104px;
+    }
+
+    #nav-logo :global(.icono) {
+      width: 34px;
+    }
+
+    #site-header[data-at-top='true'] #nav-logo :global(.marca) {
+      display: block;
+    }
+
+    #site-header[data-at-top='true'] #nav-logo :global(.icono) {
+      display: none;
     }
 
     /* el botón marca la altura de la píldora: en compacto va más fino */
@@ -271,10 +295,6 @@ const contactIsExternal = contactHref.startsWith('http');
     #site-header[data-at-top='true'] #nav-links {
       gap: 2rem;
       font-size: 0.9375rem;
-    }
-
-    #site-header[data-at-top='true'] #nav-logo :global(img) {
-      width: 104px;
     }
 
     #site-header[data-at-top='true'] #nav-cta :global(a) {

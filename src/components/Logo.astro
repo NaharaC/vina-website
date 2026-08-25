@@ -6,9 +6,16 @@ interface Props {
   class?: string;
   /** ancho en px del logo */
   width?: number;
+  /**
+   * Ancho en px del icono suelto. Si se pasa, el enlace lleva las dos
+   * versiones —marca entera e icono— y quien lo usa decide cuál enseña
+   * apuntando a `.marca` y `.icono`. Lo pide la barra, que cambia una por
+   * otra al encogerse en píldora.
+   */
+  iconWidth?: number;
 }
 
-const { class: className = '', width = 132 } = Astro.props;
+const { class: className = '', width = 132, iconWidth } = Astro.props;
 ---
 
 <a
@@ -21,8 +28,23 @@ const { class: className = '', width = 132 } = Astro.props;
     alt={logo.alt}
     width={width}
     densities={[1, 2]}
-    class="h-auto"
+    class="marca h-auto"
     loading="eager"
     decoding="async"
   />
+
+  {
+    iconWidth && (
+      /* el nombre ya lo dice el `aria-label` del enlace: aquí sobra */
+      <Image
+        src={logo.icon}
+        alt=""
+        width={iconWidth}
+        densities={[1, 2]}
+        class="icono h-auto"
+        loading="eager"
+        decoding="async"
+      />
+    )
+  }
 </a>

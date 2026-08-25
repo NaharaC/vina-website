@@ -42,6 +42,7 @@ import historiaMatrimonioPastores from '../assets/img/historia-matrimonio-pastor
 import logoCentroMedico from '../assets/img/logo-centro-medico.png';
 import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
+import iconoVinapm from '../assets/img/icono-vinapm-blanco.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
 import nosotros from '../assets/img/nosotros.jpg';
 import darManos from '../assets/img/dar-manos.jpg';
@@ -59,7 +60,11 @@ import reunionMiercolesPalabra from '../assets/img/reunion-miercoles-palabra.jpg
 import reunionViernesAvivamiento from '../assets/img/reunion-viernes-avivamiento.jpg';
 import videoPoster from '../assets/img/video-poster.jpg';
 
-export const logo = { src: logoVinapm, alt: 'Iglesia viñapm' };
+/**
+ * La marca entera y el icono suelto. El icono es la versión blanca: solo
+ * sale en la barra encogida, que va sobre fondo oscuro.
+ */
+export const logo = { src: logoVinapm, alt: 'Iglesia viñapm', icon: iconoVinapm };
 
 /* ===========================================================================
    ⚠️  DATOS PENDIENTES

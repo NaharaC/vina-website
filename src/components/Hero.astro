@@ -1,9 +1,10 @@
 ---
-import { Icon } from 'astro-icon/components';
-import { hero, heroActions } from '../data/content';
+import { Icon } from "astro-icon/components";
+import { hero, heroActions } from "../data/content";
 ---
 
-{/*
+{
+  /*
   La portada al modo de la referencia: el titular abajo a la izquierda,
   alineado con el margen de la página —el mismo que sigue el logo de la barra
   y todas las secciones—, y las cuatro puertas de entrada abajo a la derecha,
@@ -12,15 +13,22 @@ import { hero, heroActions } from '../data/content';
   Titular y cristal cuelgan los dos del borde de abajo: es lo que ata la
   composición. Lo que crezca —una línea más de titular, otra puerta— crece
   hacia arriba y el pie sigue donde estaba.
-*/}
+*/
+}
 <section class="relative">
-  {/* Video enmarcado: un margen blanco fino lo separa del borde del viewport */}
-  <div class="relative mx-2 mt-2 overflow-hidden rounded-[2rem] lg:mx-3 lg:mt-3 lg:rounded-[2.75rem]">
-    {/*
+  {
+    /* Video enmarcado: un margen blanco fino lo separa del borde del viewport */
+  }
+  <div
+    class="relative mx-2 mt-2 overflow-hidden rounded-[2rem] lg:mx-3 lg:mt-3 lg:rounded-[2.75rem]"
+  >
+    {
+      /*
       El video corre solo, en silencio y en bucle. El póster es su primer
       fotograma: se ve de inmediato mientras el video carga, y es lo único que
       queda si el navegador no lo reproduce o si se pide menos movimiento.
-    */}
+    */
+    }
     <video
       id="hero-video"
       class="h-[44rem] w-full object-cover object-center sm:h-[46rem] lg:h-[calc(100svh-1.5rem)] lg:max-h-[54rem] lg:min-h-[44rem]"
@@ -33,11 +41,13 @@ import { hero, heroActions } from '../data/content';
       preload="auto"
       aria-label={hero.alt}></video>
 
-    {/*
+    {
+      /*
       El velo va más cargado arriba y abajo: arriba sostiene la barra de
       navegación, abajo el titular y el cristal. Por el medio se abre para
       que el video se vea.
-    */}
+    */
+    }
     <div
       class="absolute inset-0 bg-gradient-to-b from-black/55 via-black/15 to-black/75"
       aria-hidden="true"
@@ -47,35 +57,44 @@ import { hero, heroActions } from '../data/content';
     <div class="absolute inset-0 flex items-end">
       <div class="container-page w-full pb-8 sm:pb-10 lg:pb-12">
         <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-10">
-          {/*
+          {
+            /*
             Mismo peso y tracking que los títulos del resto de la web, pero
             en el cuerpo más grande de la casa. La cuenta del `clamp` está
             atada al ancho de su columna: a partir de `lg` el titular
             comparte fila con el cristal, y con las líneas partidas a mano
             un cuerpo de más se saldría por la derecha en vez de doblar.
-          */}
+          */
+          }
           <h1
             class="leading-[0.96] font-semibold tracking-[-0.045em] text-white"
             style="font-size: clamp(2.5rem, 10.1vw - 3.1rem, 6rem)"
           >
-            Siendo una familia<br />
-            compasiva imitando<br />
-            a Jesús
+            Siendo<br />
+            una familia compasiva<br />
+            imitando a Jesús
           </h1>
 
-          {/*
-            El cristal: fondo apenas teñido y el desenfoque haciendo el
-            trabajo. El `ring` es lo que le da el filo —sin él, sobre un
-            fotograma oscuro el panel no se despega del video.
-          */}
+          {
+            /*
+            El cristal: sin filo, un fondo apenas teñido y el desenfoque
+            haciendo todo el trabajo. Lo que lo despega del video es el
+            desenfoque mismo —cuanto más fuerte, más se nota dónde empieza el
+            panel— y la sombra de debajo.
+          */
+          }
           <div
-            class="w-full max-w-[24rem] rounded-panel bg-black/35 p-2.5 shadow-2xl shadow-black/30 ring-1 ring-white/15 backdrop-blur-2xl backdrop-saturate-150 lg:w-[22rem]"
+            class="w-full max-w-[24rem] rounded-panel bg-black/35 p-2.5 shadow-2xl shadow-black/30 backdrop-blur-3xl backdrop-saturate-150 lg:w-[22rem]"
           >
             <div class="px-2 pt-1.5 pb-1">
-              <p class="text-[1.1875rem] font-semibold tracking-[-0.03em] text-white">
+              <p
+                class="text-[1.1875rem] font-semibold tracking-[-0.03em] text-white"
+              >
                 {hero.panelTitle}
               </p>
-              <p class="mt-0.5 text-[0.8125rem] text-white/70">{hero.panelSubtitle}</p>
+              <p class="mt-0.5 text-[0.8125rem] text-white/70">
+                {hero.panelSubtitle}
+              </p>
             </div>
 
             <ul class="mt-2.5 flex flex-col gap-2">
@@ -88,11 +107,16 @@ import { hero, heroActions } from '../data/content';
                     >
                       <span
                         class:list={[
-                          'grid size-10 shrink-0 place-items-center rounded-full text-white',
+                          "grid size-10 shrink-0 place-items-center rounded-full text-white",
                           action.iconClass,
                         ]}
                       >
-                        <Icon name={action.icon} width={20} height={20} aria-hidden="true" />
+                        <Icon
+                          name={action.icon}
+                          width={20}
+                          height={20}
+                          aria-hidden="true"
+                        />
                       </span>
 
                       <span class="min-w-0 flex-1">
@@ -105,7 +129,12 @@ import { hero, heroActions } from '../data/content';
                       </span>
 
                       <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-white/90 text-carbon transition-transform duration-200 group-hover:translate-x-0.5">
-                        <Icon name="lucide:arrow-right" width={16} height={16} aria-hidden="true" />
+                        <Icon
+                          name="lucide:arrow-right"
+                          width={16}
+                          height={16}
+                          aria-hidden="true"
+                        />
                       </span>
                     </a>
                   </li>
@@ -124,11 +153,13 @@ import { hero, heroActions } from '../data/content';
     Con «reducir movimiento» activado el video se queda en su póster: para eso
     se para y se le quita el arranque automático, en vez de esconderlo.
   */
-  const video = document.getElementById('hero-video') as HTMLVideoElement | null;
+  const video = document.getElementById(
+    "hero-video",
+  ) as HTMLVideoElement | null;
 
-  if (video && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (video && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     video.pause();
-    video.removeAttribute('autoplay');
+    video.removeAttribute("autoplay");
     video.currentTime = 0;
   }
 </script>
