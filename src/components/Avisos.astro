@@ -1,0 +1,313 @@
+---
+import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import ArrowButton from './ArrowButton.astro';
+import { avisos, avisosIntro } from '../data/content';
+---
+
+{/*
+  Los avisos van pasando de uno en uno: el del centro se ve a color y los de
+  al lado asoman por los bordes, apagados, para que se note que hay más. Es
+  el mismo carrusel de los testimonios; aquí en vez de video hay una foto con
+  el texto encima y, cuando el aviso lo pide, un recuadro con el detalle
+  —los horarios de la radio.
+*/}
+<section id="avisos" class="seccion" aria-labelledby="avisos-titulo">
+  <div class="container-page">
+    <div class="border-b border-ink/15 pb-5">
+      <h2 id="avisos-titulo" class="eyebrow text-ink">{avisosIntro.title}</h2>
+    </div>
+  </div>
+
+  {/* a sangre: los avisos de al lado asoman por los bordes */}
+  <div class="carrusel-avisos relative mt-10 lg:mt-12">
+    <div
+      class="pista no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-[6vw] sm:gap-6 lg:px-[19vw]"
+      aria-roledescription="carrusel"
+      aria-label="Avisos"
+      tabindex="0"
+    >
+      {
+        avisos.map((aviso, indice) => (
+          <article class="diapositiva w-[88vw] shrink-0 snap-center sm:w-[70vw] lg:w-[62vw]">
+            {/*
+              La foto y el velo salen del flujo, así que el resto se reparte
+              solo: en el móvil una columna —el recuadro arriba y el texto
+              abajo, de ahí el `col-reverse`— y en pantalla ancha las dos
+              cosas una al lado de la otra.
+            */}
+            <div class="relative isolate flex min-h-[30rem] flex-col-reverse gap-6 overflow-hidden rounded-[1.5rem] bg-carbon p-6 sm:aspect-[16/10] sm:min-h-0 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-8 sm:p-10 lg:aspect-[16/9] lg:gap-12 lg:rounded-[1.75rem] lg:p-14">
+              <Image
+                src={aviso.image}
+                alt={aviso.alt}
+                widths={[640, 1024, 1600]}
+                sizes="(min-width: 64rem) 62vw, (min-width: 40rem) 70vw, 88vw"
+                class="absolute inset-0 -z-10 size-full object-cover"
+                loading={indice === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+
+              {/*
+                El velo cae desde abajo mientras el aviso es una columna, y
+                desde la izquierda cuando el texto se pone a un lado.
+              */}
+              <div
+                class="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/50 to-black/15 sm:bg-gradient-to-r sm:from-black/85 sm:via-black/45 sm:to-black/10"
+                aria-hidden="true"
+              />
+
+              <div class="max-w-md">
+                <p class="eyebrow text-white/70">{aviso.eyebrow}</p>
+                <h3 class="heading-lg mt-3 text-white text-balance">{aviso.title}</h3>
+                <p class="mt-3 text-[1.0625rem] leading-[1.45] text-white/75">
+                  {aviso.description}
+                </p>
+
+                <div class="mt-7">
+                  <ArrowButton
+                    label={aviso.action.label}
+                    href={aviso.action.href}
+                    variant="light"
+                    size="md"
+                    external={aviso.action.external}
+                  />
+                </div>
+              </div>
+
+              {aviso.panel && (
+                <div class="rounded-[1.25rem] bg-carbon/80 p-5 backdrop-blur-md sm:w-[19rem] sm:p-6 lg:w-[21rem]">
+                  <p class="eyebrow text-white/60">{aviso.panel.title}</p>
+
+                  <ul class="mt-4 space-y-2.5">
+                    {aviso.panel.rows.map((fila) => (
+                      <li class="grid grid-cols-[1fr_auto] items-baseline gap-x-4 border-t border-white/15 pt-2.5 first:border-0 first:pt-0">
+                        <p class="text-[0.9375rem] leading-tight font-semibold text-white">
+                          {fila.name}
+                        </p>
+                        <p class="text-[0.8125rem] whitespace-nowrap text-white/60">{fila.when}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    {
+      avisos.length > 1 && (
+        <>
+          <button
+            type="button"
+            data-avisos-prev
+            class="absolute top-1/2 left-3 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:left-6 lg:size-12"
+          >
+            <span class="sr-only">Aviso anterior</span>
+            <Icon name="lucide:chevron-left" width={22} height={22} aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            data-avisos-next
+            class="absolute top-1/2 right-3 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:right-6 lg:size-12"
+          >
+            <span class="sr-only">Aviso siguiente</span>
+            <Icon name="lucide:chevron-right" width={22} height={22} aria-hidden="true" />
+          </button>
+        </>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* los de al lado quedan apagados: se ven, pero no compiten con el del centro */
+  .diapositiva {
+    opacity: 0.35;
+    filter: grayscale(1);
+    transition:
+      opacity 400ms ease,
+      filter 400ms ease;
+  }
+
+  .diapositiva[data-activo='true'] {
+    opacity: 1;
+    filter: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pista {
+      scroll-behavior: auto;
+    }
+
+    .diapositiva {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const carrusel = document.querySelector<HTMLElement>('.carrusel-avisos');
+  const pista = carrusel?.querySelector<HTMLElement>('.pista');
+  const reales = [...(pista?.querySelectorAll<HTMLElement>('.diapositiva') ?? [])];
+  const anterior = carrusel?.querySelector<HTMLButtonElement>('[data-avisos-prev]');
+  const siguiente = carrusel?.querySelector<HTMLButtonElement>('[data-avisos-next]');
+
+  if (carrusel && pista && reales.length > 1 && anterior && siguiente) {
+    /*
+      Para que la cinta no tenga principio ni fin se clona el último al
+      principio y el primero al final. Al llegar a un clon se salta sin
+      animación a su original, que está a un juego de distancia: el salto no
+      se ve porque los dos muestran lo mismo.
+
+      Los clones van con `inert`: se ven, pero no se tabulan ni se leen, así
+      que el botón de cada aviso sigue estando una sola vez.
+    */
+    const clonar = (diapositiva: HTMLElement) => {
+      const clon = diapositiva.cloneNode(true) as HTMLElement;
+      clon.dataset.clon = 'true';
+      clon.setAttribute('aria-hidden', 'true');
+      clon.setAttribute('inert', '');
+      return clon;
+    };
+
+    pista.prepend(clonar(reales[reales.length - 1]));
+    pista.append(clonar(reales[0]));
+
+    const todas = [...pista.querySelectorAll<HTMLElement>('.diapositiva')];
+
+    /*
+      El del centro se elige por geometría y no por el índice del scroll: con
+      los avisos asomando por los bordes, «cuánto se ha desplazado» no dice
+      cuál se está mirando.
+    */
+    const cualEstaAlCentro = () => {
+      const centro = pista.getBoundingClientRect().left + pista.clientWidth / 2;
+      let elegido = 0;
+      let menor = Infinity;
+
+      todas.forEach((diapositiva, i) => {
+        const caja = diapositiva.getBoundingClientRect();
+        const distancia = Math.abs(caja.left + caja.width / 2 - centro);
+        if (distancia < menor) {
+          menor = distancia;
+          elegido = i;
+        }
+      });
+
+      return elegido;
+    };
+
+    const marcar = () => {
+      const centro = cualEstaAlCentro();
+      todas.forEach((diapositiva, i) => (diapositiva.dataset.activo = String(i === centro)));
+    };
+
+    const centrar = (diapositiva: HTMLElement, suave = true) => {
+      const destino = diapositiva.offsetLeft - (pista.clientWidth - diapositiva.offsetWidth) / 2;
+      pista.scrollTo({ left: destino, behavior: suave ? 'smooth' : 'auto' });
+    };
+
+    /** Del clon al original: mismo sitio en la cinta, sin que se note. */
+    const saltarSiEsClon = () => {
+      const centro = cualEstaAlCentro();
+      if (!todas[centro]?.dataset.clon) return;
+
+      // el clon del final es el primero de todos; el del principio, el último
+      const original = centro === 0 ? todas[todas.length - 2] : todas[1];
+      centrar(original, false);
+      marcar();
+    };
+
+    const irA = (paso: number) => {
+      const centro = cualEstaAlCentro();
+      const destino = todas[centro + paso];
+      if (destino) centrar(destino);
+    };
+
+    /*
+      Los avisos van pasando solos. Cualquier gesto —flecha, rueda, dedo—
+      reinicia la cuenta: si no, el cambio automático llegaría encima de lo
+      que se acaba de mirar.
+    */
+    const ESPERA = 7000;
+    const quieto = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reloj = 0;
+    let aLaVista = false;
+
+    const parar = () => {
+      clearInterval(reloj);
+      reloj = 0;
+    };
+
+    const arrancar = () => {
+      if (reloj || !aLaVista || quieto.matches) return;
+      reloj = window.setInterval(() => irA(1), ESPERA);
+    };
+
+    const reiniciar = () => {
+      parar();
+      arrancar();
+    };
+
+    anterior.addEventListener('click', () => {
+      irA(-1);
+      reiniciar();
+    });
+
+    siguiente.addEventListener('click', () => {
+      irA(1);
+      reiniciar();
+    });
+
+    // ni corre mientras la sección no está a la vista, ni mientras se mira un aviso
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(
+        ([entrada]) => {
+          aLaVista = entrada.isIntersecting;
+          if (aLaVista) arrancar();
+          else parar();
+        },
+        { threshold: 0.3 }
+      ).observe(carrusel);
+    } else {
+      aLaVista = true;
+      arrancar();
+    }
+
+    carrusel.addEventListener('mouseenter', parar);
+    carrusel.addEventListener('mouseleave', arrancar);
+    pista.addEventListener('focusin', parar);
+    pista.addEventListener('focusout', arrancar);
+
+    let pedido = 0;
+    let parado = 0;
+    pista.addEventListener(
+      'scroll',
+      () => {
+        if (!pedido) {
+          pedido = requestAnimationFrame(() => {
+            pedido = 0;
+            marcar();
+          });
+        }
+
+        // el salto espera a que el desplazamiento pare, si no se pelea con él
+        clearTimeout(parado);
+        parado = window.setTimeout(saltarSiEsClon, 140);
+      },
+      { passive: true }
+    );
+
+    // a dedo o con la rueda también cuenta como gesto: la cuenta vuelve a cero
+    pista.addEventListener('pointerdown', reiniciar);
+    pista.addEventListener('wheel', reiniciar, { passive: true });
+
+    window.addEventListener('resize', marcar);
+
+    centrar(todas[1], false);
+    marcar();
+  }
+</script>

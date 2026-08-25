@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Avisos from '../components/Avisos.astro';
 import CompassionateFamily from '../components/CompassionateFamily.astro';
 import Contact from '../components/Contact.astro';
 import FamilyCollage from '../components/FamilyCollage.astro';
@@ -9,8 +10,6 @@ import Hero from '../components/Hero.astro';
 import MainMeetings from '../components/MainMeetings.astro';
 import Partners from '../components/Partners.astro';
 import PropheticStatement from '../components/PropheticStatement.astro';
-import Predicaciones from '../components/Predicaciones.astro';
-import Radio from '../components/Radio.astro';
 import Stats from '../components/Stats.astro';
 import Ubicacion from '../components/Ubicacion.astro';
 import Testimonials from '../components/Testimonials.astro';
@@ -26,7 +25,7 @@ import { site } from '../data/content';
   <Stats />
   <Partners />
   <CompassionateFamily />
-  <Predicaciones />
+  <Avisos />
   <FamilyLife />
 
   {/*
@@ -39,6 +38,5 @@ import { site } from '../data/content';
     <Giving />
   </div>
 
-  <Radio />
   <Contact />
 </BaseLayout>

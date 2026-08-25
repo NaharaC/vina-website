@@ -53,12 +53,7 @@ import equipoRobertoAraceli from '../assets/img/equipo-roberto-araceli.jpg';
 import equipoRobertoAraceli2 from '../assets/img/equipo-roberto-araceli-2.jpg';
 import equipoDanielNahara2 from '../assets/img/equipo-daniel-nahara-2.jpg';
 import predicacion from '../assets/img/predicacion.jpg';
-import radioCaminandoSeguras from '../assets/img/radio-caminando-seguras.jpg';
-import radioPastoresPuraVida from '../assets/img/radio-pastores-con-pura-vida.jpg';
-import radioPermaneciendoDependientes from '../assets/img/radio-permaneciendo-dependientes.jpg';
-import radioPulsoDeVida from '../assets/img/radio-pulso-de-vida.jpg';
-import radioTerminandoLaSemana from '../assets/img/radio-terminando-la-semana.jpg';
-import radioTiempoYHora from '../assets/img/radio-tiempo-y-hora.jpg';
+import radioEstudio from '../assets/img/radio-estudio.jpg';
 import reunionDomingosGloria from '../assets/img/reunion-domingos-gloria.jpg';
 import reunionMiercolesPalabra from '../assets/img/reunion-miercoles-palabra.jpg';
 import reunionViernesAvivamiento from '../assets/img/reunion-viernes-avivamiento.jpg';
@@ -116,7 +111,7 @@ export type NavLink = { label: string; href: string; external?: boolean };
 export const nav: NavLink[] = [
   { label: 'Compasión', href: '#compasion' },
   { label: 'Actividades', href: '#vida-en-familia' },
-  { label: 'Prédicas', href: '#predicaciones' },
+  { label: 'Avisos', href: '#avisos' },
   { label: 'Dar', href: '#dar' },
 ];
 
@@ -423,62 +418,95 @@ export const compassionCards: CompassionCard[] = [
   },
 ];
 
-/* --- Predicaciones --------------------------------------------------------- */
+/* --- Avisos ---------------------------------------------------------------- */
 
-export const predicaciones = {
-  title: 'Escucha donde estés',
-  description: 'Revive nuestras predicaciones cuando quieras y donde quieras',
-  image: predicacion,
-  alt: 'Pastor predicando durante una reunión',
-  actions: [
+export type Aviso = {
+  /** Rótulo pequeño dentro de la tarjeta. */
+  eyebrow: string;
+  title: string;
+  description: string;
+  image: ImageMetadata;
+  alt: string;
+  action: NavLink;
+  /**
+   * Recuadro flotante con el detalle concreto del aviso —los horarios de la
+   * radio—, al modo de la referencia. Opcional: sin él la tarjeta es foto y
+   * texto, y la imagen se ve entera.
+   */
+  panel?: {
+    title: string;
+    rows: { name: string; when: string }[];
+  };
+};
+
+export const avisosIntro = {
+  title: 'Mantente conectado',
+};
+
+export const avisos: Aviso[] = [
+  {
+    eyebrow: 'Predicaciones',
+    title: 'Escucha donde estés',
+    description: 'Revive nuestras predicaciones cuando quieras y donde quieras',
+    image: predicacion,
+    alt: 'Pastor predicando durante una reunión',
     /**
      * Playlist "Prédicas 2026". Va a la vista de lista en vez de al enlace de
      * un video suelto: así se ven todas las prédicas, y no queda apuntando a
      * una concreta que con el tiempo deje de ser la más reciente.
      */
-    {
+    action: {
       label: 'Ver predicaciones',
       href: 'https://www.youtube.com/playlist?list=PLdyP4f9u-CyoZ4P-ZyG8FP9y77hfIkXLv',
       external: true,
     },
-  ] satisfies NavLink[],
-};
-
-/* --- Radio ----------------------------------------------------------------- */
-
-export type ProgramaRadio = {
-  name: string;
-  /** Cuándo se emite, tal como lo dice el afiche. */
-  when: string;
-  poster: ImageMetadata;
-};
-
-export const radio = {
-  title: 'Radio Pura Vida FM',
-  description: 'Conéctate a nuestros programas radiales',
-  /**
-   * Señal en vivo (Icecast, AAC 128 kbps). El servidor también responde por
-   * HTTPS, que es lo que hay que usar: enlazar a http:// desde un sitio en
-   * https dispara avisos de "no seguro" en el navegador.
-   */
-  action: {
-    label: 'Escuchar en vivo',
-    href: 'https://audio2.tustreaming.cl:7200/stream',
-    external: true,
-  } satisfies NavLink,
-  programas: [
-    { name: 'Caminando Seguras', when: 'Lunes a jueves · 12:00 hrs', poster: radioCaminandoSeguras },
-    { name: 'Pastores con Pura Vida', when: 'Miércoles · 13:00 hrs', poster: radioPastoresPuraVida },
-    { name: 'Tiempo y Hora', when: 'Miércoles · 14:00 hrs', poster: radioTiempoYHora },
-    {
-      name: 'Permaneciendo Dependientes',
-      when: 'Jueves · 14:00 hrs',
-      poster: radioPermaneciendoDependientes,
+  },
+  {
+    eyebrow: 'Reflexiones diarias',
+    title: 'Una palabra para cada mañana',
+    description:
+      'Cada día compartimos una reflexión breve en los grupos de WhatsApp. Escríbenos y te sumamos.',
+    image: familiaCasaOracion2,
+    alt: 'Manos sosteniendo una Biblia abierta y subrayada',
+    /*
+      No hay enlace de invitación al grupo: cambia cada tanto y caduca. Se
+      pide por el WhatsApp de la iglesia, igual que el enlace del miércoles.
+    */
+    action: {
+      label: 'Quiero recibirlas',
+      href: whatsappHref('Hola, quiero recibir las reflexiones diarias'),
+      external: true,
     },
-    { name: 'Terminando la Semana', when: 'Viernes · 12:00 hrs', poster: radioTerminandoLaSemana },
-    { name: 'Pulso de Vida', when: 'Viernes · 16:00 hrs', poster: radioPulsoDeVida },
-  ] satisfies ProgramaRadio[],
-};
+  },
+  {
+    eyebrow: 'Radio Pura Vida FM',
+    title: 'Nuestros programas, toda la semana',
+    description: 'Acompáñanos en vivo por la radio de la familia',
+    image: radioEstudio,
+    alt: 'Dos locutores conversando frente a los micrófonos del estudio',
+    /**
+     * Señal en vivo (Icecast, AAC 128 kbps). El servidor también responde por
+     * HTTPS, que es lo que hay que usar: enlazar a http:// desde un sitio en
+     * https dispara avisos de "no seguro" en el navegador.
+     */
+    action: {
+      label: 'Escuchar en vivo',
+      href: 'https://audio2.tustreaming.cl:7200/stream',
+      external: true,
+    },
+    panel: {
+      title: 'Programación',
+      rows: [
+        { name: 'Caminando Seguras', when: 'Lun a jue · 12:00' },
+        { name: 'Pastores con Pura Vida', when: 'Miércoles · 13:00' },
+        { name: 'Tiempo y Hora', when: 'Miércoles · 14:00' },
+        { name: 'Permaneciendo Dependientes', when: 'Jueves · 14:00' },
+        { name: 'Terminando la Semana', when: 'Viernes · 12:00' },
+        { name: 'Pulso de Vida', when: 'Viernes · 16:00' },
+      ],
+    },
+  },
+];
 
 /* --- Nosotros -------------------------------------------------------------- */
 
@@ -853,7 +881,7 @@ export const footerColumns: FooterColumn[] = [
     links: [
       { label: 'Horarios y Ubicación', href: '#reuniones' },
       { label: 'Calendario de Actividades', href: '#vida-en-familia' },
-      { label: 'Predicaciones Recientes', href: '#predicaciones' },
+      { label: 'Predicaciones Recientes', href: '#avisos' },
       { label: 'Áreas de Servicio', href: '' },
     ],
   },
