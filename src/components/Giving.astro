@@ -14,7 +14,7 @@ import { formasDeDar, giving } from '../data/content';
 */}
 <section id="dar" class="seccion" aria-labelledby="dar-titulo">
   <div class="container-page">
-    <div class="rounded-[2rem] bg-mist px-6 py-10 sm:px-10 sm:py-12 lg:rounded-[2.75rem] lg:px-12 lg:py-14">
+    <div>
       <SectionHeading
         id="dar-titulo"
         eyebrow="Dar"
@@ -65,6 +65,12 @@ import { formasDeDar, giving } from '../data/content';
                 id={`dar-${forma.id}`}
                 class="forma-cuerpo mt-6 flex min-h-0 flex-1 flex-col justify-end lg:mt-4"
               >
+                {/*
+                  Todo el contenido cuelga de un solo hijo: al colapsar por
+                  filas de rejilla en móvil solo se contrae la primera fila, y
+                  el resto dejaba un hueco en blanco dentro de la ficha.
+                */}
+                <div class="forma-cuerpo-interior">
                 {forma.cuentas && (
                   <ul class="grid gap-x-6 gap-y-7 sm:grid-cols-2 sm:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-3">
                     {forma.cuentas.map((cuenta) => (
@@ -87,7 +93,7 @@ import { formasDeDar, giving } from '../data/content';
                         */}
                         <button
                           type="button"
-                          class="copiar mt-5 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-white/70"
+                          class="copiar mt-5 inline-flex w-fit items-center gap-1.5 justify-self-start rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-white/70"
                           data-copiar={[
                             cuenta.titular,
                             `RUT ${cuenta.rut}`,
@@ -139,6 +145,7 @@ import { formasDeDar, giving } from '../data/content';
                     />
                   </div>
                 )}
+                </div>
               </div>
 
               <div class="mt-6 lg:mt-7">
@@ -193,7 +200,7 @@ import { formasDeDar, giving } from '../data/content';
         margin-top 450ms ease;
     }
 
-    .forma-cuerpo > * {
+    .forma-cuerpo > .forma-cuerpo-interior {
       overflow: hidden;
     }
 

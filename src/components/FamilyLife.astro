@@ -21,20 +21,22 @@ import { familyLife } from '../data/content';
       en titular: los titulares grandes son los de las actividades, y con dos
       tamaños grandes seguidos no se distinguía cuál era cuál.
     */}
-    <div class="lg:grid lg:grid-cols-[1fr_minmax(0,26rem)] lg:gap-24">
-      {/*
-        Bloque fijo: rótulo, bajada y lista de actividades. El rótulo va aquí
-        dentro y no cruzando la página, porque su línea cortaba las fotos de
-        la columna de al lado.
-      */}
+    {/*
+      Encabezado y bajada van arriba, a todo el ancho: así la lista de
+      actividades y las fotos arrancan a la misma altura. Dentro de la
+      columna, las fotos empezaban una pantalla más arriba que la primera
+      actividad.
+    */}
+    <SectionHeading eyebrow={familyLife.title} id="familia-titulo" />
+
+    <p class="subtitle-lg mt-8 max-w-md">
+      {familyLife.description}
+    </p>
+
+    <div class="mt-12 lg:mt-16 lg:grid lg:grid-cols-[1fr_minmax(0,26rem)] lg:gap-24">
+      {/* la lista se queda fija mientras pasan las fotos de al lado */}
       <div class="lg:sticky lg:top-14 lg:self-start">
-        <SectionHeading eyebrow={familyLife.title} id="familia-titulo" />
-
-        <p class="subtitle-lg mt-8 max-w-md">
-          {familyLife.description}
-        </p>
-
-        <ul class="mt-16 hidden lg:flex lg:flex-col lg:gap-3">
+        <ul class="hidden lg:flex lg:flex-col lg:gap-3">
         {
           familyLife.activities.map((activity) => (
             <li class="vida-tab">

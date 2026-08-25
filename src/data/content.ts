@@ -794,7 +794,7 @@ export const formasDeDar: FormaDeDar[] = [
     icon: 'lucide:hand-coins',
     summary: 'Entrégalo en persona, en cualquiera de nuestras reuniones',
     detalle:
-      'En el momento de dar encontrarás canastos repartidos por el salón, con el equipo de finanzas. Ahí mismo hay sobres, por si prefieres usarlos.',
+      'En el momento de dar de nuestras reuniones el equipo de finanzas estará con canastos en distintas zonas de nuestro salón, en los que podrás entregar tus diezmos y ofrendas.',
   },
 ];
 
