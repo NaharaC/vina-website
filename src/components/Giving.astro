@@ -40,9 +40,14 @@ import { formasDeDar, giving } from '../data/content';
                 aria-expanded="false"
                 aria-controls={`dar-${forma.id}`}
               >
-                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-white text-ink lg:size-11">
-                  <Icon name={forma.icon} width={19} height={19} aria-hidden="true" />
-                </span>
+                {/* suelto y en negro, sin pastilla detrás: como la referencia */}
+                <Icon
+                  name={forma.icon}
+                  width={30}
+                  height={30}
+                  class="shrink-0 text-ink"
+                  aria-hidden="true"
+                />
 
                 <span class="sr-only">{forma.title}</span>
 
@@ -51,7 +56,7 @@ import { formasDeDar, giving } from '../data/content';
                   name="lucide:plus"
                   width={20}
                   height={20}
-                  class="forma-mas mt-2 shrink-0 text-ink transition-opacity duration-300"
+                  class="forma-mas shrink-0 text-ink/40 transition-opacity duration-300"
                   aria-hidden="true"
                 />
               </button>
@@ -149,10 +154,10 @@ import { formasDeDar, giving } from '../data/content';
               </div>
 
               <div class="mt-6 lg:mt-7">
-                <h3 class="forma-nombre text-[0.9375rem] font-semibold tracking-[-0.02em] text-ink lg:text-[1.0625rem]">
+                <h3 class="forma-nombre text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">
                   {forma.title}
                 </h3>
-                <p class="forma-resumen mt-1.5 text-sm leading-relaxed text-muted">
+                <p class="forma-resumen mt-3 text-[0.9375rem] leading-relaxed text-muted lg:text-base">
                   {forma.summary}
                 </p>
               </div>
