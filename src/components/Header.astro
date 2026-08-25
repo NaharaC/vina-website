@@ -145,6 +145,16 @@ const contactIsExternal = contactHref.startsWith('http');
   }
 
   /*
+    Sin píldora detrás, el aire interior de la barra sobra: quitándolo el logo
+    arranca justo en el margen de la página, en la misma vertical que el
+    titular de la portada y que el texto de todas las secciones. Con el menú
+    abierto el fondo vuelve, y el aire con él.
+  */
+  #site-header[data-at-top='true'][data-open='false'] #nav-row {
+    padding-inline: 0;
+  }
+
+  /*
     Sin la píldora detrás, el contenido necesita el color del fondo de la
     página: blanco sobre la foto del hero, tinta sobre fondo claro. Al bajar,
     cuando vuelve la píldora oscura, todo regresa a blanco solo.
