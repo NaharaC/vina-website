@@ -13,9 +13,15 @@ import { contact } from '../data/content';
   Reparto como la referencia: el título ocupa arriba y la bajada con su botón
   se van al pie, con la foto respirando en medio.
 */}
+{/*
+  El margen negativo mete el arranque de la sección bajo el bloque gris de
+  Testimonios y Dar: así sus esquinas redondeadas se recortan contra la foto
+  y no contra el blanco de la página. El aire de arriba compensa lo que queda
+  tapado, para que el título caiga donde caía.
+*/}
 <section
   id="contacto"
-  class="relative isolate flex min-h-svh flex-col justify-between overflow-clip"
+  class="relative isolate -mt-10 flex min-h-svh flex-col justify-between overflow-clip"
   aria-labelledby="contacto-titulo"
 >
   {/*
@@ -35,12 +41,12 @@ import { contact } from '../data/content';
   <div class="absolute inset-0 -z-10 bg-black/45" aria-hidden="true"></div>
 
   {/* cada bloque entra deslizándose desde su propia máscara, escalonado */}
-  <div class="container-page pt-10 lg:pt-12">
+  <div class="container-page pt-20 lg:pt-22">
     <div class="overflow-hidden">
       {/* una palabra por línea y renglones casi tocándose, como la referencia */}
       <h2
         id="contacto-titulo"
-        class="reveal-item text-center leading-[0.76] font-semibold tracking-[-0.05em] text-white"
+        class="portada reveal-item text-center leading-[0.76] text-white"
         style="--reveal-delay: 0ms; font-size: clamp(2.75rem, 1rem + 6.2vw, 6.25rem)"
       >
         {contact.title.split(' ').map((palabra) => <span class="block">{palabra}</span>)}
@@ -70,7 +76,7 @@ import { contact } from '../data/content';
                 href={contact.action.href}
                 target={contact.action.external ? '_blank' : undefined}
                 rel={contact.action.external ? 'noopener noreferrer' : undefined}
-                class="group inline-flex items-center gap-3 rounded-full bg-white/10 px-7 py-3.5 text-[0.9375rem] font-semibold text-white backdrop-blur-lg backdrop-saturate-150 transition-colors hover:bg-white/20"
+                class="group inline-flex items-center gap-3 rounded-full bg-white/10 px-7 py-3.5 text-[1rem] font-semibold text-white backdrop-blur-lg backdrop-saturate-150 transition-colors hover:bg-white/20"
               >
                 {contact.action.label}
                 {contact.action.external && (

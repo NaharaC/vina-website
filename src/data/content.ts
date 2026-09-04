@@ -53,8 +53,24 @@ import equipoCarlosThiare2 from '../assets/img/equipo-carlos-thiare-2.jpg';
 import equipoRobertoAraceli from '../assets/img/equipo-roberto-araceli.jpg';
 import equipoRobertoAraceli2 from '../assets/img/equipo-roberto-araceli-2.jpg';
 import equipoDanielNahara2 from '../assets/img/equipo-daniel-nahara-2.jpg';
+import equipoDaniloLena from '../assets/img/equipo-danilo-lena.jpg';
+import equipoDaniloLena2 from '../assets/img/equipo-danilo-lena-2.jpg';
+import equipoRodolfoNatalie from '../assets/img/equipo-rodolfo-natalie.jpg';
+import equipoRodolfoNatalie2 from '../assets/img/equipo-rodolfo-natalie-2.jpg';
+import equipoNicole from '../assets/img/equipo-nicole.jpg';
+import equipoJonathanCarmen from '../assets/img/equipo-jonathan-carmen.jpg';
+import equipoDavidCamila from '../assets/img/equipo-david-camila.jpg';
+import equipoDavidCamila2 from '../assets/img/equipo-david-camila-2.jpg';
+import equipoHardyRuth from '../assets/img/equipo-hardy-ruth.jpg';
+import equipoHardyRuth2 from '../assets/img/equipo-hardy-ruth-2.jpg';
+import equipoEugenia from '../assets/img/equipo-eugenia.jpg';
+import equipoEugenia2 from '../assets/img/equipo-eugenia-2.jpg';
+import equipoGerardoMariaEliana from '../assets/img/equipo-gerardo-maria-eliana.jpg';
+import equipoCecilia from '../assets/img/equipo-cecilia.jpg';
 import predicacion from '../assets/img/predicacion.jpg';
-import radioEstudio from '../assets/img/radio-estudio.jpg';
+import radioProgramacion from '../assets/img/radio-programacion.png';
+import radioProgramacionVertical from '../assets/img/radio-programacion-vertical.jpg';
+import reflexionesCamino from '../assets/img/reflexiones-camino.jpg';
 import reunionDomingosGloria from '../assets/img/reunion-domingos-gloria.jpg';
 import reunionMiercolesPalabra from '../assets/img/reunion-miercoles-palabra.jpg';
 import reunionViernesAvivamiento from '../assets/img/reunion-viernes-avivamiento.jpg';
@@ -334,7 +350,7 @@ export const stats: Stat[] = [
   },
   {
     caption: 'Familias alcanzadas',
-    value: '1.000+',
+    value: '20.000+',
     description: 'A través de nuestros proyectos sociales',
   },
 ];
@@ -424,17 +440,21 @@ export type Aviso = {
   title: string;
   description: string;
   image: ImageMetadata;
+  /**
+   * Versión vertical de la imagen, para el móvil. La tarjeta ahí es más alta
+   * que ancha y una imagen apaisada se recorta por los lados: de un afiche se
+   * perdería justo lo que hay que leer. Sin esto se usa `image` en las dos.
+   */
+  imageMovil?: ImageMetadata;
   alt: string;
   action: NavLink;
+  /** Segundo botón, cuando el aviso lleva a dos sitios (oír la radio o verla). */
+  accionSecundaria?: NavLink;
   /**
-   * Recuadro flotante con el detalle concreto del aviso —los horarios de la
-   * radio—, al modo de la referencia. Opcional: sin él la tarjeta es foto y
-   * texto, y la imagen se ve entera.
+   * La imagen no es una foto de fondo sino un afiche con cosas que leer. El
+   * velo se retira antes para no apagarlo: solo oscurece el lado del texto.
    */
-  panel?: {
-    title: string;
-    rows: { name: string; when: string }[];
-  };
+  afiche?: boolean;
 };
 
 export const avisosIntro = {
@@ -464,8 +484,8 @@ export const avisos: Aviso[] = [
     title: 'Una palabra para cada mañana',
     description:
       'Cada día compartimos una reflexión breve en los grupos de WhatsApp. Escríbenos y te sumamos.',
-    image: familiaCasaOracion2,
-    alt: 'Manos sosteniendo una Biblia abierta y subrayada',
+    image: reflexionesCamino,
+    alt: 'Mujer caminando por un camino de tierra al amanecer',
     /*
       No hay enlace de invitación al grupo: cambia cada tanto y caduca. Se
       pide por el WhatsApp de la iglesia, igual que el enlace del miércoles.
@@ -478,10 +498,12 @@ export const avisos: Aviso[] = [
   },
   {
     eyebrow: 'Radio Pura Vida FM',
-    title: 'Nuestros programas, toda la semana',
-    description: 'Acompáñanos en vivo por la radio de la familia',
-    image: radioEstudio,
-    alt: 'Dos locutores conversando frente a los micrófonos del estudio',
+    title: 'Escúchanos en la 102.5 FM',
+    description: 'Conéctate durante la semana a nuestros programas radiales.',
+    image: radioProgramacion,
+    imageMovil: radioProgramacionVertical,
+    alt: 'Afiche con la programación semanal de Radio Pura Vida FM',
+    afiche: true,
     /**
      * Señal en vivo (Icecast, AAC 128 kbps). El servidor también responde por
      * HTTPS, que es lo que hay que usar: enlazar a http:// desde un sitio en
@@ -492,27 +514,66 @@ export const avisos: Aviso[] = [
       href: 'https://audio2.tustreaming.cl:7200/stream',
       external: true,
     },
-    panel: {
-      title: 'Programación',
-      rows: [
-        { name: 'Caminando Seguras', when: 'Lun a jue · 12:00' },
-        { name: 'Pastores con Pura Vida', when: 'Miércoles · 13:00' },
-        { name: 'Tiempo y Hora', when: 'Miércoles · 14:00' },
-        { name: 'Permaneciendo Dependientes', when: 'Jueves · 14:00' },
-        { name: 'Terminando la Semana', when: 'Viernes · 12:00' },
-        { name: 'Pulso de Vida', when: 'Viernes · 16:00' },
-      ],
+    accionSecundaria: {
+      label: 'Ver el canal',
+      href: 'https://www.youtube.com/@RadiopuravidaFM',
+      external: true,
     },
   },
 ];
 
 /* --- Nosotros -------------------------------------------------------------- */
 
+/**
+ * Cómo se planta una foto dentro de su tarjeta. Las fotos entran enteras, tal
+ * como salieron de la cámara, y el encuadre se hace aquí: así se puede afinar
+ * mirando la página, sin volver a recortar archivos.
+ *
+ * - `zoom` — cuánto se acerca. 1 es la foto entera de alto (`object-fit:
+ *   cover`), que es lo más abierto que se puede sin dejar hueco. Nunca menos.
+ * - `x`, `y` — qué parte de la foto queda a la vista, y también el punto sobre
+ *   el que se acerca (`object-position` y `transform-origin` van juntos, así
+ *   que subir el zoom no descoloca lo que ya cuadraba).
+ *
+ * Solo lo llevan los retratos que mandan en la tarjeta: las segundas fotos
+ * —las del hover— ya vienen cuadradas y no hace falta encuadrarlas.
+ *
+ * Los valores están puestos a ojo, tarjeta por tarjeta, tomando a Daniel y
+ * Nahara de referencia: cabezas del mismo tamaño, ojos a la misma altura y el
+ * mismo aire por encima. No salen de ninguna cuenta —cada pareja posa a su
+ * manera y eso no lo arregla una fórmula—, así que si se retoca uno, se retoca
+ * mirando la grilla entera.
+ */
+export type Encuadre = { zoom?: number; x?: string; y?: string };
+
 export type MiembroEquipo = {
   name: string;
-  role: string;
-  /** `null` mientras no llegue el retrato. Cuadrado, 1:1. */
+  /** Opcional: sin cargo la tarjeta se queda solo con el nombre. */
+  role?: string;
+  /** La foto entera, sin recortar: el encuadre lo pone `encuadre`. */
   photo: ImageMetadata | null;
+  encuadre?: Encuadre;
+  /**
+   * Cuánto se sube o se baja el brillo de esta foto, para que el gris del
+   * fondo salga igual en toda la cuadrícula.
+   *
+   * Las fotos de la sesión de estudio están expuestas para que el fondo salga
+   * blanco del todo: medido en el trozo que se ve de cada tarjeta, iba de 201
+   * a 247 sobre 255, o sea altas luces quemadas y un fondo que se confunde con
+   * el blanco de la página. La de Nicole es la excepción —fondo en gris medio
+   * (166), sin nada reventado— y es la que se ve limpia y de estudio.
+   *
+   * El objetivo común es 182, no el 166 de Nicole: bajando hasta su valor
+   * exacto las caras del resto quedaban apagadas, porque esas fotos se
+   * expusieron para el fondo y no para la piel. En 182 el fondo deja de estar
+   * quemado, las caras aguantan, y a Nicole apenas se la toca.
+   *
+   * El número es el `brightness()` de CSS que lleva el fondo de esa foto al
+   * gris común. El contraste, en cambio, es el mismo para todas y vive en el
+   * CSS: aquí solo cambia el brillo. Como es CSS, no toca el archivo y se
+   * puede quitar o cambiar en cualquier momento.
+   */
+  luz?: number;
   /**
    * Segunda foto, más personal: aparece al pasar el ratón por la tarjeta.
    * Opcional; sin ella la tarjeta simplemente no cambia.
@@ -532,11 +593,14 @@ export const about = {
   title: 'Somos una familia compasiva imitando a Jesús',
 
   historia: {
-    title: 'Cómo empezó',
+    title: 'Nuestra historia',
     /** Un párrafo por entrada. */
     body: [
-      'Un grupo pequeño reuniéndose a orar fue el principio de lo que hoy es una familia de cientos de personas en Puerto Montt.',
-      'Con los años, esa casa se hizo chica y la iglesia se fue extendiendo a la ciudad: primero en reuniones y redes, después en salud, educación y proyectos sociales.',
+      'Nuestra historia comenzó en el living de la casa de nuestros pastores, donde durante tres meses se reunieron siete familias con el anhelo de buscar a Dios y crecer en Su presencia.',
+      'A medida que la iglesia creció, las reuniones pasaron al Jardín Infantil Lunita y luego a una casona en Egaña 2070, que fue remodelada para recibir a la congregación. Más tarde, fue necesario trasladarse al galpón de la misma propiedad, llegando a reunir cerca de 130 personas.',
+      'Después de una temporada difícil, la iglesia quedó conformada por 28 personas y comenzó una nueva etapa en un quincho de la población Kennedy. En 2005, Dios llamó a nuestro pastor Jairo a dedicar tres meses a sumergirse profundamente en Su presencia, con la promesa de llevarlo más alto y más profundo que nunca antes.',
+      'Al finalizar ese tiempo, Dios abrió la puerta para adquirir la propiedad donde hoy se encuentra nuestra iglesia, la cual ha sido ampliada y transformada a lo largo de los años.',
+      'Miramos hacia atrás reconociendo la fidelidad de Dios en cada etapa, y creemos que nuestra historia aún se está escribiendo.',
     ],
     /*
       Van una debajo de otra, cada una con su pie, mientras el texto de al
@@ -616,29 +680,127 @@ export const about = {
   equipo: {
     title: 'Equipo pastoral',
     description: 'Conoce a nuestros pastores asociados',
-    /** TODO: pendientes los nombres, los cargos y los retratos. */
+    /**
+     * En pantalla salen los primeros `visibles` y el resto espera detrás del
+     * botón «Ver todo el equipo pastoral». El orden de la lista es el orden
+     * en que aparecen: para adelantar a alguien, se sube aquí.
+     *
+     * TODO: pendientes los cargos de casi todos, y los retratos de Eduardo y
+     * Priscila y de Juan y Lina.
+     */
+    visibles: 6,
     miembros: [
       {
         name: 'Roberto Quinteros y Araceli Chaparro',
         role: 'Pastores de Jóvenes',
         photo: equipoRobertoAraceli,
+        /*
+          La suya no es de estudio sino una foto de interior, mucho más
+          oscura: para igualar el fondo haría falta un 2.3, y pasado 1.3 se le
+          queman las caras. Se queda en el tope y su tarjeta sigue siendo la
+          más oscura de la cuadrícula; eso lo arregla una foto de estudio, no
+          el brillo.
+        */
+        luz: 1.3,
         photoHover: equipoRobertoAraceli2,
       },
       {
         name: 'Daniel Quinteros y Nahara Gutiérrez',
         role: 'Pastores de Matrimonios Jóvenes',
         photo: equipoDanielNahara,
+        luz: 0.825,
         photoHover: equipoDanielNahara2,
       },
       {
         name: 'Carlos Moya y Thiare Pivet',
         role: 'Pastores de Matrimonios',
         photo: equipoCarlosThiare,
+        luz: 0.725,
+        encuadre: { zoom: 1.56, x: '50%', y: '32%' },
         photoHover: equipoCarlosThiare2,
       },
-      { name: 'Nombre pendiente', role: 'Pastor de jóvenes', photo: null },
-      { name: 'Nombre pendiente', role: 'Pastora de mujeres', photo: null },
-      { name: 'Nombre pendiente', role: 'Pastor de compasión social', photo: null },
+      {
+        name: 'Danilo Vargas y Lena Miller',
+        photo: equipoDaniloLena,
+        luz: 0.888,
+        photoHover: equipoDaniloLena2,
+      },
+      {
+        name: 'Rodolfo Cabezas y Natalie Alfaro',
+        photo: equipoRodolfoNatalie,
+        luz: 0.804,
+        encuadre: { zoom: 1.36, x: '50%', y: '27%' },
+        photoHover: equipoRodolfoNatalie2,
+      },
+      {
+        name: 'Nicole Bruyere',
+        photo: equipoNicole,
+        luz: 1.081,
+        /*
+          La única foto vertical del grupo, y por eso la más apretada: al
+          cubrir el cuadrado se escala por el ancho, así que sobra alto y hay
+          que elegir qué franja se ve. `y: '0%'` enseña el filo de arriba de la
+          foto, que es donde está el aire sobre el pelo; con más, la coronilla
+          se iba fuera. `zoom: 1` es lo más abierto posible —por debajo
+          quedarían franjas a los lados—, así que aquí no hay margen para
+          alejarse más: se ve algo más grande que el resto y es lo que da la
+          foto.
+        */
+        encuadre: { zoom: 1, x: '50%', y: '0%' },
+      },
+      {
+        name: 'Jonathan Rogel y Carmen Mansilla',
+        photo: equipoJonathanCarmen,
+        luz: 0.784,
+        encuadre: { zoom: 1.28, x: '49%', y: '32%' },
+      },
+      {
+        name: 'David Balbontín y Camila Gallardo',
+        photo: equipoDavidCamila,
+        luz: 0.735,
+        encuadre: { zoom: 1.18, x: '50%', y: '34%' },
+        photoHover: equipoDavidCamila2,
+      },
+      {
+        name: 'Hardy Aqueveque y Ruth Venegas',
+        photo: equipoHardyRuth,
+        luz: 0.811,
+        /*
+          Hardy llega muy arriba en su foto, así que el zoom se toma desde el
+          filo de arriba (`y: '0%'`): el aire sobre su cabeza crece con la
+          escala en vez de comérsela. Con el origen a media altura, ampliar le
+          cortaba la coronilla.
+        */
+        encuadre: { zoom: 1.2, x: '48%', y: '0%' },
+        photoHover: equipoHardyRuth2,
+      },
+      {
+        name: 'Eduardo Alister y Priscila Almonacid',
+        photo: null,
+      },
+      {
+        name: 'Eugenia Soto',
+        photo: equipoEugenia,
+        luz: 0.791,
+        encuadre: { zoom: 1.44, x: '48%', y: '24%' },
+        photoHover: equipoEugenia2,
+      },
+      {
+        name: 'Gerardo Andrade y Maria Eliana Zornow',
+        photo: equipoGerardoMariaEliana,
+        luz: 0.762,
+        encuadre: { zoom: 1.48, x: '49%', y: '30%' },
+      },
+      {
+        name: 'Cecilia Alvarado',
+        photo: equipoCecilia,
+        luz: 0.774,
+        encuadre: { zoom: 1.6, x: '52%', y: '22%' },
+      },
+      {
+        name: 'Juan y Lina',
+        photo: null,
+      },
     ] satisfies MiembroEquipo[],
   },
 };
@@ -657,7 +819,7 @@ export type FamilyActivity = {
 export const familyLife = {
   title: 'Vida en Familia',
   description: 'Instancias en el mes para crecer, servir y caminar juntos.',
-  cta: { label: 'Ver todas las actividades', href: '/actividades' },
+  cta: { label: 'Ver calendario de actividades', href: '/actividades' },
   activities: [
     {
       title: 'Sentados a la mesa',
@@ -853,33 +1015,41 @@ export const contact = {
 export type FooterColumn = { title: string; links: NavLink[] };
 
 /**
- * TODO: estos enlaces apuntan a páginas que todavía no existen. Mientras el
- * `href` esté vacío el footer los muestra como texto plano, no como enlaces.
+ * Cada enlace lleva a la sección que le corresponde. Van con la barra
+ * delante —`/#dar` y no `#dar`— porque el footer sale en todas las páginas y
+ * un ancla suelta desde `nosotros` buscaría la sección en esa misma página.
+ * Los que siguen con el `href` vacío no tienen destino todavía: el footer los
+ * muestra como texto plano, no como enlaces muertos.
  */
 export const footerColumns: FooterColumn[] = [
   {
     title: 'Nosotros',
     links: [
-      { label: 'Donde comenzó todo', href: '' },
-      { label: 'Misión, Visión y Valores', href: '' },
-      { label: 'Equipo Pastoral', href: '' },
+      { label: 'Donde comenzó todo', href: '/nosotros#historia' },
+      { label: 'Misión, Visión y Valores', href: '/nosotros#creemos' },
+      { label: 'Equipo Pastoral', href: '/nosotros#equipo' },
     ],
   },
   {
+    /* Los dos primeros tienen sitio propio; el resto, la sección que los presenta. */
     title: 'Compasión',
     links: [
-      { label: 'Centro Médico Viña Puerto Montt', href: '' },
-      { label: 'Educa Montealto', href: '' },
-      { label: 'Dadores de Amor', href: '' },
-      { label: 'Acoge Day', href: '' },
+      { label: 'Centro Médico Viña Puerto Montt', href: 'https://cm.vinapm.cl/', external: true },
+      {
+        label: 'Educa Montealto',
+        href: 'https://www.instagram.com/educamontealto/',
+        external: true,
+      },
+      { label: 'Dadores de Amor', href: '/#compasion' },
+      { label: 'Acoge Day', href: '/#compasion' },
     ],
   },
   {
     title: 'Participar',
     links: [
-      { label: 'Horarios y Ubicación', href: '#reuniones' },
-      { label: 'Calendario de Actividades', href: '#vida-en-familia' },
-      { label: 'Predicaciones Recientes', href: '#avisos' },
+      { label: 'Horarios y Ubicación', href: '/#reuniones' },
+      { label: 'Calendario de Actividades', href: '/actividades' },
+      { label: 'Predicaciones Recientes', href: '/#avisos' },
       { label: 'Áreas de Servicio', href: '' },
     ],
   },
@@ -895,3 +1065,49 @@ export const socials: SocialLink[] = [
 ];
 
 export const credit = { label: 'TypeBold', href: 'https://typebold.com' };
+
+/* ---------------------------------------------------------------------------
+   Portada de la página de actividades
+   --------------------------------------------------------------------------- */
+
+/**
+ * El titular se arma por piezas porque no es solo texto: entre las palabras
+ * se abren huecos donde van cambiando fotos, y una flecha dibujada enlaza dos
+ * de ellas. Cada `linea` es un renglón del titular, y el orden de las piezas
+ * es el orden en que se leen.
+ *
+ * - `texto`   — una o varias palabras.
+ * - `fotos`   — un hueco con `cuantas` casillas seguidas, en retrato (3:4) o
+ *               apaisadas (16:9). Las fotos las pone el componente.
+ * - `flecha`  — el trazo naranja.
+ *
+ * Cambiar el titular es reescribir estas líneas: para mover un hueco basta
+ * con cambiarlo de sitio en el array.
+ */
+export type PiezaPortada =
+  | { texto: string }
+  | { fotos: 'retrato' | 'apaisada'; cuantas: number }
+  | { flecha: true };
+
+/**
+ * Los nombres que desfilan en la tarjeta de texto del montaje, entre una foto
+ * y la siguiente. No es el calendario —eso viene de Notion— sino lo que se
+ * hace de forma habitual: lo que alguien esperaría encontrar al asomarse.
+ */
+export const loQueViene = [
+  'Viernes de Avivamiento',
+  'Casa de Oración',
+  'Domingos de Gloria',
+  'Salas de sanidad',
+  'Sentados a la mesa',
+  'Campamentos',
+  'Presentación de niños',
+];
+
+export const portadaActividades: { lineas: PiezaPortada[][] } = {
+  lineas: [
+    [{ texto: 'Súmate' }, { fotos: 'retrato', cuantas: 3 }],
+    [{ texto: 'a' }, { flecha: true }, { texto: 'nuestras' }],
+    [{ texto: 'actividades' }, { fotos: 'apaisada', cuantas: 1 }],
+  ],
+};

@@ -20,65 +20,78 @@ import { familyLife } from '../data/content';
       El nombre de la sección va en rótulo pequeño y con una línea debajo, no
       en titular: los titulares grandes son los de las actividades, y con dos
       tamaños grandes seguidos no se distinguía cuál era cuál.
-    */}
-    {/*
-      Encabezado y bajada van arriba, a todo el ancho: así la lista de
-      actividades y las fotos arrancan a la misma altura. Dentro de la
-      columna, las fotos empezaban una pantalla más arriba que la primera
-      actividad.
-    */}
-    <SectionHeading eyebrow={familyLife.title} id="familia-titulo" />
 
-    <p class="subtitle-lg mt-8 max-w-md">
-      {familyLife.description}
-    </p>
+      En escritorio se fija la columna de la izquierda entera —rótulo, bajada
+      y lista de actividades, como un solo bloque— mientras las fotos suben
+      por su lado, igual que en Compasión social. Al ir todo junto, ni la
+      línea ni ninguna franja cruzan por delante de las fotos, y nada se
+      encima con nada al soltarse el tramo.
+    */}
+    <div class="lg:grid lg:grid-cols-[1fr_minmax(0,26rem)] lg:gap-24">
+      <div class="lg:sticky lg:top-20 lg:self-start">
+        <SectionHeading eyebrow={familyLife.title} id="familia-titulo" />
 
-    <div class="mt-12 lg:mt-16 lg:grid lg:grid-cols-[1fr_minmax(0,26rem)] lg:gap-24">
-      {/* la lista se queda fija mientras pasan las fotos de al lado */}
-      <div class="lg:sticky lg:top-14 lg:self-start">
-        <ul class="hidden lg:flex lg:flex-col lg:gap-3">
+        <p class="subtitle-lg mt-8 max-w-md">
+          {familyLife.description}
+        </p>
+
+        <ul class="mt-12 hidden lg:mt-14 lg:flex lg:flex-col lg:gap-4">
         {
           familyLife.activities.map((activity) => (
             <li class="vida-tab">
-              <p class="vida-tab-title text-4xl font-semibold tracking-[-0.04em] text-ink transition-colors duration-300 xl:text-5xl">
+              <p class="vida-tab-title heading-lg text-ink transition-colors duration-300">
                 {activity.title}
               </p>
-              <p class="vida-tab-pill mt-2 flex min-h-8 flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-ink transition-opacity duration-300">
-                <span class="inline-flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-full bg-mist px-3.5 py-1.5">
-                  <span>{activity.when}</span>
-                  <Icon
-                    name="lucide:clock"
-                    width={15}
-                    height={15}
-                    class="shrink-0 text-ink"
-                    aria-hidden="true"
-                  />
-                  {activity.times.map((time, index) => (
-                    <>
-                      {index > 0 && <span class="text-ink/50">·</span>}
-                      <span>{time}</span>
-                    </>
-                  ))}
-                </span>
-              </p>
+              {/*
+                La pastilla de horarios se abre y se cierra: la rejilla de una
+                sola fila pasa de `0fr` a `1fr` y el hueco de dentro se corta.
+                Es la única forma de animar el alto sin saber cuánto mide.
+              */}
+              <div class="vida-tab-pill grid">
+                <p class="min-h-0 overflow-hidden">
+                  <span class="mt-3 inline-flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-full bg-mist px-3.5 py-1.5 text-[0.9375rem] text-ink">
+                    <span>{activity.when}</span>
+                    <Icon
+                      name="lucide:clock"
+                      width={15}
+                      height={15}
+                      class="shrink-0 text-ink"
+                      aria-hidden="true"
+                    />
+                    {activity.times.map((time, index) => (
+                      <>
+                        {index > 0 && <span class="text-ink/50">·</span>}
+                        <span>{time}</span>
+                      </>
+                    ))}
+                  </span>
+                </p>
+              </div>
             </li>
           ))
         }
         </ul>
 
-        <div class="mt-12 hidden lg:block">
+        {/*
+          Pegado a la lista: bajo la última actividad ya cuelgan los 48px que
+          cada fila reserva para su pastilla de horarios —invisible salvo en
+          la activa, para que la lista no dé saltos al pasar—, así que el
+          margen del botón se suma a ese hueco. Con `mt-12` el botón se iba
+          casi cien píxeles más abajo del último título.
+        */}
+        <div class="mt-4 hidden lg:block">
           <ArrowButton label={familyLife.cta.label} href={familyLife.cta.href} variant="accent" size="md" />
         </div>
       </div>
 
-      <div class="mt-10 flex flex-col gap-14 lg:mt-0 lg:gap-6">
+      <div class="mt-20 flex flex-col gap-14 lg:mt-0 lg:gap-6">
         {
           familyLife.activities.map((activity) => (
             <div class="vida-group flex flex-col gap-5 lg:gap-6">
               <div class="lg:hidden">
                 <h3 class="heading-md text-ink">{activity.title}</h3>
-                <p class="mt-1 text-sm text-muted">{activity.when}</p>
-                <p class="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-ink">
+                <p class="nota mt-2">{activity.when}</p>
+                <p class="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.9375rem] text-ink">
                   <Icon
                     name="lucide:clock"
                     width={16}
@@ -130,11 +143,22 @@ import { familyLife } from '../data/content';
       color: var(--color-ink);
     }
 
+    /*
+      Cerrada, la pastilla no ocupa alto: los títulos quedan uno junto a otro
+      y solo la actividad activa se abre para enseñar sus horarios. Antes el
+      hueco estaba siempre reservado —invisible, pero ahí— y separaba la lista
+      casi el doble.
+    */
     .vida-tab-pill {
+      grid-template-rows: 0fr;
       opacity: 0;
+      transition:
+        grid-template-rows 400ms ease,
+        opacity 250ms ease;
     }
 
     .vida-tab.is-active .vida-tab-pill {
+      grid-template-rows: 1fr;
       opacity: 1;
     }
 

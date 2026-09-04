@@ -11,6 +11,8 @@
  */
 
 export type Actividad = {
+  /** id de la página en Notion; solo se usa para ir a buscar su descripción */
+  id?: string;
   nombre: string;
   /** ISO con fecha y, si la actividad la tiene, hora de inicio */
   inicio: string;
@@ -20,8 +22,12 @@ export type Actividad = {
   todoElDia: boolean;
   ubicacion?: string;
   red?: string;
-  /** ficha en Notion, para el enlace de "ver detalle" */
-  url?: string;
+  /**
+   * Lo escrito en el cuerpo de la página de Notion, en texto plano. No es una
+   * propiedad de la base: es lo que se teclea debajo de la ficha, que es donde
+   * apetece escribir un par de líneas sobre la reunión.
+   */
+  descripcion?: string;
   /**
    * Foto de la actividad. Ojo: si viene subida a Notion, esta URL es de S3 y
    * caduca en ~1 hora, así que hay que procesarla al construir el sitio (lo
@@ -180,13 +186,19 @@ async function desdeNotion(): Promise<Actividad[]> {
       const foto = archivos[0]?.file?.url ?? archivos[0]?.external?.url;
 
       actividades.push({
-        nombre: textoDe(propiedad(props, 'Name', 'Nombre')) ?? 'Actividad',
+        id: fila.id,
+        /*
+          Con recorte. En la base hay títulos tecleados con un espacio al
+          final —«Desde casa y sin excusa »— y ese espacio hace de la misma
+          actividad dos: el buscador la ofrece dos veces y el calendario de
+          una sola actividad se parte en dos archivos.
+        */
+        nombre: (textoDe(propiedad(props, 'Name', 'Nombre')) ?? 'Actividad').trim(),
         inicio: fecha.start,
         fin: fecha.end ?? undefined,
         todoElDia: !fecha.start.includes('T'),
         ubicacion: textoDe(propiedad(props, 'Ubicación', 'Ubicacion', 'Lugar')),
         red: textoDe(propiedad(props, 'Red a cargo', 'Red')),
-        url: fila.url,
         foto,
       });
     }
@@ -195,6 +207,82 @@ async function desdeNotion(): Promise<Actividad[]> {
   } while (cursor);
 
   return actividades;
+}
+
+/** Hasta dónde se lee la descripción: es una entradilla, no un artículo. */
+const LARGO_DESCRIPCION = 600;
+
+/**
+ * El texto escrito en el cuerpo de una página de Notion.
+ *
+ * La descripción no vive en una propiedad de la base sino en la página, así
+ * que hay que pedirla aparte: una petición por actividad. Se lee el
+ * `rich_text` de cada bloque sin mirar de qué tipo es —párrafo, cita, viñeta
+ * o titular lo tienen igual—, de forma que valga lo que valga que escriban
+ * ahí, salga. Lo que no lleva texto (una imagen, una línea) se cae solo.
+ */
+async function descripcionDe(id: string, reintenta = true): Promise<string | undefined> {
+  try {
+    const respuesta = await fetch(`https://api.notion.com/v1/blocks/${id}/children?page_size=50`, {
+      headers: {
+        Authorization: `Bearer ${NOTION_TOKEN}`,
+        'Notion-Version': NOTION_VERSION,
+      },
+    });
+
+    /*
+      429 es «vas muy rápido», no «no existe». Sin este reintento la actividad
+      se quedaría sin descripción y en la web parecería que en Notion no habían
+      escrito nada, que es el peor de los fallos posibles: silencioso.
+    */
+    if (respuesta.status === 429 && reintenta) {
+      const espera = Number(respuesta.headers.get('retry-after') ?? 1);
+      await new Promise((sigue) => setTimeout(sigue, Math.min(espera, 10) * 1000));
+      return descripcionDe(id, false);
+    }
+
+    if (!respuesta.ok) return undefined;
+
+    const datos = await respuesta.json();
+    const lineas: string[] = [];
+
+    for (const bloque of datos.results ?? []) {
+      const texto = bloque[bloque.type]?.rich_text
+        ?.map((t: any) => t.plain_text)
+        .join('')
+        .trim();
+      if (texto) lineas.push(texto);
+    }
+
+    const texto = lineas.join('\n').trim();
+    if (!texto) return undefined;
+
+    return texto.length > LARGO_DESCRIPCION
+      ? `${texto.slice(0, LARGO_DESCRIPCION).trimEnd()}…`
+      : texto;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Les pone la descripción a todas, de tres en tres.
+ *
+ * Notion aguanta unas tres peticiones por segundo, así que ni una detrás de
+ * otra —con sesenta actividades sería medio minuto de construcción— ni todas
+ * a la vez, que devolvería 429. Una que falle se queda sin descripción y ya:
+ * el calendario no depende de ella.
+ */
+async function ponerDescripciones(actividades: Actividad[]) {
+  const cola = [...actividades];
+
+  await Promise.all(
+    Array.from({ length: 3 }, async () => {
+      for (let actividad = cola.shift(); actividad; actividad = cola.shift()) {
+        if (actividad.id) actividad.descripcion = await descripcionDe(actividad.id);
+      }
+    })
+  );
 }
 
 /**
@@ -211,11 +299,35 @@ export function fechaDe(iso: string) {
   return new Date(anio, mes - 1, dia);
 }
 
+type Lectura = { actividades: Actividad[]; desdeRespaldo: boolean };
+
+/*
+  La lectura se hace una vez y se reparte. El calendario lo piden dos sitios
+  —la página y el `.ics`—, y cada lectura son sesenta y pico peticiones a
+  Notion por las descripciones: sin esto, el doble de espera en cada
+  construcción.
+
+  Al construir el sitio no caduca: el build dura lo que dura y los datos son
+  los mismos de principio a fin. En desarrollo sí, porque si no lo que se
+  escribe en Notion no aparece hasta reiniciar el servidor —y editar el
+  calendario y recargar para ver el cambio es justo lo que se hace mientras
+  se trabaja—.
+*/
+const VIGENCIA = import.meta.env.DEV ? 30_000 : Infinity;
+
+let lectura: Promise<Lectura> | undefined;
+let leidaEn = 0;
+
 /** Actividades futuras, de la más próxima a la más lejana. */
-export async function obtenerActividades(): Promise<{
-  actividades: Actividad[];
-  desdeRespaldo: boolean;
-}> {
+export function obtenerActividades(): Promise<Lectura> {
+  if (!lectura || Date.now() - leidaEn > VIGENCIA) {
+    leidaEn = Date.now();
+    lectura = leerActividades();
+  }
+  return lectura;
+}
+
+async function leerActividades(): Promise<Lectura> {
   let actividades = RESPALDO;
   let desdeRespaldo = true;
 
@@ -232,12 +344,30 @@ export async function obtenerActividades(): Promise<{
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
-  return {
-    actividades: actividades
-      .filter((a) => fechaDe(a.fin ?? a.inicio) >= hoy)
-      .sort((a, b) => a.inicio.localeCompare(b.inicio)),
-    desdeRespaldo,
-  };
+  const futuras = actividades
+    .filter((a) => fechaDe(a.fin ?? a.inicio) >= hoy)
+    .sort((a, b) => a.inicio.localeCompare(b.inicio));
+
+  // después de filtrar: no tiene sentido ir a buscar la descripción de algo
+  // que ya pasó y no se va a publicar
+  if (!desdeRespaldo) await ponerDescripciones(futuras);
+
+  return { actividades: futuras, desdeRespaldo };
+}
+
+/**
+ * El nombre de una actividad convertido en trozo de URL: sin tildes, en
+ * minúsculas y con guiones. Lo usan el calendario de una sola actividad
+ * (`/calendarios/<ranura>.ics`) y el guion de la página, y por eso vive
+ * aquí: los dos tienen que llegar a la misma ranura o el enlace no abre nada.
+ */
+export function ranura(nombre: string) {
+  return nombre
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 /** Agrupa por mes para poder titular cada bloque del calendario. */

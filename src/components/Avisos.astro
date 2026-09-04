@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import ArrowButton from './ArrowButton.astro';
+import SectionHeading from './SectionHeading.astro';
 import { avisos, avisosIntro } from '../data/content';
 ---
 
@@ -9,14 +10,11 @@ import { avisos, avisosIntro } from '../data/content';
   Los avisos van pasando de uno en uno: el del centro se ve a color y los de
   al lado asoman por los bordes, apagados, para que se note que hay más. Es
   el mismo carrusel de los testimonios; aquí en vez de video hay una foto con
-  el texto encima y, cuando el aviso lo pide, un recuadro con el detalle
-  —los horarios de la radio.
+  el texto encima.
 */}
 <section id="avisos" class="seccion" aria-labelledby="avisos-titulo">
   <div class="container-page">
-    <div class="border-b border-ink/15 pb-5">
-      <h2 id="avisos-titulo" class="eyebrow text-ink">{avisosIntro.title}</h2>
-    </div>
+    <SectionHeading eyebrow={avisosIntro.title} id="avisos-titulo" />
   </div>
 
   {/* a sangre: los avisos de al lado asoman por los bordes */}
@@ -31,39 +29,91 @@ import { avisos, avisosIntro } from '../data/content';
         avisos.map((aviso, indice) => (
           <article class="diapositiva w-[88vw] shrink-0 snap-center sm:w-[70vw] lg:w-[62vw]">
             {/*
-              La foto y el velo salen del flujo, así que el resto se reparte
-              solo: en el móvil una columna —el recuadro arriba y el texto
-              abajo, de ahí el `col-reverse`— y en pantalla ancha las dos
-              cosas una al lado de la otra.
+              La foto y el velo salen del flujo, así que el resto queda en
+              una columna: el texto abajo, y encima la imagen entera.
+
+              La proporción va como suelo (`min-h` en vw) y no como
+              `aspect-ratio`: con la proporción fija el alto sale de la cuenta
+              y el texto que no cabía lo recortaba el `overflow-hidden`, que
+              es lo que pasaba entre los 640 y los 1100px, donde la tarjeta es
+              ancha pero baja. Las medidas son las mismas de antes —70vw a
+              16/10, 62vw a 16/9—, solo que ahora la tarjeta puede crecer.
+
+              El `h-full` es lo que las iguala: el carrusel estira todas las
+              diapositivas a la más alta, y sin él cada tarjeta se quedaba en
+              su propio alto y el carrusel salía desparejo.
             */}
-            <div class="relative isolate flex min-h-[30rem] flex-col-reverse gap-6 overflow-hidden rounded-[1.5rem] bg-carbon p-6 sm:aspect-[16/10] sm:min-h-0 sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-8 sm:p-10 lg:aspect-[16/9] lg:gap-12 lg:rounded-[1.75rem] lg:p-14">
+            <div class="relative isolate flex h-full min-h-[41rem] flex-col justify-end overflow-hidden rounded-[1.5rem] bg-carbon p-6 sm:min-h-[43.75vw] sm:p-10 lg:min-h-[34.875vw] lg:rounded-[1.75rem] lg:p-14">
+              {/*
+                La tarjeta del móvil es más alta que ancha: una imagen
+                apaisada se recorta por los lados y de un afiche se pierde
+                justo lo que hay que leer. Por eso el aviso puede traer una
+                versión vertical, y cada una se esconde donde no le toca.
+
+                La vertical del afiche está compuesta a la medida de esta
+                tarjeta (88vw x 39rem): la tabla de horarios ocupa el tercio
+                de arriba y el resto es el mismo afiche desenfocado y apagado,
+                que es donde cae el texto. Por eso trae su propio velo y aquí
+                no se le pone ninguno encima.
+              */}
               <Image
                 src={aviso.image}
                 alt={aviso.alt}
                 widths={[640, 1024, 1600]}
                 sizes="(min-width: 64rem) 62vw, (min-width: 40rem) 70vw, 88vw"
-                class="absolute inset-0 -z-10 size-full object-cover"
+                class:list={[
+                  'absolute inset-0 -z-10 size-full object-cover',
+                  aviso.imageMovil && 'hidden sm:block',
+                ]}
                 loading={indice === 0 ? 'eager' : 'lazy'}
                 decoding="async"
               />
 
+              {aviso.imageMovil && (
+                <Image
+                  src={aviso.imageMovil}
+                  alt={aviso.alt}
+                  widths={[480, 720, 1080]}
+                  sizes="88vw"
+                  quality={68}
+                  class="absolute inset-0 -z-10 size-full object-cover object-top sm:hidden"
+                  loading={indice === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              )}
+
               {/*
                 El velo cae desde abajo mientras el aviso es una columna, y
-                desde la izquierda cuando el texto se pone a un lado.
+                desde la izquierda cuando el texto se pone a un lado. Sobre un
+                afiche se retira antes: lo que hay que leer está al otro lado y
+                ahí la imagen tiene que verse tal cual.
               */}
               <div
-                class="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/50 to-black/15 sm:bg-gradient-to-r sm:from-black/85 sm:via-black/45 sm:to-black/10"
+                class:list={[
+                  'absolute inset-0 -z-10 sm:bg-gradient-to-r',
+                  // el afiche vertical ya viene apagado de fábrica: en el
+                  // móvil no lleva velo, y del `sm` para arriba manda el
+                  // lateral, porque ahí la imagen es la apaisada
+                  !aviso.imageMovil && 'bg-gradient-to-t from-black/85 via-black/50 to-black/15',
+                  aviso.afiche
+                    ? 'sm:from-black/90 sm:from-0% sm:via-black/45 sm:via-30% sm:to-transparent sm:to-52%'
+                    : 'sm:from-black/85 sm:via-black/45 sm:to-black/10',
+                ]}
                 aria-hidden="true"
               />
 
-              <div class="max-w-md">
+              {/*
+                Sobre un afiche el texto se queda en su mitad y no cruza al
+                otro lado: ahí está la tabla de horarios, y el velo lateral
+                también corta a media tarjeta. En una foto puede ocupar más,
+                porque detrás no hay nada que leer.
+              */}
+              <div class:list={['max-w-md', aviso.afiche && 'sm:max-w-[62%] lg:max-w-md']}>
                 <p class="eyebrow text-white/70">{aviso.eyebrow}</p>
-                <h3 class="heading-lg mt-3 text-white text-balance">{aviso.title}</h3>
-                <p class="mt-3 text-[1.0625rem] leading-[1.45] text-white/75">
-                  {aviso.description}
-                </p>
+                <h3 class="heading-lg mt-4 text-white text-balance">{aviso.title}</h3>
+                <p class="subtitle-lg mt-4 !text-white/75">{aviso.description}</p>
 
-                <div class="mt-7">
+                <div class="mt-7 flex flex-wrap items-center gap-3">
                   <ArrowButton
                     label={aviso.action.label}
                     href={aviso.action.href}
@@ -71,38 +121,37 @@ import { avisos, avisosIntro } from '../data/content';
                     size="md"
                     external={aviso.action.external}
                   />
+
+                  {aviso.accionSecundaria && (
+                    <ArrowButton
+                      label={aviso.accionSecundaria.label}
+                      href={aviso.accionSecundaria.href}
+                      variant="accent"
+                      size="md"
+                      external={aviso.accionSecundaria.external}
+                    />
+                  )}
                 </div>
               </div>
-
-              {aviso.panel && (
-                <div class="rounded-[1.25rem] bg-carbon/80 p-5 backdrop-blur-md sm:w-[19rem] sm:p-6 lg:w-[21rem]">
-                  <p class="eyebrow text-white/60">{aviso.panel.title}</p>
-
-                  <ul class="mt-4 space-y-2.5">
-                    {aviso.panel.rows.map((fila) => (
-                      <li class="grid grid-cols-[1fr_auto] items-baseline gap-x-4 border-t border-white/15 pt-2.5 first:border-0 first:pt-0">
-                        <p class="text-[0.9375rem] leading-tight font-semibold text-white">
-                          {fila.name}
-                        </p>
-                        <p class="text-[0.8125rem] whitespace-nowrap text-white/60">{fila.when}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </article>
         ))
       }
     </div>
 
+    {/*
+      Las flechas solo del `sm` para arriba. En el móvil la tarjeta es alta y
+      angosta, así que su centro —donde van las flechas— cae justo sobre el
+      rótulo y el titular, y los tapaba. Ahí se pasa de aviso deslizando, y
+      los puntos de abajo son botones de verdad para quien no deslice.
+    */}
     {
       avisos.length > 1 && (
         <>
           <button
             type="button"
             data-avisos-prev
-            class="absolute top-1/2 left-3 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:left-6 lg:size-12"
+            class="absolute top-1/2 left-3 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:left-6 sm:grid lg:size-12"
           >
             <span class="sr-only">Aviso anterior</span>
             <Icon name="lucide:chevron-left" width={22} height={22} aria-hidden="true" />
@@ -111,7 +160,7 @@ import { avisos, avisosIntro } from '../data/content';
           <button
             type="button"
             data-avisos-next
-            class="absolute top-1/2 right-3 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:right-6 lg:size-12"
+            class="absolute top-1/2 right-3 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-ink/85 text-white backdrop-blur-sm transition-colors hover:bg-ink sm:right-6 sm:grid lg:size-12"
           >
             <span class="sr-only">Aviso siguiente</span>
             <Icon name="lucide:chevron-right" width={22} height={22} aria-hidden="true" />
@@ -120,6 +169,25 @@ import { avisos, avisosIntro } from '../data/content';
       )
     }
   </div>
+
+  {/*
+    Los puntos son la cinta en pequeño: uno por aviso, el del centro alargado.
+    Como la cinta no tiene fin, después del último se enciende otra vez el
+    primero sin desandar el camino.
+  */}
+  {
+    avisos.length > 1 && (
+      <div class="container-page mt-7 lg:mt-8">
+        <div class="flex justify-center gap-2">
+          {avisos.map((aviso, indice) => (
+            <button type="button" class="punto" data-punto={indice}>
+              <span class="sr-only">Ir a «{aviso.title}»</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
 </section>
 
 <style>
@@ -137,12 +205,40 @@ import { avisos, avisosIntro } from '../data/content';
     filter: none;
   }
 
+  /* mientras se salta del clon al original no hay animación: si no, se ve
+     apagarse uno y encenderse el otro, y eso es el parpadeo */
+  .pista[data-saltando] .diapositiva {
+    transition: none;
+  }
+
+  /* el punto del aviso que se está mirando se estira: al pasar de uno a otro
+     el bulto se desplaza, y se lee como una cinta que avanza */
+  .punto {
+    height: 0.5rem;
+    width: 0.5rem;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--color-ink) 20%, transparent);
+    transition:
+      width 400ms ease,
+      background-color 400ms ease;
+  }
+
+  .punto:hover {
+    background: color-mix(in oklab, var(--color-ink) 45%, transparent);
+  }
+
+  .punto[data-activo='true'] {
+    width: 1.75rem;
+    background: var(--color-accent);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .pista {
       scroll-behavior: auto;
     }
 
-    .diapositiva {
+    .diapositiva,
+    .punto {
       transition: none;
     }
   }
@@ -154,13 +250,21 @@ import { avisos, avisosIntro } from '../data/content';
   const reales = [...(pista?.querySelectorAll<HTMLElement>('.diapositiva') ?? [])];
   const anterior = carrusel?.querySelector<HTMLButtonElement>('[data-avisos-prev]');
   const siguiente = carrusel?.querySelector<HTMLButtonElement>('[data-avisos-next]');
+  const puntos = [...document.querySelectorAll<HTMLButtonElement>('#avisos [data-punto]')];
 
   if (carrusel && pista && reales.length > 1 && anterior && siguiente) {
     /*
-      Para que la cinta no tenga principio ni fin se clona el último al
-      principio y el primero al final. Al llegar a un clon se salta sin
-      animación a su original, que está a un juego de distancia: el salto no
-      se ve porque los dos muestran lo mismo.
+      Para que la cinta no tenga principio ni fin se pone un juego entero de
+      avisos antes y otro después. Al llegar a uno de los juegos de al lado se
+      salta sin animación al aviso equivalente del juego del medio, que está a
+      un juego de distancia.
+
+      Van los tres juegos y no un clon suelto a cada lado porque lo que tiene
+      que coincidir no es solo el aviso del centro: también los dos que asoman
+      por los bordes. Con un clon suelto, al final de la cinta no había nada a
+      la derecha del clon, y al saltar al original aparecía de golpe el aviso
+      siguiente asomando por el borde. Con un juego entero, lo que se ve antes
+      y después del salto es la misma estampa.
 
       Los clones van con `inert`: se ven, pero no se tabulan ni se leen, así
       que el botón de cada aviso sigue estando una sola vez.
@@ -173,8 +277,9 @@ import { avisos, avisosIntro } from '../data/content';
       return clon;
     };
 
-    pista.prepend(clonar(reales[reales.length - 1]));
-    pista.append(clonar(reales[0]));
+    const cuantos = reales.length;
+    reales.forEach((diapositiva) => pista.append(clonar(diapositiva)));
+    [...reales].reverse().forEach((diapositiva) => pista.prepend(clonar(diapositiva)));
 
     const todas = [...pista.querySelectorAll<HTMLElement>('.diapositiva')];
 
@@ -200,14 +305,32 @@ import { avisos, avisosIntro } from '../data/content';
       return elegido;
     };
 
+    /*
+      Los clones cuentan como su original: cualquier posición de la cinta cae
+      en un aviso u otro según en qué lugar del juego esté. Por eso el punto
+      se saca con el resto, y al pasar del último al primero se enciende el
+      primero sin más.
+    */
+    const cualAvisoEs = (indice: number) => ((indice - cuantos) % cuantos + cuantos) % cuantos;
+
     const marcar = () => {
       const centro = cualEstaAlCentro();
       todas.forEach((diapositiva, i) => (diapositiva.dataset.activo = String(i === centro)));
+
+      const aviso = cualAvisoEs(centro);
+      puntos.forEach((punto, i) => {
+        punto.dataset.activo = String(i === aviso);
+        if (i === aviso) punto.setAttribute('aria-current', 'true');
+        else punto.removeAttribute('aria-current');
+      });
     };
 
     const centrar = (diapositiva: HTMLElement, suave = true) => {
       const destino = diapositiva.offsetLeft - (pista.clientWidth - diapositiva.offsetWidth) / 2;
-      pista.scrollTo({ left: destino, behavior: suave ? 'smooth' : 'auto' });
+      // 'instant' y no 'auto': 'auto' quiere decir «lo que diga el CSS», y la
+      // pista lleva scroll-behavior: smooth, así que el salto del clon al
+      // original se animaba y se veía rebobinar hasta el principio
+      pista.scrollTo({ left: destino, behavior: suave ? 'smooth' : 'instant' });
     };
 
     /** Del clon al original: mismo sitio en la cinta, sin que se note. */
@@ -215,10 +338,19 @@ import { avisos, avisosIntro } from '../data/content';
       const centro = cualEstaAlCentro();
       if (!todas[centro]?.dataset.clon) return;
 
-      // el clon del final es el primero de todos; el del principio, el último
-      const original = centro === 0 ? todas[todas.length - 2] : todas[1];
+      const original = todas[cuantos + cualAvisoEs(centro)];
+
+      /*
+        El clon y su original enseñan lo mismo, pero son dos elementos: al
+        cambiar cuál está encendido, uno se apaga y el otro se enciende, y esos
+        400ms de animación son el parpadeo. Durante el salto no hay transición,
+        así que el relevo ocurre entero en el mismo fotograma.
+      */
+      pista.dataset.saltando = 'true';
       centrar(original, false);
       marcar();
+      void pista.offsetWidth; // repintado forzado: el antes y el después no se juntan
+      requestAnimationFrame(() => delete pista.dataset.saltando);
     };
 
     const irA = (paso: number) => {
@@ -261,6 +393,13 @@ import { avisos, avisosIntro } from '../data/content';
       irA(1);
       reiniciar();
     });
+
+    puntos.forEach((punto, i) =>
+      punto.addEventListener('click', () => {
+        centrar(todas[cuantos + i]);
+        reiniciar();
+      })
+    );
 
     // ni corre mientras la sección no está a la vista, ni mientras se mira un aviso
     if ('IntersectionObserver' in window) {
@@ -307,7 +446,7 @@ import { avisos, avisosIntro } from '../data/content';
 
     window.addEventListener('resize', marcar);
 
-    centrar(todas[1], false);
+    centrar(todas[cuantos], false);
     marcar();
   }
 </script>

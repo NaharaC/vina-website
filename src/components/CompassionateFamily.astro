@@ -13,30 +13,56 @@ const heading = {
 <section id="compasion" class="seccion" aria-labelledby="compasion-titulo">
   <div class="container-page">
     {/*
-      El encabezado va a todo el ancho, por encima de las dos columnas: dentro
-      de la columna estrecha el título partía en tres líneas y la línea del
-      rótulo se quedaba a media página.
-    */}
-    <SectionHeading
-      id="compasion-titulo"
-      eyebrow={heading.eyebrow}
-      title={heading.title}
-      subtitle={heading.subtitle}
-      class="mb-12 lg:mb-16"
-    />
+      En escritorio se fija la columna de la izquierda entera —encabezado y
+      tarjeta de "Nosotros", como un solo bloque— mientras la columna de la
+      derecha sigue pasando. Antes iban fijos por separado y la tarjeta
+      acababa metiéndose detrás del título.
 
-    {/*
-      En escritorio la tarjeta de "Nosotros" queda fija mientras la columna de
-      la derecha sigue pasando. El `items-start` del grid es lo que le da
-      recorrido: sin él la celda se estiraría a todo el alto y no habría nada
-      que fijar. En móvil, con una sola columna, no aplica.
+      El `items-start` del grid es lo que le da recorrido: sin él la celda se
+      estiraría a todo el alto y no habría nada que fijar. Se para a 2rem del
+      filo: la columna mide 643px y así cabe entera —bajada y botón incluidos—
+      en ventanas de unos 675px de alto, que es lo que deja un portátil. Más
+      abajo no cabía; más arriba se cruzaría con la píldora de navegación, que
+      va centrada y baja hasta los 69px. En móvil, con una sola columna, no
+      aplica: el encabezado abre la sección y ya está.
     */}
     <div class="grid items-start gap-10 md:grid-cols-2 md:gap-8 lg:gap-14">
-      <div class="lg:sticky lg:top-24 lg:self-start">
+      <div class="lg:sticky lg:top-8 lg:self-start">
+        {/*
+          En la columna la bajada ya no cabe al costado del título: se apila
+          debajo, que es lo que hace `estrecho`.
+        */}
+        <SectionHeading
+          id="compasion-titulo"
+          eyebrow={heading.eyebrow}
+          title={heading.title}
+          subtitle={heading.subtitle}
+          estrecho
+          class="mb-12 lg:mb-4"
+        />
+
         <CompassionCard card={compassionFeature} feature />
       </div>
 
       <div>
+        {/*
+          Copia invisible del encabezado: con dos columnas, la de la derecha
+          arranca a la altura de la foto de la izquierda y no del rótulo. Es
+          la misma pieza y el mismo margen, así que mide exactamente lo que
+          mide el encabezado de al lado, en cualquier ancho. En móvil, con
+          una sola columna, no hay nada que emparejar.
+        */}
+        <div class="invisible hidden md:block" aria-hidden="true">
+          <SectionHeading
+            eyebrow={heading.eyebrow}
+            title={heading.title}
+            subtitle={heading.subtitle}
+            as="p"
+            estrecho
+            class="mb-12 lg:mb-4"
+          />
+        </div>
+
         <div class="flex flex-col gap-10 md:gap-8 lg:gap-12">
           {
             compassionCards.map((card, index) =>

@@ -59,15 +59,14 @@ import { hero, heroActions } from "../data/content";
         <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-10">
           {
             /*
-            Mismo peso y tracking que los títulos del resto de la web, pero
-            en el cuerpo más grande de la casa. La cuenta del `clamp` está
-            atada al ancho de su columna: a partir de `lg` el titular
-            comparte fila con el cristal, y con las líneas partidas a mano
-            un cuerpo de más se saldría por la derecha en vez de doblar.
+            El cuerpo de portada de la escalera, pero con su propio `clamp`:
+            a partir de `lg` el titular comparte fila con el cristal, y con
+            las líneas partidas a mano un cuerpo de más se saldría por la
+            derecha en vez de doblar.
           */
           }
           <h1
-            class="leading-[0.96] font-semibold tracking-[-0.045em] text-white"
+            class="portada text-white"
             style="font-size: clamp(2.5rem, 10.1vw - 3.1rem, 6rem)"
           >
             Siendo una familia<br />
@@ -87,14 +86,8 @@ import { hero, heroActions } from "../data/content";
             class="w-full max-w-[24rem] rounded-panel bg-black/35 p-2.5 shadow-2xl shadow-black/30 backdrop-blur-3xl backdrop-saturate-150 lg:w-[22rem]"
           >
             <div class="px-2 pt-1.5 pb-1">
-              <p
-                class="text-[1.1875rem] font-semibold tracking-[-0.03em] text-white"
-              >
-                {hero.panelTitle}
-              </p>
-              <p class="mt-0.5 text-[0.8125rem] text-white/70">
-                {hero.panelSubtitle}
-              </p>
+              <p class="heading-sm text-white">{hero.panelTitle}</p>
+              <p class="nota mt-1 !text-white/70">{hero.panelSubtitle}</p>
             </div>
 
             <ul class="mt-2.5 flex flex-col gap-2">
@@ -120,10 +113,10 @@ import { hero, heroActions } from "../data/content";
                       </span>
 
                       <span class="min-w-0 flex-1">
-                        <span class="block truncate text-[0.9375rem] font-semibold tracking-[-0.03em] text-white">
+                        <span class="block truncate text-[0.9375rem] font-semibold tracking-[-0.025em] text-white">
                           {action.title}
                         </span>
-                        <span class="block truncate text-[0.75rem] text-white/80">
+                        <span class="block truncate text-[0.8125rem] text-white/80">
                           {action.description}
                         </span>
                       </span>

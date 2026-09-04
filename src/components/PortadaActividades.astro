@@ -1,0 +1,561 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import { portadaActividades, type PiezaPortada } from '../data/content';
+
+/*
+  El video de la portada. Es el mismo en los dos sitios —en la casilla del
+  final del titular y en el panel que se abre debajo—, y esa es toda la
+  gracia: la casilla es el panel en pequeño, así que al abrirse no cambia lo
+  que se está mirando, solo el tamaño.
+*/
+const VIDEO = '/videos/actividades-panel.mp4';
+const POSTER = '/videos/actividades-panel-poster.jpg';
+
+interface Props {
+  /** Lo próximo, ya redactado. Va en el cristal del panel; si no hay, se omite. */
+  proxima?: { nombre: string; cuando: string };
+}
+
+const { proxima } = Astro.props;
+
+/*
+  Las fotos de las casillas del titular. Son las mismas del collage de la
+  portada del sitio, que es la reserva grande que tenemos: para sumar más,
+  basta con dejar el archivo en assets/img.
+*/
+const fotos = Object.entries(
+  import.meta.glob<{ default: ImageMetadata }>('../assets/img/familia-collage-*.jpg', {
+    eager: true,
+  })
+)
+  .sort(([a], [b]) => Number(a.match(/-(\d+)\.jpg$/)![1]) - Number(b.match(/-(\d+)\.jpg$/)![1]))
+  .map(([, mod]) => mod.default);
+
+/** Cuántas fotos se turnan en cada casilla del titular. */
+const POR_CASILLA = 5;
+
+/*
+  Las casillas se reparten las fotos a saltos —la 0 se queda con la 0, la 4,
+  la 8…— y no por tramos seguidos. Así dos casillas vecinas nunca enseñan dos
+  fotos de la misma tanda, que suelen ser del mismo momento y se parecen.
+*/
+const casillas = portadaActividades.lineas
+  .flat()
+  .filter((pieza): pieza is Extract<PiezaPortada, { fotos: unknown }> => 'fotos' in pieza)
+  .reduce((total, pieza) => total + pieza.cuantas, 0);
+
+const fotosDe = (indice: number) =>
+  fotos.filter((_, i) => i % casillas === indice % casillas).slice(0, POR_CASILLA);
+
+/** Va contando casillas conforme se pintan, para que cada una reciba su tanda. */
+let casilla = 0;
+
+const medidas = {
+  retrato: { ancho: 360, alto: 480 },
+  apaisada: { ancho: 640, alto: 360 },
+};
+---
+
+{/*
+  Portada tipográfica: el titular con las fotos incrustadas entre las
+  palabras, y debajo el panel que se abre. Las casillas se quedan donde están,
+  dentro de la frase; lo único que se mueve es el panel, y se mueve abriéndose
+  —no desplazándose—, que es lo que hace la referencia.
+*/}
+<div class="tramo-portada">
+  <header class="portada-actividades voz-fina relative flex min-h-[64vh] flex-col justify-center pt-36 pb-24 lg:min-h-[78vh] lg:pt-44 lg:pb-28">
+    {/* la columna es la medida del titular: `portada-ancha` se calcula sobre ella */}
+    <div class="container-page columna-titular">
+      <h1 class="portada-ancha text-ink">
+        {
+          portadaActividades.lineas.map((linea) => (
+            <span class="linea">
+              {linea.map((pieza) => {
+                if ('texto' in pieza) return <span>{pieza.texto}</span>;
+
+                if ('flecha' in pieza) {
+                  return (
+                    <span class="flecha" aria-hidden="true">
+                      <Icon name="lucide:arrow-right" width={24} height={24} />
+                    </span>
+                  );
+                }
+
+                const { ancho, alto } = medidas[pieza.fotos];
+
+                /*
+                  La casilla apaisada lleva el video del panel, no fotos: es
+                  el panel en pequeño, dentro de la frase. Lo que se abre
+                  debajo al hacer scroll es esta misma casilla, así que
+                  enseñar otra cosa rompería el gesto.
+                */
+                const delPanel = pieza.fotos === 'apaisada';
+
+                return (
+                  <span class="tira">
+                    {Array.from({ length: pieza.cuantas }).map(() => {
+                      if (delPanel) {
+                        return (
+                          <span class:list={['casilla', pieza.fotos]}>
+                            <video
+                              src={VIDEO}
+                              poster={POSTER}
+                              autoplay
+                              muted
+                              loop
+                              playsinline
+                              preload="auto"
+                            />
+                          </span>
+                        );
+                      }
+
+                      const tanda = fotosDe(casilla++);
+                      return (
+                        <span class:list={['casilla', pieza.fotos]} data-carrete={`casilla-${casilla}`}>
+                          {tanda.map((foto, i) => (
+                            <Image
+                              src={foto}
+                              alt=""
+                              width={ancho}
+                              height={alto}
+                              densities={[1, 2]}
+                              loading={i === 0 ? 'eager' : 'lazy'}
+                              decoding="async"
+                              data-capa
+                              class:list={[i === 0 && 'visible']}
+                            />
+                          ))}
+                        </span>
+                      );
+                    })}
+                  </span>
+                );
+              })}
+            </span>
+          ))
+        }
+      </h1>
+
+    </div>
+  </header>
+
+  {/*
+    El panel. Entra angosto y se va abriendo a lo ancho conforme sube por la
+    pantalla, hasta quedarse en el ancho del contenido —el mismo del titular y
+    del calendario—. Ahí se detiene: ni llega al filo de la ventana ni se
+    despega para seguir moviéndose.
+  */}
+  <section class="tramo-video pb-20 lg:pb-28">
+  <div class="abre-panel">
+      <video src={VIDEO} poster={POSTER} autoplay muted loop playsinline preload="auto" />
+
+      {/*
+        El cristal esmerilado de la portada del sitio, aquí de pie de foto: es
+        la pieza que más ata esta página con el home, y le da al panel un
+        trabajo —llevar al calendario— en vez de ser solo una foto grande.
+      */}
+      {
+        proxima && (
+          <a href="#calendario" class="panel-cristal">
+            <span class="min-w-0 flex-1">
+              <span class="flex items-center gap-2.5">
+                <span class="size-[7px] shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                <span class="rotulo !text-white/70">Lo próximo</span>
+              </span>
+              <span class="heading-sm mt-2.5 block !text-white">{proxima.nombre}</span>
+              <span class="nota mt-1 block !text-white/70">{proxima.cuando}</span>
+            </span>
+            <span class="panel-cristal-flecha">
+              <Icon name="lucide:arrow-right" width={18} height={18} aria-hidden="true" />
+            </span>
+          </a>
+        )
+      }
+    </div>
+  </section>
+</div>
+
+<style>
+  /*
+    El lavado del fondo. Vira de la crema de la portada al arena sobre el que
+    se recorta la sección blanca del calendario, con la línea de tiempo de
+    scroll del panel —la mecánica de «Nuestras Reuniones» en la portada del
+    sitio—.
+
+    Va en el tramo, que envuelve titular y panel, y no en cada uno por su
+    cuenta: pintados aparte, el de abajo vira antes que el de arriba y entre
+    los dos aparece una costura. `timeline-scope` es lo que deja al tramo usar
+    una línea de tiempo que declara algo de dentro.
+  */
+  .tramo-portada {
+    timeline-scope: --video;
+    background-color: color-mix(in srgb, var(--color-cream) 60%, white);
+  }
+
+  .tramo-video {
+    view-timeline: --video block;
+  }
+
+  /*
+    El panel se abre animando el ancho: la altura la lleva la proporción, así
+    que con una sola propiedad se abre por los cuatro lados a la vez y nunca
+    se deforma la foto. `--abierto` es el ancho del contenido, medido igual
+    que lo mide `container-page`.
+  */
+  .abre-panel {
+    --abierto: min(84rem - 2.5rem, 100vw - 2.5rem);
+    /*
+      De dónde sale el panel: del ancho de la casilla apaisada del titular,
+      que es su misma foto y su mismo carrete. Antes arrancaba a poco más de
+      medio ancho y se leía como una foto grande que se estira; naciendo del
+      tamaño de la casilla se lee como lo que es —esa casilla abriéndose—, y
+      es el gesto de la referencia.
+
+      `1.4em` es el ancho de `.casilla.apaisada`, medido sobre el cuerpo del
+      titular (`portada-ancha`, hasta 8.25rem).
+    */
+    --cerrado: calc(var(--abierto) * 0.14);
+
+    position: relative;
+    margin-inline: auto;
+    width: var(--abierto);
+    /* en el teléfono el panel es estrecho: apaisado de más quedaría una rendija */
+    aspect-ratio: 4 / 3;
+    /*
+      Y de alto no pasa de aquí: el panel tiene que verse entero de una vez, y
+      con la proporción sola una ventana baja lo cortaba. Al recortarse el
+      alto se recorta la foto con él, que para eso va en `cover`.
+    */
+    max-height: 78svh;
+    overflow: hidden;
+    border-radius: 2rem;
+    background-color: var(--color-mist);
+  }
+
+  @media (width >= 40rem) {
+    .abre-panel {
+      --abierto: min(84rem - 4rem, 100vw - 4rem);
+    }
+  }
+
+  @media (width >= 64rem) {
+    .abre-panel {
+      --abierto: min(84rem - 6rem, 100vw - 6rem);
+      aspect-ratio: 16 / 9;
+      border-radius: 2.75rem;
+    }
+  }
+
+  /*
+    El cristal. Se pega al pie del panel y encoge con él: cuando el panel está
+    a medio abrir sigue cabiendo, porque el ancho es un `min()` contra lo que
+    haya disponible.
+  */
+  .panel-cristal {
+    position: absolute;
+    left: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: min(22rem, calc(100% - 2.5rem));
+    border-radius: var(--radius-panel);
+    background-color: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(40px) saturate(1.5);
+    -webkit-backdrop-filter: blur(40px) saturate(1.5);
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.45);
+    padding: 1.125rem 1.125rem 1.125rem 1.375rem;
+    transition: background-color 200ms ease;
+  }
+
+  .panel-cristal:hover {
+    background-color: rgba(0, 0, 0, 0.48);
+  }
+
+  .panel-cristal-flecha {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: var(--color-carbon);
+    transition: transform 200ms ease;
+  }
+
+  .panel-cristal:hover .panel-cristal-flecha {
+    transform: translateX(2px);
+  }
+
+  @media (min-width: 64rem) {
+    .panel-cristal {
+      left: 1.75rem;
+      bottom: 1.75rem;
+      width: min(23rem, calc(100% - 3.5rem));
+    }
+  }
+
+  @supports (animation-timeline: view()) {
+    .abre-panel {
+      width: var(--cerrado);
+      animation: panel-abre linear both;
+      animation-timeline: --video;
+      animation-range: entry 10% entry 92%;
+    }
+
+    .tramo-portada {
+      animation: video-tinta linear both;
+      animation-timeline: --video;
+      animation-range: entry 30% contain 100%;
+    }
+  }
+
+  @keyframes panel-abre {
+    to {
+      width: var(--abierto);
+    }
+  }
+
+  /*
+    Arena, no rosa: el naranja de marca en cantidad grande vira a rosado y
+    desentona con todo. Una pizca sobre el gris de las secciones claras da el
+    mismo calor que la referencia sin salirse de la paleta.
+  */
+  @keyframes video-tinta {
+    to {
+      background-color: color-mix(in srgb, var(--color-accent) 6%, var(--color-mist));
+    }
+  }
+
+  /*
+    Cada renglón es una fila propia y no una línea de texto corrido: es lo
+    único que deja poner las casillas y la flecha entre las palabras sin que
+    el interlineado se descuadre al crecer ellas. En pantallas chicas la fila
+    se parte sola antes que desbordar.
+  */
+  .columna-titular {
+    container-type: inline-size;
+  }
+
+  .linea {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.06em 0.24em;
+  }
+
+  /*
+    Las casillas de un mismo hueco van casi tocándose, como una tira de
+    negativos. El aire entre ellas es propio y mucho más corto que el de la
+    fila, que es el que separa las palabras.
+  */
+  .tira {
+    display: flex;
+    gap: 0.022em;
+  }
+
+  /*
+    Se centran con la fila, que cuenta también el espacio de los rasgos que
+    bajan; sin subirlas un pelo quedarían pisando la línea de base.
+  */
+  .casilla {
+    position: relative;
+    display: block;
+    height: 0.78em;
+    margin-bottom: 0.07em;
+    overflow: hidden;
+    border-radius: 0.06em;
+    background-color: var(--color-mist);
+  }
+
+  .casilla.retrato {
+    width: 0.585em;
+  }
+
+  .casilla.apaisada {
+    width: 1.4em;
+  }
+
+  /*
+    Los estilos con ámbito no alcanzan a `<Image>`: lo pinta el componente y
+    no recibe el atributo de ámbito. De ahí el `is:global` acotado abajo.
+  */
+
+  /*
+    La flecha es la de todo el sitio —la punta de lucide dentro del círculo
+    naranja de `ArrowButton`— subida a cuerpo de titular. Antes iba un trazo
+    dibujado a mano que no existía en ninguna otra parte de la web y sonaba a
+    prestado; esta se lee como la misma pieza de la barra y de cada «Ver más».
+
+    Se sube el mismo pelo que las casillas para que las tres cosas del
+    renglón —letras, fotos y flecha— queden a una.
+  */
+  .flecha {
+    display: grid;
+    place-items: center;
+    width: 0.56em;
+    height: 0.56em;
+    flex-shrink: 0;
+    margin-bottom: 0.07em;
+    border-radius: 999px;
+    background-color: var(--color-accent);
+    color: #ffffff;
+  }
+
+  /*
+    La mitad del círculo, que es la proporción que usa `ArrowButton` (círculo
+    de 28px con icono de 14). El `:global` hace falta porque el `<svg>` lo
+    pinta el componente Icon y no recibe el atributo de ámbito.
+  */
+  .flecha :global(svg) {
+    width: 0.28em;
+    height: 0.28em;
+  }
+
+  @media (min-width: 64rem) {
+    .linea {
+      gap: 0 0.28em;
+    }
+  }
+
+  /*
+    Con «reducir movimiento» el panel nace abierto y el fondo no vira: la
+    portada se ve entera, solo que sin el gesto.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .abre-panel {
+      width: var(--abierto);
+    }
+
+    .abre-panel,
+    .tramo-portada {
+      animation: none;
+    }
+  }
+</style>
+
+<style is:global>
+  /*
+    El video llena su hueco, y es el mismo en los dos: la casilla del titular
+    y el panel. Va absoluto porque el hueco manda la medida —la casilla mide
+    en `em` del titular, el panel se abre con el scroll— y el video se
+    recorta dentro (`cover`) en vez de deformarse.
+  */
+  .portada-actividades .casilla video,
+  .tramo-video .abre-panel > video {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  /* las casillas de retrato sí pasan fotos, y se funden una en otra */
+  .portada-actividades .casilla img {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 800ms ease;
+  }
+
+  .portada-actividades .casilla img.visible {
+    opacity: 1;
+  }
+
+  /*
+    Sin animación por preferencia del sistema las fotos no se funden; el
+    video lo para el guion, que es quien puede.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .portada-actividades .casilla img {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /*
+    Las casillas de retrato del titular pasan sus fotos en bucle, y arrancan
+    desfasadas: si cambiaran a la vez el titular parpadearía entero en lugar
+    de moverse por dentro. La casilla apaisada no entra aquí —lleva el video
+    del panel y va sola—, y con la pestaña de fondo se para el reloj para no
+    gastar batería.
+  */
+  const quieto = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (quieto.matches) {
+    /*
+      El video va declarado `autoplay` para que ande también sin JavaScript;
+      pararlo cuando el sistema pide menos movimiento solo se puede desde
+      aquí. Queda el póster, que es un fotograma suyo.
+    */
+    for (const video of document.querySelectorAll<HTMLVideoElement>(
+      '.portada-actividades video, .tramo-video video'
+    )) {
+      video.autoplay = false;
+      video.pause();
+    }
+  } else {
+    /*
+      Los dos videos son el mismo archivo y arrancan a la vez, pero cada uno
+      lleva su reloj: si a uno se le atraganta un fotograma se separan, y
+      entonces la casilla y el panel enseñan dos momentos distintos de la
+      misma escena, que es justo lo que rompe el gesto. Cada dos segundos se
+      vuelve a poner la casilla en la hora del panel, y solo si se han
+      separado de veras: reponer la hora a cada rato daría un tirón visible.
+    */
+    const panel = document.querySelector<HTMLVideoElement>('.abre-panel > video');
+    const enElTitular = document.querySelector<HTMLVideoElement>('.portada-actividades .casilla video');
+
+    if (panel && enElTitular) {
+      window.setInterval(() => {
+        if (panel.paused || enElTitular.paused) return;
+        if (Math.abs(panel.currentTime - enElTitular.currentTime) > 0.25) {
+          enElTitular.currentTime = panel.currentTime;
+        }
+      }, 2000);
+    }
+
+    /** Lo que dura cada foto. */
+    const TURNO = 2400;
+    /** Desfase entre casillas vecinas. */
+    const DESFASE = 700;
+
+    document.querySelectorAll<HTMLElement>('[data-carrete]').forEach((casilla, indice) => {
+      const capas = [...casilla.querySelectorAll<HTMLElement>('[data-capa]')];
+      if (capas.length < 2) return;
+
+      let actual = 0;
+      let reloj: number | undefined;
+
+      const pasar = () => {
+        capas[actual].classList.remove('visible');
+        actual = (actual + 1) % capas.length;
+        capas[actual].classList.add('visible');
+        reloj = window.setTimeout(pasar, TURNO);
+      };
+
+      const arrancar = () => {
+        if (reloj === undefined) reloj = window.setTimeout(pasar, TURNO);
+      };
+
+      const parar = () => {
+        window.clearTimeout(reloj);
+        reloj = undefined;
+      };
+
+      window.setTimeout(arrancar, indice * DESFASE);
+      document.addEventListener('visibilitychange', () =>
+        document.hidden ? parar() : arrancar()
+      );
+    });
+  }
+</script>

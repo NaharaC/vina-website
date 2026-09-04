@@ -9,6 +9,20 @@
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
 
+  /*
+    La voz de los titulares: la redonda del sistema.
+
+    `ui-rounded` es una palabra clave de CSS, no un archivo: en Mac y iPhone
+    resuelve a SF Pro Rounded y en el resto no resuelve a nada, así que cae en
+    Inter. Por eso no se aloja ninguna fuente —la de Apple no tiene licencia
+    para eso— y el peso añadido es cero.
+
+    Consecuencia a tener presente: en Android y Windows los titulares se ven
+    en Inter. Es una diferencia de piel, no de maqueta; las métricas de las
+    dos son parecidas y no mueven los cortes de línea.
+  */
+  --font-display: ui-rounded, 'SF Pro Rounded', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
   /* Color */
   --color-accent: #fe6038; /* naranja de marca */
   --color-accent-strong: #ea4c22; /* hover */
@@ -104,55 +118,185 @@
   }
 }
 
-/* Escala tipográfica de títulos — bold con tracking cerrado, como el mockup */
+/* ---------------------------------------------------------------------------
+   Escala tipográfica
+
+   Una sola escalera para toda la web. Cada peldaño tiene un trabajo y no se
+   mezcla con el de al lado; si algo no encaja en ninguno, el que falta es un
+   peldaño, no una clase suelta. Nada de `text-[1.0625rem]` en el marcado.
+
+   Titulares (seminegrita, letras apretadas, línea justa: cuanto más grande el
+   cuerpo, más apretado el tracking):
+
+     portada       44 →  96  el titular único de cada página, sobre foto o video
+     portada-ancha    → 132  el titular que además es la ilustración: no
+                             acompaña a una foto, la lleva dentro. Sin suelo:
+                             llena su columna, mida lo que mida la columna
+     heading-xl    38 →  60  la frase grande: versículos, declaraciones, listas
+                             que son el contenido mismo de su sección
+     heading-lg    30 →  44  título de sección
+     heading-md    22 →  28  título de tarjeta
+     heading-sm    19        rótulo de bloque: pie de foto, nombre, columna
+
+   Texto:
+
+     subtitle-lg 17 → 20   la bajada que acompaña a un título de sección
+     subtitle    17        descripción de tarjeta y texto corrido
+     nota        15        dato secundario: horario, cargo, pie
+     eyebrow     13        el nombre de la sección, en versalitas
+
+   Y `cifra` (40 → 56) para los números grandes, que no son títulos: van sin
+   line-height de titular porque nunca doblan de línea.
+
+   Lo que no es texto sino interfaz —botones, enlaces del menú y del pie,
+   controles del calendario— no sale de la escalera, porque no compite con
+   ella: se mide en 13 / 15 / 16 px, y los cuerpos del botón los reparte
+   `ArrowButton` por tamaño. Fuera de esa lista no debería aparecer ningún
+   cuerpo nuevo.
+   --------------------------------------------------------------------------- */
+
 /*
-  Escala tipográfica única para toda la web, tomada del bloque de cifras:
-  seminegrita, letras apretadas y línea justa; cuanto más grande el cuerpo,
-  más apretado el tracking. Todos los títulos deberían salir de aquí.
+  El titular de portada. Es el único cuerpo atado al ancho de la ventana y no
+  a la escalera: ocupa la pantalla entera, así que crece con ella.
 */
+@utility portada {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+  font-size: clamp(2.75rem, 0.9rem + 6.2vw, 6rem);
+}
+
+/*
+  El titular que carga con la portada entera. No hay foto detrás ni encima:
+  la portada es la frase, con las fotos incrustadas entre las palabras, así
+  que tiene que llenar el ancho de la página como lo llenaría una imagen. De
+  ahí que suba tanto por encima de `portada`, que solo tiene que leerse sobre
+  algo. Va en `voz-fina`: a este cuerpo la seminegrita se vuelve un muro.
+
+  Se mide contra su columna (`cqw`) y no contra la ventana: llenar el ancho
+  es el encargo, y con un `clamp` de `vw` no se cumple en los dos sitios a la
+  vez —el suelo que deja bien un teléfono grande desborda uno chico, y el que
+  cabe en el chico deja el titular pequeño en todos los demás—. Pide un
+  antepasado con `container-type: inline-size`; sin él mide contra la ventana,
+  que en la portada es casi lo mismo.
+*/
+@utility portada-ancha {
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  font-size: min(14cqw, 8.25rem);
+}
+
 @utility heading-xl {
+  font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.04em;
-  line-height: 0.98;
-  font-size: clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);
+  line-height: 1.04;
+  font-size: clamp(2.375rem, 1.35rem + 3.2vw, 3.75rem);
 }
 
 @utility heading-lg {
+  font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.04em;
-  line-height: 1.02;
+  line-height: 1.06;
   font-size: clamp(1.875rem, 1.35rem + 2.1vw, 2.75rem);
 }
 
 @utility heading-md {
+  font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.03em;
-  line-height: 1.12;
-  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  line-height: 1.16;
+  font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem);
 }
 
-/* Rótulo pequeño en versalitas: el que encabeza cada cifra. */
+@utility heading-sm {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  font-size: 1.1875rem;
+}
+
+/* Números grandes: la cifra de un dato, no un título. */
+@utility cifra {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-size: clamp(2.5rem, 1.75rem + 3vw, 3.5rem);
+}
+
+/*
+  El nombre de la sección, en versalitas con mucho aire entre letras.
+
+  `rotulo` es solo la métrica; `eyebrow` es esa métrica más el gris de rigor.
+  Se separan porque hay rótulos que llevan su propio color —el de Reuniones
+  va animado de blanco a tinta— y una clase de color no le puede ganar a
+  otra: pesan igual y decide el orden de la hoja.
+*/
+@utility rotulo {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
 @utility eyebrow {
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.3;
   text-transform: uppercase;
   color: var(--color-muted);
 }
 
 /* Bajada o descripción: gris, sin cursivas ni serif. */
+@utility subtitle-lg {
+  font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+  line-height: 1.5;
+  letter-spacing: -0.014em;
+  color: var(--color-muted);
+}
+
 @utility subtitle {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  letter-spacing: -0.014em;
+  color: var(--color-muted);
+}
+
+/* Dato secundario: la hora, el cargo, el pie de una foto. */
+@utility nota {
   font-size: 0.9375rem;
   line-height: 1.45;
   letter-spacing: -0.011em;
   color: var(--color-muted);
 }
 
-@utility subtitle-lg {
-  font-size: 1.0625rem;
-  line-height: 1.45;
-  letter-spacing: -0.014em;
-  color: var(--color-muted);
+/* ---------------------------------------------------------------------------
+   Voz fina
+
+   Los titulares en peso normal, con las letras algo más sueltas: el peso lo
+   pone el tamaño y no la seminegrita. Es la voz de las páginas de dentro
+   —`nosotros`, `actividades`— y la de los tramos oscuros.
+
+   Va en un ámbito y no clase por clase: se envuelve el tramo y todo lo que
+   haya dentro cambia de voz sin tocar el marcado.
+   --------------------------------------------------------------------------- */
+.voz-fina :is(.portada, .portada-ancha, .heading-xl, .heading-lg, .cifra),
+.tema-editorial :is(.portada, .portada-ancha, .heading-xl, .heading-lg, .cifra) {
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+.voz-fina .heading-md,
+.tema-editorial .heading-md {
+  font-weight: 500;
+  letter-spacing: -0.025em;
 }
 
 /* ---------------------------------------------------------------------------
@@ -221,13 +365,6 @@
   background-position: center top;
 }
 
-/* Titulares en peso normal: el peso lo pone el tamaño, no la seminegrita. */
-.tema-editorial .heading-xl,
-.tema-editorial .heading-lg {
-  font-weight: 400;
-  letter-spacing: -0.035em;
-}
-
 /*
   Tramo claro dentro del tema: devuelve los colores de siempre. Sirve para
   alternar una sección blanca entre las oscuras sin sacarla del bloque —el
@@ -240,12 +377,6 @@
 
   background-color: #ffffff;
   color: var(--color-ink);
-}
-
-.tema-editorial .tramo-claro .heading-xl,
-.tema-editorial .tramo-claro .heading-lg {
-  font-weight: 600;
-  letter-spacing: -0.04em;
 }
 
 /* ---------------------------------------------------------------------------
@@ -274,6 +405,24 @@
 /* Media sección: para pares de secciones que se leen como un bloque. */
 .seccion-fin {
   padding-block-start: 0;
+}
+
+/* Sección holgada: un peldaño más de aire, para las que son una sola frase y
+   viven del vacío que las rodea. Va después de `.seccion` para ganarle. */
+.seccion-holgada {
+  padding-block: 7rem;
+}
+
+@media (width >= 40rem) {
+  .seccion-holgada {
+    padding-block: 9rem;
+  }
+}
+
+@media (width >= 64rem) {
+  .seccion-holgada {
+    padding-block: 11.5rem;
+  }
 }
 
 /* Carruseles horizontales sin barra de scroll visible */

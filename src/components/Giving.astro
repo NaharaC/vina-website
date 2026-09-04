@@ -81,8 +81,8 @@ import { formasDeDar, giving } from '../data/content';
                     {forma.cuentas.map((cuenta) => (
                       <li class="flex flex-col items-start sm:grid sm:row-span-4 sm:grid-rows-subgrid sm:gap-0">
                         <p class="eyebrow">{cuenta.destino}</p>
-                        <p class="mt-2 text-sm font-semibold text-ink sm:mt-2">{cuenta.titular}</p>
-                        <p class="mt-1 text-sm leading-relaxed text-muted">
+                        <p class="mt-3 text-[0.9375rem] font-semibold text-ink">{cuenta.titular}</p>
+                        <p class="nota mt-1.5 leading-relaxed">
                           RUT {cuenta.rut}
                           <br />
                           {cuenta.banco}
@@ -98,7 +98,7 @@ import { formasDeDar, giving } from '../data/content';
                         */}
                         <button
                           type="button"
-                          class="copiar mt-5 inline-flex w-fit items-center gap-1.5 justify-self-start rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-white/70"
+                          class="copiar mt-5 inline-flex w-fit items-center gap-1.5 justify-self-start rounded-full bg-white px-3.5 py-1.5 text-[0.8125rem] font-semibold text-ink transition-colors hover:bg-white/70"
                           data-copiar={[
                             cuenta.titular,
                             `RUT ${cuenta.rut}`,
@@ -154,12 +154,8 @@ import { formasDeDar, giving } from '../data/content';
               </div>
 
               <div class="mt-6 lg:mt-7">
-                <h3 class="forma-nombre text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">
-                  {forma.title}
-                </h3>
-                <p class="forma-resumen mt-3 text-[0.9375rem] leading-relaxed text-muted lg:text-base">
-                  {forma.summary}
-                </p>
+                <h3 class="forma-nombre heading-sm text-ink">{forma.title}</h3>
+                <p class="forma-resumen subtitle mt-3">{forma.summary}</p>
               </div>
             </article>
           ))

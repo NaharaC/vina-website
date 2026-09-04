@@ -1,17 +1,30 @@
 ---
 /**
- * Encabezado de sección, el mismo en toda la home.
+ * Encabezado de sección. Es el único de toda la web: si una sección lleva
+ * nombre, sale de aquí.
  *
  * Rótulo en versalitas, línea fina y —si hace falta— el título grande y una
  * bajada. Las secciones cuyo contenido ya trae tipografía grande (las
  * actividades, los proyectos) usan solo el rótulo: con dos cuerpos grandes
- * seguidos no se distingue cuál es el título de la sección.
+ * seguidos no se distingue cuál es cuál.
+ *
+ * Lo que se le pase por dentro (`<slot />`) va al extremo derecho de la fila
+ * del rótulo: es el sitio de los botones que acompañan al nombre de la
+ * sección —«Ver todos», «Ver más»—, que antes cada sección se dibujaba a su
+ * manera.
  */
 interface Props {
   /** Rótulo en versalitas. Es lo único obligatorio. */
   eyebrow: string;
   title?: string;
   subtitle?: string;
+  /**
+   * El encabezado no ocupa todo el ancho, sino una columna: la bajada se
+   * apila bajo el título en vez de irse al otro extremo. Lo usan las
+   * secciones cuyo encabezado se queda pegado arriba y no puede cruzarse por
+   * delante de las fotos que suben por la columna de al lado.
+   */
+  estrecho?: boolean;
   /** id del título, para enlazarlo con el `aria-labelledby` de la sección */
   id?: string;
   /** `p` cuando el <h2> real vive dentro del contenido de la sección */
@@ -19,29 +32,61 @@ interface Props {
   class?: string;
 }
 
-const { eyebrow, title, subtitle, id, as: Tag = 'h2', class: className = '' } = Astro.props;
+const {
+  eyebrow,
+  title,
+  subtitle,
+  id,
+  as: Tag = 'h2',
+  estrecho = false,
+  class: className = '',
+} = Astro.props;
+
+const conAccion = Astro.slots.has('default');
 ---
 
 <div class:list={['border-b border-ink/15 pb-5', className]}>
-  {/* sin título, el rótulo es el encabezado y carga con el id */}
-  {
-    title ? (
-      <p class="eyebrow">{eyebrow}</p>
-    ) : (
-      <Tag id={id} class="eyebrow text-ink">
-        {eyebrow}
-      </Tag>
-    )
-  }
+  {/*
+    La fila del rótulo. Con acción al lado se reparten los extremos; sin
+    ella el rótulo ocupa la fila entero y da igual.
+  */}
+  <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+    {/* sin título, el rótulo es el encabezado y carga con el id */}
+    {
+      title ? (
+        <p class="eyebrow">{eyebrow}</p>
+      ) : (
+        <Tag id={id} class="eyebrow text-ink">
+          {eyebrow}
+        </Tag>
+      )
+    }
+
+    {conAccion && <slot />}
+  </div>
 
   {
     title && (
-      <div class="mt-6 lg:flex lg:items-end lg:justify-between lg:gap-12">
+      <div
+        class:list={[
+          'mt-6',
+          !estrecho && 'lg:flex lg:items-end lg:justify-between lg:gap-12',
+        ]}
+      >
         <Tag id={id} class="heading-lg max-w-2xl text-ink text-balance">
           {title}
         </Tag>
 
-        {subtitle && <p class="subtitle-lg mt-3 max-w-md lg:mt-0 lg:shrink-0 lg:pb-1">{subtitle}</p>}
+        {subtitle && (
+          <p
+            class:list={[
+              'subtitle-lg mt-4 max-w-md',
+              !estrecho && 'lg:mt-0 lg:shrink-0 lg:pb-1',
+            ]}
+          >
+            {subtitle}
+          </p>
+        )}
       </div>
     )
   }

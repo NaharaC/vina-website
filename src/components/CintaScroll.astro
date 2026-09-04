@@ -52,11 +52,9 @@ const izquierda = cinta === 'izquierda';
       {
         items.map((item) => (
           <li class="cinta-item">
-            <p class="text-[1.75rem] leading-[1.15] font-normal tracking-[-0.03em] text-balance sm:text-[2.25rem] xl:text-[2.75rem]">
-              {item.title}
-            </p>
+            <p class="heading-xl text-balance">{item.title}</p>
 
-            {item.body && <p class="cinta-detalle mt-4 max-w-xl text-[0.9375rem] leading-relaxed sm:text-[1.0625rem]">{item.body}</p>}
+            {item.body && <p class="cinta-detalle subtitle-lg mt-5 max-w-xl">{item.body}</p>}
           </li>
         ))
       }

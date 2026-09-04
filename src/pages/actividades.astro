@@ -1,18 +1,12 @@
 ---
-import { getImage } from 'astro:assets';
+import { getImage, inferRemoteSize } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import ArrowButton from '../components/ArrowButton.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { agruparPorMes, fechaDe, obtenerActividades } from '../lib/actividades';
+import PortadaActividades from '../components/PortadaActividades.astro';
+import { fechaDe, obtenerActividades, ranura } from '../lib/actividades';
+import type { Actividad } from '../lib/actividades';
 import { site, whatsappHref } from '../data/content';
-import portada from '../assets/img/actividades-portada.jpg';
-
-/*
-  La foto que se ve por detrás de la página. Va como fondo en CSS (y no como
-  <img>) porque tiene que asomar por dos huecos a la vez —la banda de arriba y
-  el rectángulo del calendario— como si estuviera clavada detrás del papel.
-*/
-const portadaFija = await getImage({ src: portada, width: 2200, format: 'webp' });
 
 const { actividades: crudas, desdeRespaldo } = await obtenerActividades();
 
@@ -26,17 +20,26 @@ const actividades = await Promise.all(
   crudas.map(async (actividad) => {
     if (!actividad.foto) return actividad;
     try {
+      /*
+        Las dos medidas, calculadas aquí y pasadas enteras.
+
+        Con `inferSize: true` y solo `width`, Astro cambiaba el ancho a 720 pero
+        se quedaba con el alto original: una foto de 2048x1214 salía de 720x1214
+        y una de 5556x4160, de 720x4160. Todas las de Notion son apaisadas y
+        todas llegaban estiradas a lo alto —parecían verticales, y no lo son—.
+        Preguntando las medidas por separado y dando las dos, la proporción se
+        respeta.
+      */
+      const medida = await inferRemoteSize(actividad.foto);
+      const ancho = Math.min(720, medida.width);
+      const alto = Math.round((ancho * medida.height) / medida.width);
+
       const imagen = await getImage({
         src: actividad.foto,
-        inferSize: true,
-        width: 720,
+        width: ancho,
+        height: alto,
         format: 'webp',
       });
-      /*
-        Las medidas viajan junto a la foto: el panel las usa para darle al
-        marco la proporción de cada imagen (las de Notion vienen verticales,
-        cuadradas y apaisadas) y para reservarle el sitio antes de que cargue.
-      */
       return {
         ...actividad,
         foto: imagen.src,
@@ -49,8 +52,6 @@ const actividades = await Promise.all(
     }
   })
 );
-
-const meses = agruparPorMes(actividades);
 
 const contactHref = whatsappHref('Hola, quiero saber más de las actividades') || '/#contacto';
 
@@ -82,1351 +83,1876 @@ const cruzaDias = (actividad: { inicio: string; fin?: string }) =>
   fechaDe(actividad.inicio).toDateString() !== fechaDe(actividad.fin!).toDateString();
 
 const diaLargo = (iso: string) => fechaDe(iso).toLocaleDateString('es-CL', { weekday: 'long' });
+
+/*
+  Agendar una actividad suelta en Google Calendar.
+
+  El `.ics` de la página entera es para suscribirse —te llega todo y se
+  mantiene solo—; esto es lo otro, llevarse una actividad al calendario propio
+  sin descargar un archivo. Se hace con el formulario de Google ya rellenado,
+  que no pide nada instalado: se abre, se ve el evento y se guarda.
+*/
+const comoUtc = (fecha: Date) => fecha.toISOString().replace(/[-:]|\.\d{3}/g, '');
+
+const comoDia = (fecha: Date) =>
+  `${fecha.getFullYear()}${String(fecha.getMonth() + 1).padStart(2, '0')}${String(
+    fecha.getDate()
+  ).padStart(2, '0')}`;
+
+const agendarHref = (actividad: Actividad) => {
+  const inicio = fechaDe(actividad.inicio);
+  // sin término declarado, lo mismo que hace el `.ics`: una hora, o el día entero
+  const fin = actividad.fin
+    ? fechaDe(actividad.fin)
+    : new Date(inicio.getTime() + (actividad.todoElDia ? 86_400_000 : 3_600_000));
+
+  /*
+    En las de todo el día Google cierra el rango en el día siguiente al último,
+    no en el último: sin ese día de más, un evento de una jornada no aparece.
+  */
+  const cierre = new Date(fin);
+  if (actividad.todoElDia) cierre.setDate(cierre.getDate() + 1);
+
+  const parametros = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: actividad.nombre,
+    dates: actividad.todoElDia
+      ? `${comoDia(inicio)}/${comoDia(cierre)}`
+      : `${comoUtc(inicio)}/${comoUtc(cierre)}`,
+  });
+
+  if (actividad.ubicacion) parametros.set('location', actividad.ubicacion);
+
+  const detalles = [actividad.descripcion, actividad.red && `Red a cargo: ${actividad.red}`]
+    .filter(Boolean)
+    .join('\n\n');
+  if (detalles) parametros.set('details', detalles);
+
+  return `https://calendar.google.com/calendar/render?${parametros}`;
+};
+
+/** El horario en una línea, que es como se lee en la pastilla y en la ficha. */
+const horario = (actividad: Actividad) => {
+  if (actividad.todoElDia) {
+    return cruzaDias(actividad)
+      ? `Todo el día, hasta el ${fechaDe(actividad.fin!).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}`
+      : 'Todo el día';
+  }
+  if (!actividad.fin) return `${hora(actividad.inicio)} hrs`;
+  return cruzaDias(actividad)
+    ? `${hora(actividad.inicio)} → ${hora(actividad.fin)} del ${diaLargo(actividad.fin)}`
+    : `${hora(actividad.inicio)} – ${hora(actividad.fin)} hrs`;
+};
+
+const claveMes = (iso: string) => {
+  const f = fechaDe(iso);
+  return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const claveDia = (iso: string) => {
+  const f = fechaDe(iso);
+  return `${claveMes(iso)}-${String(f.getDate()).padStart(2, '0')}`;
+};
+
+/*
+  La agenda es lo que manda en esta página, así que se arma aquí y no en el
+  navegador: se ve completa sin JavaScript, y el guion de abajo solo se
+  encarga de mostrar un mes a la vez, filtrar y abrir la ficha. Nada se
+  vuelve a dibujar en el cliente salvo el mapa del mes y la rejilla.
+*/
+type Jornada = { clave: string; dia: string; diaSemana: string; actividades: Actividad[] };
+type Bloque = { clave: string; titulo: string; mesSolo: string; anio: string; jornadas: Jornada[] };
+
+const bloques: Bloque[] = [];
+
+for (const actividad of actividades) {
+  const cMes = claveMes(actividad.inicio);
+  const cDia = claveDia(actividad.inicio);
+  const fecha = fechaDe(actividad.inicio);
+
+  let bloque = bloques.find((b) => b.clave === cMes);
+  if (!bloque) {
+    bloque = {
+      clave: cMes,
+      titulo: fecha.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' }),
+      mesSolo: fecha.toLocaleDateString('es-CL', { month: 'long' }),
+      anio: String(fecha.getFullYear()),
+      jornadas: [],
+    };
+    bloques.push(bloque);
+  }
+
+  let jornada = bloque.jornadas.find((j) => j.clave === cDia);
+  if (!jornada) {
+    jornada = {
+      clave: cDia,
+      dia: String(fecha.getDate()),
+      diaSemana: fecha.toLocaleDateString('es-CL', { weekday: 'long' }),
+      actividades: [],
+    };
+    bloque.jornadas.push(jornada);
+  }
+
+  jornada.actividades.push(actividad);
+}
+
+/** La más próxima: la lista ya viene ordenada y sin lo que ya pasó. */
+const proxima = actividades[0];
+
+const proximaCuando = proxima
+  ? `${diaLargo(proxima.inicio)} ${fechaDe(proxima.inicio).toLocaleDateString('es-CL', {
+      day: 'numeric',
+      month: 'long',
+    })} · ${proxima.todoElDia ? 'todo el día' : `${hora(proxima.inicio)} hrs`}`
+  : '';
 ---
 
-{/*
-  `heroFoto` le dice a la barra de navegación que la página abre sobre fondo
-  oscuro, así el logo y los enlaces van en blanco. Sin esto salían en tinta,
-  invisibles sobre el negro.
-*/}
 <BaseLayout
   title={`Actividades — ${site.name}`}
   description="Calendario de actividades de Iglesia Viña Puerto Montt: reuniones de redes, ensayos y eventos."
-  heroFoto
 >
+  <PortadaActividades proxima={proxima && { nombre: proxima.nombre, cuando: proximaCuando }} />
+
   {/*
-    `#actividades-editorial` es el ámbito del tema oscuro: los tokens de color
-    se redefinen ahí abajo, en el bloque de estilos.
+    El panel blanco. Sube por encima del durazno en que acaba la portada —de
+    ahí el margen negativo— y enseña ese color por el hueco de sus dos
+    esquinas de arriba, como la referencia. Aquí dentro va el calendario.
   */}
-  <div id="actividades-editorial" style={`--foto: url('${portadaFija.src}')`}>
-    {/*
-      Portada: el titular va encima de la foto y esta corta en seco contra el
-      negro, sin degradado. La misma imagen reaparece más abajo, por el hueco
-      del calendario: está quieta detrás y lo que se mueve es la página.
-    */}
-    <section
-      class="foto-fija foto-portada flex min-h-[78vh] items-end pt-32 pb-14 lg:min-h-[82vh] lg:pb-20"
-      aria-labelledby="actividades-titulo"
-    >
-      <div class="container-page">
-        <p class="eyebrow text-ink/75">Iglesia en movimiento</p>
-        <h1
-          id="actividades-titulo"
-          class="mt-5 leading-[0.9] font-normal tracking-[-0.04em] text-balance text-ink"
-          style="font-size: clamp(2.5rem, 1rem + 5.4vw, 5.25rem)"
-        >
-          Calendario de Actividades
-        </h1>
-        <p class="mt-6 max-w-lg text-lg text-ink/90">
-          Permanece conectado y participa de todo lo que realizamos como iglesia
-        </p>
-      </div>
-    </section>
-
-    {/*
-      De aquí para abajo, papel blanco: la portada corta en seco contra él.
-      `tramo-claro` invierte los tokens del tema para todo lo que envuelve.
-    */}
-    <div class="tramo-claro">
-    <section class="py-14 lg:py-20">
-      <div class="container-page">
-        <div class="flex flex-wrap items-center gap-x-7 gap-y-4">
-          <a
-            href={suscribirGoogle}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-3 text-sm font-medium sobre-tinta transition-opacity hover:opacity-85"
-          >
-            <Icon name="lucide:calendar-plus" width={17} height={17} aria-hidden="true" />
-            Suscribirme en Google Calendar
-            <span class="sr-only">(se abre en una ventana nueva)</span>
-          </a>
-
-          <a href="/actividades.ics" class="enlace text-sm text-ink/80 hover:text-ink">
-            Descargar para Apple u Outlook
-          </a>
-
-          <p class="w-full text-xs text-muted sm:w-auto">
-            Y no te pierdas de nada
-          </p>
-        </div>
-      </div>
-    </section>
-
-  <section class="pb-24 lg:pb-32" aria-label="Calendario de actividades">
-    <div class="container-page">
+  <div class="relative z-10 -mt-8 rounded-t-[2rem] bg-white pt-12 lg:-mt-12 lg:rounded-t-[2.75rem] lg:pt-20">
+    <section id="calendario" class="pb-24 lg:pb-32" aria-label="Calendario de actividades">
       {/*
-        Los datos viajan como JSON y el calendario se dibuja en el navegador:
-        así se puede navegar entre meses sin recargar. Si no hay JavaScript
-        queda la agenda de más abajo, que sí viene renderizada del servidor.
+        Los datos viajan también como JSON: el mapa del mes y la rejilla se
+        dibujan en el navegador, que es donde se sabe qué día es hoy.
       */}
-      <script type="application/json" id="datos-actividades" set:html={JSON.stringify(actividades)} />
+        <script
+          type="application/json"
+          id="datos-actividades"
+          set:html={JSON.stringify(
+            actividades.map((a) => ({
+              nombre: a.nombre,
+              inicio: a.inicio,
+              fin: a.fin ?? null,
+              todoElDia: a.todoElDia,
+              ubicacion: a.ubicacion ?? null,
+              red: a.red ?? null,
+              foto: a.foto ?? null,
+              ancho: (a as any).ancho ?? null,
+              alto: (a as any).alto ?? null,
+              descripcion: a.descripcion ?? null,
+              dia: claveDia(a.inicio),
+              mes: claveMes(a.inicio),
+              horario: horario(a),
+              /* para el botón «Agendar en Google» de la ficha del año */
+              agendar: agendarHref(a),
+              /* la ranura de su calendario propio: /calendarios/<ranura>.ics */
+              ranura: ranura(a.nombre),
+              fechaLarga: `${diaLargo(a.inicio)} ${fechaDe(a.inicio).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+            }))
+          )}
+        />
 
-      {/*
-        El hueco por el que asoma la foto, y encima el calendario como una
-        tarjeta con su propio fondo: la imagen se ve limpia por el margen y la
-        rejilla no tiene que pelear con ella.
-      */}
-      <div class="foto-fija rounded-[12px] p-3 sm:p-8 lg:p-14">
-      <div class="cal-tarjeta rounded-[10px] border border-ink/10 px-4 py-6 sm:px-7 sm:py-8 lg:px-9 lg:py-10">
+      <div class="container-page">
+        <div class="voz-fina pt-12 lg:grid lg:grid-cols-[23.75rem_minmax(0,1fr)] lg:items-start lg:gap-20">
+          {/*
+            El puesto de mando, entero.
 
-      <div id="cal-barra" class="hidden flex-wrap items-center justify-between gap-4 pt-0">
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            id="cal-antes"
-            class="grid size-9 place-items-center rounded-full border border-ink/15 text-ink transition-colors hover:bg-mist"
-          >
-            <span class="sr-only">Periodo anterior</span>
-            <Icon name="lucide:chevron-left" width={18} height={18} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            id="cal-despues"
-            class="grid size-9 place-items-center rounded-full border border-ink/15 text-ink transition-colors hover:bg-mist"
-          >
-            <span class="sr-only">Periodo siguiente</span>
-            <Icon name="lucide:chevron-right" width={18} height={18} aria-hidden="true" />
-          </button>
+            Antes iba repartido entre una barra fija de dos filas y esta
+            tarjeta. La barra se fue y todo bajó aquí, que es el sitio que ya
+            se queda pegado al bajar: los mandos siguen a mano y, a cambio,
+            nada ocupa franja fija —la lista tiene la pantalla entera—.
 
-          <h2
-            id="cal-titulo"
-            class="ml-3 text-2xl font-normal tracking-[-0.03em] text-ink first-letter:uppercase sm:text-[1.75rem]"
-            aria-live="polite"
-          >
-          </h2>
-        </div>
+            Se pega a 7rem, que es lo que ocupa la píldora flotante del menú;
+            la misma medida que usan las secciones en su `scroll-margin-top`.
+          */}
+          <aside class="cal-panel">
+            <div class="rounded-card bg-mist p-6">
+              {/*
+                Todo lo de dentro depende del guion —sin él no hay meses que
+                pasar ni filtros que aplicar—; la suscripción, que sí funciona
+                sola, va fuera y se ve siempre.
+              */}
+              <div id="cal-mapa" class="hidden">
+                {/*
+                  Buscar por nombre. El desplegable no es un `<select>` sino
+                  la lista de actividades del año que coinciden: con
+                  actividades que se repiten cada semana, ofrecer nombres es
+                  más útil que obligar a escribirlos enteros.
+                */}
+                <div class="relative">
+                  <label for="cal-buscar" class="sr-only">Buscar una actividad por su nombre</label>
+                  <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted">
+                    <Icon name="lucide:search" width={17} height={17} aria-hidden="true" />
+                  </span>
+                  <input
+                    type="search"
+                    id="cal-buscar"
+                    placeholder="Buscar actividad"
+                    autocomplete="off"
+                    role="combobox"
+                    aria-expanded="false"
+                    aria-controls="cal-sugerencias"
+                    class="w-full rounded-full bg-white py-3 pr-10 pl-11 text-[0.9375rem] text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-ink)_12%,transparent)] outline-none placeholder:text-muted focus:shadow-[inset_0_0_0_2px_var(--color-accent)]"
+                  />
+                  <button
+                    type="button"
+                    id="cal-buscar-limpiar"
+                    class="absolute top-1/2 right-3 hidden size-7 -translate-y-1/2 place-items-center rounded-full text-muted transition-colors hover:bg-ink/10 hover:text-ink"
+                  >
+                    <span class="sr-only">Borrar la búsqueda</span>
+                    <Icon name="lucide:x" width={15} height={15} aria-hidden="true" />
+                  </button>
 
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            id="cal-hoy"
-            class="rounded-full border border-ink/15 px-4 py-1.5 text-sm text-ink transition-colors hover:bg-mist"
-          >
-            Hoy
-          </button>
+                  <ul
+                    id="cal-sugerencias"
+                    role="listbox"
+                    aria-label="Actividades que coinciden"
+                    class="absolute inset-x-0 top-full z-20 mt-2 hidden max-h-[22rem] overflow-y-auto rounded-[1.25rem] bg-white p-1.5 shadow-lg shadow-black/10 ring-1 ring-ink/10"
+                  ></ul>
+                </div>
 
-          {/* selector de vista: el activo se invierte, blanco sobre negro */}
-          <div
-            class="flex rounded-full border border-ink/15 p-1"
-            role="group"
-            aria-label="Vista del calendario"
-          >
+                {/*
+                  El mes titula su propio calendario, que es donde siempre
+                  tuvo que estar: en la barra hablaba de una rejilla que
+                  estaba en otro sitio.
+                */}
+                <div class="mt-5 flex items-center justify-between gap-4">
+                  <div class="flex items-baseline gap-2.5">
+                    <h2 id="cal-mes" class="heading-md text-ink first-letter:uppercase" aria-live="polite"></h2>
+                    <p id="cal-anio" class="nota"></p>
+                  </div>
+
+                  <div class="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      id="cal-antes"
+                      class="grid size-9 place-items-center rounded-full border border-ink/12 bg-white text-ink transition-colors hover:bg-white/60 disabled:bg-transparent disabled:opacity-30"
+                    >
+                      <span class="sr-only">Mes anterior</span>
+                      <Icon name="lucide:chevron-left" width={17} height={17} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      id="cal-despues"
+                      class="grid size-9 place-items-center rounded-full border border-ink/12 bg-white text-ink transition-colors hover:bg-white/60 disabled:bg-transparent disabled:opacity-30"
+                    >
+                      <span class="sr-only">Mes siguiente</span>
+                      <Icon name="lucide:chevron-right" width={17} height={17} aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+
+                <div id="cal-mini" class="mt-4">
+                  <div id="cal-semana" class="grid grid-cols-7 gap-1"></div>
+                  <div id="cal-dias" class="grid grid-cols-7 gap-1"></div>
+                </div>
+
+                {/*
+                  Lo que se está viendo, en una línea, y la vuelta a hoy. El
+                  recuento dice también por qué se está filtrando, que es lo
+                  que antes hacía un rótulo aparte encima de la lista.
+                */}
+                <div class="mt-4 flex items-center justify-between gap-4">
+                  <p id="cal-resumen" class="nota"></p>
+                  <button
+                    type="button"
+                    id="cal-hoy"
+                    class="shrink-0 rounded-full border border-ink/12 bg-white px-4 py-2 text-[0.9375rem] text-ink transition-colors hover:bg-white/60 disabled:border-transparent disabled:bg-transparent disabled:opacity-35"
+                  >
+                    Hoy
+                  </button>
+                </div>
+
+                {/* con una actividad abierta, el mapa deja de hablar del mes */}
+                <p id="cal-mapa-nota" class="nota mt-3.5 hidden"></p>
+
+                <div class="mt-5 h-px bg-ink/10"></div>
+
+                <p class="eyebrow mt-5">Quién convoca</p>
+                <div id="cal-redes" class="mt-3.5 flex flex-wrap gap-2"></div>
+
+                <button
+                  type="button"
+                  id="cal-limpiar"
+                  class="mt-4 hidden text-[0.9375rem] text-muted underline-offset-4 hover:text-ink hover:underline"
+                >
+                  Quitar el filtro
+                </button>
+
+                {/*
+                  El conmutador de vista. Solo en escritorio: la rejilla de
+                  siete columnas en un teléfono deja celdas de 45px, donde el
+                  nombre de la actividad se corta a la mitad.
+                */}
+                <div id="cal-vistas" class="mt-5">
+                  <p class="eyebrow">Vista</p>
+                  <div
+                    class="mt-3.5 grid grid-cols-2 gap-1 rounded-full border border-ink/12 bg-white p-1"
+                    role="group"
+                    aria-label="Vista del calendario"
+                  >
+                    <button
+                      type="button"
+                      data-vista="agenda"
+                      class="cal-vista rounded-full px-4 py-2 text-center text-[0.9375rem] text-muted transition-colors"
+                      aria-pressed="true"
+                    >
+                      Agenda
+                    </button>
+                    <button
+                      type="button"
+                      data-vista="mes"
+                      class="cal-vista rounded-full px-4 py-2 text-center text-[0.9375rem] text-muted transition-colors"
+                      aria-pressed="false"
+                    >
+                      Mes
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mt-5 h-px bg-ink/10"></div>
+              </div>
+
+              {/*
+                La suscripción. Fuera del bloque de arriba a propósito: es lo
+                único de la tarjeta que funciona sin JavaScript, así que se ve
+                siempre.
+              */}
+              <div class="flex flex-col items-start gap-3.5 pt-5">
+                <ArrowButton
+                  label="Suscribirme al calendario"
+                  href={suscribirGoogle}
+                  external
+                  variant="accent"
+                  size="md"
+                />
+                <a
+                  href="/actividades.ics"
+                  class="text-[0.9375rem] text-ink/80 underline-offset-4 hover:text-ink hover:underline"
+                >
+                  Descargar para Apple u Outlook
+                </a>
+              </div>
+            </div>
+          </aside>
+
+          {/* en móvil, apilado bajo el puesto de mando, la lista necesita su aire */}
+          <div id="cal-lista" class="mt-12 scroll-mt-24 lg:mt-0">
+            {/* la rejilla del mes la dibuja el guion: depende de qué día cae dónde */}
+            <div id="cal-rejilla" class="hidden"></div>
+
+            {/*
+              La ficha del año. Se abre al elegir una actividad en el buscador
+              y ocupa el sitio de la agenda: mientras la agenda contesta «qué
+              pasa este mes», esto contesta «cuándo es esto, todo el año».
+
+              Va servida y vacía; el guion solo rellena los huecos y dibuja la
+              cinta de meses. Así los iconos siguen saliendo del componente y
+              no hay SVG escritos a mano dentro de una cadena de texto.
+            */}
+            <div id="cal-actividad" class="hidden" data-dominio={dominio}>
+              <button
+                type="button"
+                id="cal-volver"
+                class="inline-flex items-center gap-2 text-[0.9375rem] text-muted transition-colors hover:text-ink"
+              >
+                <Icon name="lucide:chevron-left" width={15} height={15} aria-hidden="true" />
+                Volver al calendario
+              </button>
+
+              <h2 id="cal-act-nombre" class="heading-lg mt-4 text-ink" aria-live="polite"></h2>
+
+              <div class="mt-4 flex flex-wrap items-center gap-x-3.5 gap-y-2">
+                <span
+                  id="cal-act-red"
+                  class="rounded-full border px-2.5 py-1 text-[0.8125rem] font-semibold tracking-[0.06em] uppercase"
+                ></span>
+                <span id="cal-act-lugar" class="nota inline-flex items-center gap-2">
+                  <Icon name="lucide:map-pin" width={14} height={14} aria-hidden="true" />
+                  <span id="cal-act-lugar-texto"></span>
+                </span>
+              </div>
+
+              <p id="cal-act-cadencia" class="subtitle-lg mt-3.5 max-w-prose"></p>
+
+              <p id="cal-act-descripcion" class="nota mt-3.5 max-w-prose whitespace-pre-line text-ink"></p>
+
+              {/*
+                La fecha que se está mirando: al abrir, la próxima; al pulsar
+                una de la cinta, esa. Es la que se lleva el botón de agendar,
+                porque Google agenda un evento, no una serie.
+              */}
+              <div
+                class="mt-7 flex flex-wrap items-center justify-between gap-5 rounded-[1.5rem] bg-mist p-5 sm:px-6"
+              >
+                <div>
+                  <p id="cal-act-rotulo" class="eyebrow"></p>
+                  <p id="cal-act-fecha" class="heading-md mt-2 text-ink first-letter:uppercase"></p>
+                  <p id="cal-act-hora" class="nota mt-1.5"></p>
+                </div>
+
+                <a
+                  id="cal-act-agendar"
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="group inline-flex shrink-0 items-center gap-3 rounded-full bg-accent py-2 pr-2 pl-5 text-[1rem] font-semibold text-white transition-colors hover:bg-accent-strong"
+                >
+                  Agendar en Google
+                  <span class="sr-only">(se abre en una ventana nueva)</span>
+                  <span
+                    class="grid size-8 shrink-0 place-items-center rounded-full bg-white text-accent transition-transform duration-200 group-hover:translate-x-0.5"
+                  >
+                    <Icon name="lucide:arrow-right" width={16} height={16} aria-hidden="true" />
+                  </span>
+                </a>
+              </div>
+
+              <div class="mt-11 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-ink/15 pb-4">
+                <p class="eyebrow">El año completo</p>
+                <p id="cal-act-balance" class="nota"></p>
+              </div>
+
+              {/* la cinta: un mes por columna, cada fecha una píldora */}
+              <div
+                id="cal-act-meses"
+                class="mt-6 grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3 lg:grid-cols-4"
+              ></div>
+
+              <div class="mt-11 flex flex-wrap items-center gap-x-6 gap-y-4">
+                <a
+                  id="cal-act-suscribir"
+                  href="#"
+                  class="group inline-flex shrink-0 items-center gap-3 rounded-full bg-accent py-2 pr-2 pl-5 text-[1rem] font-semibold text-white transition-colors hover:bg-accent-strong"
+                >
+                  Suscribirme solo a esta actividad
+                  <span
+                    class="grid size-8 shrink-0 place-items-center rounded-full bg-white text-accent transition-transform duration-200 group-hover:translate-x-0.5"
+                  >
+                    <Icon name="lucide:arrow-right" width={16} height={16} aria-hidden="true" />
+                  </span>
+                </a>
+
+                <a
+                  id="cal-act-descargar"
+                  href="#"
+                  class="text-[0.9375rem] text-ink/80 underline-offset-4 hover:text-ink hover:underline"
+                ></a>
+              </div>
+            </div>
+
+            {/*
+              La agenda, servida ya hecha. Sin JavaScript se ven todos los meses
+              seguidos, con su título; con él, el título sobra —lo dice la
+              columna de al lado— y se muestra un mes cada vez.
+            */}
+            <div id="agenda">
+              {
+                bloques.length === 0 && (
+                  <p class="subtitle-lg border-t border-ink/15 pt-10">
+                    Por ahora no hay actividades agendadas. Vuelve pronto o escríbenos.
+                  </p>
+                )
+              }
+
+              {
+                bloques.map((bloque) => (
+                  <section class="cal-mes" data-mes={bloque.clave}>
+                    <h2 class="cal-mes-titulo heading-lg mt-14 text-ink first-letter:uppercase lg:mt-16">
+                      {bloque.titulo}
+                    </h2>
+
+                    {bloque.jornadas.map((jornada) => (
+                      <div class="cal-jornada border-b border-ink/15" data-dia={jornada.clave}>
+                        <div class="flex flex-col gap-5 py-8 sm:flex-row sm:gap-11">
+                          <div class="shrink-0 sm:w-24">
+                            <p class="cifra text-ink">{jornada.dia}</p>
+                            <p class="eyebrow mt-2">{jornada.diaSemana}</p>
+                          </div>
+
+                          <div class="flex min-w-0 flex-1 flex-col gap-6">
+                            {jornada.actividades.map((actividad, i) => (
+                              <div class="cal-fila">
+                              <button
+                                type="button"
+                                id={`cal-fila-${jornada.clave}-${i}`}
+                                class="cal-item relative -mx-4 block rounded-[1.125rem] py-3 pr-13 pl-4 text-left transition-colors"
+                                aria-controls={`cal-detalle-${jornada.clave}-${i}`}
+                                data-red={actividad.red ?? ''}
+                                data-nombre={actividad.nombre}
+                              >
+                                <span class="flex flex-wrap items-baseline gap-x-3.5 gap-y-2">
+                                  <span class="cal-nombre heading-md text-ink transition-colors">
+                                    {actividad.nombre}
+                                  </span>
+                                  {actividad.red ? (
+                                    <span class="rounded-full border border-accent/35 px-2.5 py-1 text-[0.8125rem] font-semibold tracking-[0.06em] text-accent uppercase">
+                                      {actividad.red}
+                                    </span>
+                                  ) : (
+                                    <span class="rounded-full border border-ink/15 px-2.5 py-1 text-[0.8125rem] font-semibold tracking-[0.06em] text-muted uppercase">
+                                      Iglesia
+                                    </span>
+                                  )}
+                                </span>
+
+                                <span class="mt-3.5 flex flex-wrap items-center gap-x-2.5 gap-y-2">
+                                  <span class="inline-flex items-center gap-2 rounded-full bg-mist px-3.5 py-1.5 text-[0.9375rem] text-ink">
+                                    <Icon name="lucide:clock" width={14} height={14} aria-hidden="true" />
+                                    {horario(actividad)}
+                                  </span>
+                                  {actividad.ubicacion && (
+                                    <span class="nota inline-flex items-center gap-2">
+                                      <Icon name="lucide:map-pin" width={14} height={14} aria-hidden="true" />
+                                      {actividad.ubicacion}
+                                    </span>
+                                  )}
+                                </span>
+
+                                <span class="cal-chevron absolute top-3.5 right-2 grid size-8 place-items-center rounded-full bg-ink/6 text-ink">
+                                  <Icon name="lucide:chevron-down" width={16} height={16} aria-hidden="true" />
+                                </span>
+                              </button>
+
+                              {/*
+                                La ficha. Va servida y escondida, no montada al
+                                pulsar: así se ve entera sin JavaScript y no hay
+                                nada que dibujar al abrir. La fila de arriba ya
+                                dice nombre, hora y lugar, así que aquí solo va
+                                lo que allí no cabe —la foto— y lo que se hace
+                                con la actividad.
+                              */}
+                              <div
+                                id={`cal-detalle-${jornada.clave}-${i}`}
+                                class="cal-detalle"
+                                role="region"
+                                aria-labelledby={`cal-fila-${jornada.clave}-${i}`}
+                              >
+                                <div>
+                                  <div class="mt-4 flex flex-col gap-5 rounded-[1.5rem] bg-mist p-4 sm:p-5">
+                                    {/*
+                                      En escritorio, la foto a la izquierda y el
+                                      texto a su derecha. En el teléfono no: la
+                                      columna que queda al lado de la foto son
+                                      160px, y una descripción ahí se lee de tres
+                                      palabras en tres palabras, así que se
+                                      apila debajo y usa el ancho entero.
+                                    */}
+                                    <div class="flex flex-col gap-4 sm:flex-row sm:gap-6">
+                                      {actividad.foto && (
+                                        /*
+                                          El marco es un cuadrado de verdad y
+                                          siempre el mismo: 140px en el teléfono
+                                          y 250 de tableta para arriba. Va en su
+                                          propio contenedor, con `shrink-0` para
+                                          que el flex no se lo coma.
+
+                                          La foto entra entera (`contain`) en vez
+                                          de llenarlo recortando: de lo que sube
+                                          la iglesia hay afiches y capturas donde
+                                          lo que importa está en un borde, y ahí
+                                          recortar es perderlo. El hueco que
+                                          sobra a los lados lo llena el gris de
+                                          la tarjeta.
+                                        */
+                                        <div class="grid aspect-square w-35 shrink-0 place-items-center sm:w-[250px]">
+                                          <img
+                                            src={actividad.foto}
+                                            alt=""
+                                            width={(actividad as any).ancho}
+                                            height={(actividad as any).alto}
+                                            loading="lazy"
+                                            decoding="async"
+                                            class="max-h-full max-w-full rounded-[1.125rem]"
+                                          />
+                                        </div>
+                                      )}
+
+                                      {/*
+                                        Solo la fecha larga: la hora, el lugar y
+                                        quién convoca ya están en la fila de
+                                        arriba, y repetirlos aquí era leer dos
+                                        veces lo mismo a dos centímetros.
+                                      */}
+                                      <div class="flex min-w-0 flex-col gap-3 sm:self-center">
+                                        <span class="nota text-ink first-letter:uppercase">
+                                          {`${diaLargo(actividad.inicio)} ${fechaDe(actividad.inicio).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                                        </span>
+
+                                        {/*
+                                          Lo escrito en el cuerpo de la página de
+                                          Notion. `whitespace-pre-line` para que
+                                          los renglones que teclearon allí sigan
+                                          siendo renglones aquí.
+                                        */}
+                                        {actividad.descripcion && (
+                                          <p class="nota max-w-prose whitespace-pre-line text-ink">
+                                            {actividad.descripcion}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2.5">
+                                      <a
+                                        href={agendarHref(actividad)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-2.5 rounded-full bg-accent px-5 py-3 text-[0.9375rem] font-semibold text-white transition-colors hover:bg-accent-strong"
+                                      >
+                                        Agendar en Google
+                                        <span class="sr-only">(se abre en una ventana nueva)</span>
+                                        <Icon name="lucide:arrow-right" width={15} height={15} aria-hidden="true" />
+                                      </a>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </section>
+                ))
+              }
+            </div>
+
+            {/*
+              La agenda abre por lo próximo y no por el mes entero: con
+              dieciséis actividades la lista mide más de dos mil píxeles, y
+              todo lo que viene después de la sección queda detrás de ese
+              muro. Se enseñan cinco días y el resto se pide.
+            */}
             <button
               type="button"
-              data-vista="mes"
-              class="cal-vista rounded-full px-4 py-1 text-sm text-ink transition-colors"
-              aria-pressed="true"
+              id="cal-mas"
+              class="mt-7 hidden w-full items-center justify-center gap-2.5 rounded-full border border-ink/15 px-6 py-3.5 text-[0.9375rem] font-semibold text-ink transition-colors hover:bg-mist"
             >
-              Mes
+              <span id="cal-mas-texto"></span>
+              <Icon id="cal-mas-icono" name="lucide:chevron-down" width={16} height={16} aria-hidden="true" />
             </button>
-            <button
-              type="button"
-              data-vista="semana"
-              class="cal-vista rounded-full px-4 py-1 text-sm text-ink transition-colors"
-              aria-pressed="false"
-            >
-              Semana
-            </button>
+
+            {/* cuando el filtro deja el mes sin nada que enseñar */}
+            <div id="cal-vacio" class="hidden pt-14">
+              <p class="heading-md text-ink">Nada por aquí todavía.</p>
+              <p id="cal-vacio-nota" class="subtitle mt-2.5"></p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div
-        id="cal-lienzo"
-        class="mt-8 lg:grid lg:grid-cols-1 lg:items-start lg:gap-10"
-        data-panel="cerrado"
-      >
-        <div id="cal" class="hidden"></div>
-
-        {/* detalle de la actividad elegida */}
-        {/*
-          En pantalla grande el panel queda fijo mientras se navega el
-          calendario. Se le limita el alto a lo que se ve: con una foto muy
-          alta, antes los datos y los botones quedaban debajo del borde de la
-          pantalla y no había cómo llegar a ellos.
-        */}
-        <aside
-          id="cal-detalle"
-          class="mt-6 hidden lg:sticky lg:top-24 lg:mt-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"
-          aria-live="polite"
-        >
-        </aside>
-      </div>
-      </div>
-      </div>
-
-      {/* Agenda: es lo que se ve sin JavaScript, y el respaldo si algo falla */}
-      <div id="agenda" class="flex flex-col gap-16 lg:gap-20">
         {
-          meses.length === 0 && (
-            <p class="subtitle-lg border-t border-ink/15 pt-10">
-              Por ahora no hay actividades agendadas. Vuelve pronto o escríbenos.
+          desdeRespaldo && (
+            <p class="nota mt-10 text-center">
+              Vista previa con datos de ejemplo — falta conectar la base de Notion.
             </p>
           )
         }
-
-        {
-          meses.map((mes) => (
-            <div>
-              <h2 class="heading-lg text-ink first-letter:uppercase">{mes.titulo}</h2>
-
-              <ul class="mt-4">
-                {mes.actividades.map((actividad) => (
-                  <li class="border-t border-ink/15">
-                    <div class="flex flex-col gap-4 py-6 sm:flex-row sm:items-baseline sm:gap-10">
-                      <div class="flex shrink-0 items-baseline gap-3 sm:w-28 sm:flex-col sm:gap-0">
-                        <span class="text-[2.5rem] leading-none font-normal tracking-[-0.04em] text-ink">
-                          {fechaDe(actividad.inicio).toLocaleDateString('es-CL', { day: '2-digit' })}
-                        </span>
-                        <span class="eyebrow sm:mt-2">
-                          {fechaDe(actividad.inicio)
-                            .toLocaleDateString('es-CL', { weekday: 'short' })
-                            .replace('.', '')}
-                        </span>
-                      </div>
-
-                      <div class="min-w-0 flex-1">
-                        <h3 class="heading-md text-ink">{actividad.nombre}</h3>
-
-                        <ul class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted sm:text-[0.9375rem]">
-                          {!actividad.todoElDia && (
-                            <li class="flex items-center gap-2">
-                              <Icon name="lucide:clock" width={16} height={16} aria-hidden="true" />
-                              <span>
-                                {hora(actividad.inicio)}
-                                {actividad.fin &&
-                                  (cruzaDias(actividad)
-                                    ? ` → ${hora(actividad.fin)} del ${diaLargo(actividad.fin)}`
-                                    : ` – ${hora(actividad.fin)}`)}
-                              </span>
-                            </li>
-                          )}
-                          {actividad.todoElDia && cruzaDias(actividad) && (
-                            <li class="flex items-center gap-2">
-                              <Icon name="lucide:calendar" width={16} height={16} aria-hidden="true" />
-                              <span>
-                                hasta el{' '}
-                                {fechaDe(actividad.fin!).toLocaleDateString('es-CL', {
-                                  day: 'numeric',
-                                  month: 'long',
-                                })}
-                              </span>
-                            </li>
-                          )}
-                          {actividad.ubicacion && (
-                            <li class="flex items-center gap-2">
-                              <Icon name="lucide:map-pin" width={16} height={16} aria-hidden="true" />
-                              <span>{actividad.ubicacion}</span>
-                            </li>
-                          )}
-                          {actividad.red && (
-                            <li class="flex items-center gap-2">
-                              <Icon name="lucide:users" width={16} height={16} aria-hidden="true" />
-                              <span>{actividad.red}</span>
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        }
       </div>
+    </section>
 
-      {
-        desdeRespaldo && (
-          <p class="mt-8 text-center text-xs text-muted">
-            Vista previa con datos de ejemplo — falta conectar la base de Notion.
-          </p>
-        )
-      }
-    </div>
-  </section>
-  </div>
-  </div>
+    <section class="pb-24 lg:pb-32">
+      <div class="container-page">
+        <div class="flex flex-col gap-8 rounded-[2rem] bg-mist px-8 py-12 lg:flex-row lg:items-center lg:justify-between lg:gap-16 lg:rounded-[2.75rem] lg:px-16 lg:py-16">
+          <div class="voz-fina lg:max-w-xl">
+            <h2 class="heading-lg text-ink">¿Quieres ser parte?</h2>
+            <p class="subtitle-lg mt-4">
+              Escríbenos y te contamos cómo sumarte a la actividad que te interese.
+            </p>
+          </div>
 
-  {/*
-    El cierre, ya fuera del tema: mismo bloque claro que en el resto del
-    sitio, con la pastilla naranja.
-  */}
-  <section class="pt-20 pb-24 lg:pt-24 lg:pb-32">
-    <div class="container-page">
-      <div class="rounded-[2rem] bg-mist px-8 py-12 text-center lg:rounded-[2.75rem] lg:px-16 lg:py-16">
-        <h2 class="heading-lg mx-auto max-w-xl text-ink">¿Quieres ser parte?</h2>
-        <p class="subtitle-lg mx-auto mt-4 max-w-md">
-          Escríbenos y te contamos cómo sumarte a la actividad que te interese.
-        </p>
-
-        <div class="mt-8 flex justify-center">
-          <ArrowButton
-            label="Contactar"
-            href={contactHref}
-            external={contactHref.startsWith('http')}
-            variant="accent"
-            size="md"
-          />
+          <div class="shrink-0">
+            <ArrowButton
+              label="Contactar"
+              href={contactHref}
+              external={contactHref.startsWith('http')}
+              variant="accent"
+              size="md"
+            />
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
+
 </BaseLayout>
 
-{/*
-  Global y acotado a #cal a propósito: las celdas y los chips los crea el
-  script en el navegador, así que no llevan el atributo de estilos con ámbito
-  que Astro pone en el marcado de la plantilla.
-*/}
 <style is:global>
-  /* ---------------------------------------------------------------------
-     Tema editorial oscuro, solo en esta página.
-
-     En vez de cambiar clase por clase, se redefinen aquí los tokens de
-     color: las utilidades de Tailwind los leen con `var()`, así que todo el
-     marcado —el de la plantilla y el que dibuja el script— cambia de piel
-     de una vez. `ink` pasa a ser el color del texto (blanco) y `mist`, la
-     superficie suave (blanco muy transparente).
-     --------------------------------------------------------------------- */
-  /*
-    El negro lo pone el propio ámbito y no el `body`: la página termina en
-    claro, con el bloque de cierre igual que en el resto del sitio.
-  */
-  #actividades-editorial {
-    --color-ink: #ffffff;
-    --color-muted: rgba(255, 255, 255, 0.6);
-    --color-mist: rgba(255, 255, 255, 0.07);
-    --fondo: #090909;
-
-    background-color: var(--fondo);
-    color: #fff;
-  }
-
-  /* ---------------------------------------------------------------------
-     La foto detrás del papel.
-
-     `background-attachment: fixed` ancla la imagen a la ventana del
-     navegador, no al elemento. Como los dos huecos —la banda de arriba y el
-     rectángulo del calendario— la piden con el mismo encuadre, ambos enseñan
-     el mismo trozo de una única foto que se queda quieta mientras la página
-     se desliza por encima. Es el efecto de la referencia.
-     --------------------------------------------------------------------- */
-  #actividades-editorial .foto-fija {
-    background-image: var(--foto);
-    background-attachment: fixed;
+  /* la foto de la portada se recorta por el centro, sea cual sea el alto */
+  header[aria-labelledby='actividades-titulo'] {
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
   }
 
-  /*
-    La portada lleva un oscurecido parejo —no un degradado— para que el
-    titular blanco se lea también donde cruza la bandera naranja. El corte
-    contra el negro sigue siendo a filo.
-  */
-  #actividades-editorial .foto-portada {
-    background-image: linear-gradient(rgba(9, 9, 9, 0.42), rgba(9, 9, 9, 0.42)), var(--foto);
+  /* Con JavaScript el título del mes vive en la columna fija */
+  .cal-vivo .cal-mes-titulo {
+    display: none;
   }
 
   /*
-    El calendario va sobre la foto, no dentro: lleva su propio fondo, casi
-    opaco y con la imagen desenfocada por detrás. Así la rejilla se lee sin
-    esfuerzo y la foto se sigue viendo entera por el margen.
+    El campo lleva su propia equis, dibujada y colocada; la que Chrome añade
+    a los `type="search"` se ponía al lado y quedaban dos. Se notaba desde
+    que elegir una actividad deja el nombre escrito en el campo.
   */
-  #actividades-editorial .cal-tarjeta {
-    background-color: color-mix(in srgb, var(--fondo) 88%, transparent);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+  #cal-buscar::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
   }
 
-  /* Sin `backdrop-filter` el fondo tiene que taparlo todo él solo. */
-  @supports not (backdrop-filter: blur(1px)) {
-    #actividades-editorial .cal-tarjeta {
-      background-color: color-mix(in srgb, var(--fondo) 96%, transparent);
+  .cal-item:hover {
+    background-color: #faf9f7;
+  }
+
+  .cal-item:hover .cal-nombre {
+    color: var(--color-accent);
+  }
+
+  /*
+    El panel se pega, pero solo si cabe entero.
+
+    Con todo dentro —buscar, el mes, la rejilla, las redes, la vista y la
+    suscripción— mide 821px, y hasta 870 en un mes que ocupe seis semanas. En
+    una ventana más baja, pegarlo escondería justo lo de abajo: el conmutador
+    y el botón de suscribirse quedarían fuera de la pantalla y no habría forma
+    de llegar a ellos sin volver arriba. Ahí es mejor que baje con la página,
+    como una columna cualquiera. 61rem son esos 870 más los 96 de arriba.
+  */
+  @media (width >= 64rem) and (height >= 61rem) {
+    .cal-panel {
+      position: sticky;
+      top: 6rem;
+      align-self: start;
     }
   }
 
   /*
-    En táctil no existe el fondo fijo (iOS lo ignora y lo pinta a saltos): se
-    ancla al elemento. Se pierde el calce entre los dos huecos, pero la foto
-    se sigue viendo y el scroll no se atasca.
+    El conmutador solo tiene sentido con el guion vivo —sin él no hay vistas
+    que cambiar— y solo en escritorio. Nace oculto y el guion le pone `vivo`
+    al arrancar; `oculto` lo vuelve a esconder mientras hay una ficha del año
+    abierta, que no es ni agenda ni rejilla.
+
+    El interruptor va en el propio elemento y no en `.cal-vivo` como el resto:
+    así el bloque puede moverse por la página sin que el selector deje de
+    alcanzarlo.
   */
-  @media (hover: none) {
-    #actividades-editorial .foto-fija {
-      background-attachment: scroll;
-    }
+  #cal-vistas {
+    display: none;
   }
 
-  /*
-    Tramo claro: de la portada para abajo se invierte todo. Basta con
-    redefinir los tokens —incluido `--fondo`, que es el color del papel— y el
-    marcado entero cambia de piel, también el que dibuja el script.
-  */
-  #actividades-editorial .tramo-claro {
-    --color-ink: #111111;
-    --color-muted: #6a6a6a;
-    --color-mist: #f1f0ec;
-    --fondo: #ffffff;
-
-    background-color: var(--fondo);
-    color: var(--color-ink);
-  }
-
-  /*
-    Sobre papel blanco la tarjeta necesita algo más de cuerpo: al 88% los
-    naranjas de la bandera la teñían.
-  */
-  #actividades-editorial .tramo-claro .cal-tarjeta {
-    background-color: color-mix(in srgb, var(--fondo) 93%, transparent);
-  }
-
-  /* Texto del color del papel: para lo que va sobre un sólido de tinta. */
-  #actividades-editorial .sobre-tinta {
-    color: var(--fondo);
-  }
-
-  /* La X del detalle, sobre la foto: pastilla del color del papel. */
-  #actividades-editorial .cal-cerrar-fondo {
-    background-color: color-mix(in srgb, var(--fondo) 70%, transparent);
-  }
-
-  #actividades-editorial .cal-cerrar-fondo:hover {
-    background-color: var(--fondo);
-  }
-
-  /*
-    La referencia titula en peso normal y con las letras muy juntas: el peso
-    lo pone el tamaño, no la seminegrita.
-  */
-  #actividades-editorial .heading-lg {
-    font-weight: 400;
-    letter-spacing: -0.035em;
-  }
-
-  #actividades-editorial .heading-md {
-    font-weight: 500;
-    letter-spacing: -0.025em;
-  }
-
-  /*
-    El selector de vista se invierte en el activo. Va por CSS y no añadiendo
-    clases: `text-ink` y una clase de color puntual pesan igual, y ganaba la
-    que el navegador encontrara después en la hoja de estilos.
-  */
-  #actividades-editorial .cal-vista[aria-pressed='true'] {
-    background-color: var(--color-ink);
-    color: var(--fondo);
-  }
-
-  /*
-    El calendario ocupa todo el ancho hasta que se abre una actividad; ahí
-    cede las 22rem de la derecha al panel.
-  */
   @media (width >= 64rem) {
-    #cal-lienzo[data-panel='abierto'] {
-      grid-template-columns: minmax(0, 1fr) 22rem;
+    #cal-vistas.vivo:not(.oculto) {
+      display: block;
     }
   }
 
-  #cal .cal-chip {
-    background-color: var(--color-mist);
-    color: var(--color-ink);
-    /* casi a escuadra, como las tarjetas de la referencia */
-    border-radius: 3px;
-    transition: background-color 150ms ease;
-  }
-
-  #cal .cal-chip:hover {
-    background-color: color-mix(in srgb, var(--color-ink) 16%, transparent);
-  }
-
-  /* la actividad abierta en el panel manda sobre el hover: se invierte */
-  #cal .cal-chip[aria-current='true'],
-  #cal .cal-chip[aria-current='true']:hover {
+  /*
+    El activo del conmutador va en tinta, como los chips de red: un solo
+    idioma para todo lo que se elige. Antes —se confundiría con la pastilla que lo rodea—: va en tinta,
+    como los chips de red. Un solo idioma para todo lo que se elige.
+  */
+  .cal-vista[aria-pressed='true'] {
     background-color: var(--color-ink);
-    color: var(--fondo);
+    color: #ffffff;
   }
 
-  /*
-    El canal de horas solo necesita tapar lo que pasa por debajo cuando la
-    semana se desplaza en horizontal, o sea en móvil. En pantalla grande se
-    queda transparente para no abrir un agujero negro en la foto.
-  */
-  @media (max-width: 39.9375rem) {
-    #cal .cal-canal {
-      background-color: var(--fondo);
-    }
-  }
-
-  /*
-    En una celda de teléfono no cabe ni la hora, así que cada actividad se
-    reduce a un punto. El botón conserva 24px para que se pueda tocar sin
-    apuntar fino; el punto es solo la parte que se ve. Solo aplica a la vista
-    de mes: la de semana se desplaza en horizontal y ahí sí cabe el texto.
-  */
-  @media (max-width: 39.9375rem) {
-    #cal[data-vista='mes'] .cal-chip {
-      display: grid;
-      place-items: center;
-      width: 1.5rem;
-      height: 1.5rem;
-      padding: 0;
-      font-size: 0;
-    }
-
-    #cal[data-vista='mes'] .cal-chip,
-    #cal[data-vista='mes'] .cal-chip:hover,
-    #cal[data-vista='mes'] .cal-chip[aria-current='true'] {
-      background-color: transparent;
-    }
-
-    #cal[data-vista='mes'] .cal-chip::before {
-      content: '';
-      width: 0.625rem;
-      height: 0.625rem;
-      border-radius: 9999px;
-      background-color: color-mix(in srgb, var(--color-ink) 40%, transparent);
-    }
-
-    #cal[data-vista='mes'] .cal-chip[aria-current='true']::before {
-      background-color: var(--color-ink);
-    }
-  }
-
-  /* Bloques de la vista semanal: van sobre la rejilla de horas */
-  #cal .cal-bloque {
-    background-color: var(--color-mist);
-    border-left: 2px solid color-mix(in srgb, var(--color-ink) 45%, transparent);
-    border-radius: 3px;
+  /* Celdas del mapa del mes */
+  .cal-celda {
+    position: relative;
+    display: flex;
+    height: 2.75rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    font-size: 0.9375rem;
+    letter-spacing: -0.011em;
     color: var(--color-ink);
     transition:
-      background-color 150ms ease,
-      border-color 150ms ease;
+      background-color 200ms ease,
+      color 200ms ease;
   }
 
-  #cal .cal-bloque:hover {
-    background-color: color-mix(in srgb, var(--color-ink) 16%, transparent);
+  /* blanco y no `mist`: `mist` es ahora el fondo de la tarjeta que los rodea */
+  .cal-celda[data-tiene='si'] {
+    background-color: #ffffff;
+    font-weight: 600;
   }
 
-  #cal .cal-bloque[aria-current='true'],
-  #cal .cal-bloque[aria-current='true']:hover {
+  .cal-celda[data-activa='si'] {
     background-color: var(--color-ink);
-    border-left-color: var(--color-accent);
-    color: var(--fondo);
+    color: #ffffff;
   }
 
-  /* Enlaces de texto: subrayado fino, como en la referencia */
-  #actividades-editorial .enlace {
-    text-decoration: underline;
-    text-underline-offset: 0.3em;
-    text-decoration-thickness: 1px;
-    text-decoration-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
-    transition: text-decoration-color 150ms ease;
+  /* hoy va marcado aunque no tenga nada: es el punto de referencia */
+  .cal-celda[data-hoy='si'] {
+    box-shadow: inset 0 0 0 1px var(--color-accent);
   }
 
-  #actividades-editorial .enlace:hover {
-    text-decoration-color: var(--color-ink);
+  .cal-rejilla-celda[data-hoy='si'] {
+    border-color: var(--color-accent);
+  }
+
+  .cal-punto {
+    margin-top: 0.25rem;
+    height: 4px;
+    width: 4px;
+    border-radius: 999px;
+    background-color: var(--color-accent);
+  }
+
+  .cal-celda[data-activa='si'] .cal-punto {
+    background-color: #ffffff;
+  }
+
+  /* Chips de red */
+  .cal-red {
+    border-radius: 999px;
+    background-color: #ffffff;
+    border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+    padding: 0.5rem 1rem;
+    font-size: 0.9375rem;
+    letter-spacing: -0.011em;
+    color: var(--color-ink);
+    transition:
+      background-color 200ms ease,
+      color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .cal-red[aria-pressed='true'] {
+    background-color: var(--color-ink);
+    border-color: var(--color-ink);
+    color: #ffffff;
+  }
+
+  /*
+    Píldoras de la cinta del año: una por fecha. Misma familia que los chips
+    de red, pero redondas y de ancho fijo, que es lo que deja leer una fila de
+    números como una fila de números y no como una lista de palabras.
+  */
+  .cal-fecha {
+    display: inline-flex;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+    background-color: #ffffff;
+    padding: 0 0.75rem;
+    font-size: 0.9375rem;
+    letter-spacing: -0.011em;
+    color: var(--color-ink);
+    transition:
+      background-color 200ms ease,
+      color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .cal-fecha:hover {
+    background-color: var(--color-mist);
+  }
+
+  .cal-fecha[aria-pressed='true'] {
+    background-color: var(--color-ink);
+    border-color: var(--color-ink);
+    color: #ffffff;
+  }
+
+  /* la de hoy va marcada, igual que en el mapa del mes */
+  .cal-fecha[data-hoy='si'] {
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+
+  /*
+    La ficha desplegada. El truco de las dos filas de rejilla —de `0fr` a
+    `1fr`— es lo que deja animar una altura que no se sabe de antemano: el
+    hijo mide lo que mida y la fila lo va soltando. Con `max-height` habría
+    que inventar un tope, y el que sirviera para una ficha con foto dejaría
+    a las demás con un salto al final.
+  */
+  .cal-detalle {
+    display: grid;
+    grid-template-rows: 1fr;
+  }
+
+  .cal-detalle > div {
+    overflow: hidden;
+  }
+
+  /*
+    Plegarlas es cosa del guion: sin él no habría con qué abrirlas y la ficha
+    quedaría escrita en la página pero fuera del alcance de nadie. Por eso
+    nacen abiertas y es `cal-vivo` —la clase que se pone al arrancar— la que
+    las cierra, igual que hace con el resto de la página.
+  */
+  .cal-vivo .cal-detalle {
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cal-vivo .cal-fila[data-abierta] .cal-detalle {
+    grid-template-rows: 1fr;
+  }
+
+  .cal-chevron {
+    display: none;
+    transition:
+      transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 200ms ease;
+  }
+
+  .cal-vivo .cal-chevron {
+    display: grid;
+  }
+
+  .cal-fila[data-abierta] .cal-chevron {
+    transform: rotate(180deg);
+    background-color: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    color: var(--color-accent);
+  }
+
+  /*
+    La jornada con una ficha abierta se marca en la cifra del día: es la
+    columna de al lado, fuera de la fila, y sin esto nada dice a qué día
+    pertenece lo que se acaba de abrir.
+  */
+  .cal-jornada:has(.cal-fila[data-abierta]) .cifra,
+  .cal-jornada:has(.cal-fila[data-abierta]) .cifra + .eyebrow {
+    color: var(--color-accent);
+    transition: color 200ms ease;
+  }
+
+  /* Rejilla del mes */
+  .cal-rejilla-celda {
+    min-height: 7.25rem;
+    border-radius: 1rem;
+    border: 1px solid transparent;
+    padding: 0.75rem 0.75rem 0.875rem;
+    background-color: #fbfaf8;
+  }
+
+  .cal-rejilla-celda[data-fuera='si'] {
+    background-color: transparent;
+  }
+
+  .cal-rejilla-celda[data-tiene='si'] {
+    background-color: #ffffff;
+    border-color: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  }
+
+  .cal-chip {
+    display: block;
+    width: 100%;
+    border-radius: 0.625rem;
+    padding: 0.4375rem 0.5625rem;
+    text-align: left;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    letter-spacing: -0.011em;
+    color: var(--color-ink);
+    background-color: var(--color-mist);
+  }
+
+  .cal-chip[data-red='si'] {
+    background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
   }
 </style>
 
 <script>
-  type Actividad = {
-    nombre: string;
-    inicio: string;
-    fin?: string;
-    todoElDia: boolean;
-    ubicacion?: string;
-    red?: string;
-    url?: string;
-    foto?: string;
-    /** medidas de la foto ya procesada, para darle su forma al marco */
+  import type { Actividad } from '../lib/actividades';
+
+  type Fila = Actividad & {
+    dia: string;
+    mes: string;
+    horario: string;
+    fechaLarga: string;
+    /** enlace ya armado al formulario de Google Calendar */
+    agendar: string;
+    /** su calendario propio: /calendarios/<ranura>.ics */
+    ranura: string;
     ancho?: number;
     alto?: number;
   };
 
   const fuente = document.getElementById('datos-actividades');
-  const cal = document.getElementById('cal');
-  const lienzo = document.getElementById('cal-lienzo');
-  const barra = document.getElementById('cal-barra');
-  const agenda = document.getElementById('agenda');
-  const panel = document.getElementById('cal-detalle');
-  const titulo = document.getElementById('cal-titulo');
+  const raiz = document.getElementById('agenda')?.closest('.voz-fina') as HTMLElement | null;
 
-  if (fuente && cal && barra && agenda && panel && titulo) {
-    const actividades: Actividad[] = JSON.parse(fuente.textContent || '[]');
+  if (fuente && raiz) {
+    const datos: Fila[] = JSON.parse(fuente.textContent || '[]');
 
-    /* --- utilidades de fecha ---------------------------------------------- */
+    if (datos.length > 0) {
+      /* ---------- piezas ---------- */
+      const mapa = document.getElementById('cal-mapa')!;
+      const columna = document.getElementById('cal-lista')!;
+      const vistas = document.getElementById('cal-vistas')!;
+      const rejilla = document.getElementById('cal-rejilla')!;
+      const agenda = document.getElementById('agenda')!;
+      const vacio = document.getElementById('cal-vacio')!;
+      const tituloMes = document.getElementById('cal-mes')!;
+      const anioMes = document.getElementById('cal-anio')!;
+      const resumen = document.getElementById('cal-resumen')!;
+      const mini = document.getElementById('cal-mini')!;
+      const semana = document.getElementById('cal-semana')!;
+      const dias = document.getElementById('cal-dias')!;
+      const filtros = document.getElementById('cal-redes')!;
+      const limpiar = document.getElementById('cal-limpiar') as HTMLButtonElement;
+      const antes = document.getElementById('cal-antes') as HTMLButtonElement;
+      const despues = document.getElementById('cal-despues') as HTMLButtonElement;
+      const hoyBoton = document.getElementById('cal-hoy') as HTMLButtonElement;
+      const masBoton = document.getElementById('cal-mas') as HTMLButtonElement;
+      const masTexto = document.getElementById('cal-mas-texto')!;
+      const masIcono = document.getElementById('cal-mas-icono')!;
 
-    /** Clave YYYY-MM-DD en hora local (no UTC: si no, los eventos saltan de día). */
-    const clave = (fecha: Date) =>
-      `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(
-        fecha.getDate()
-      ).padStart(2, '0')}`;
+      const buscador = document.getElementById('cal-buscar') as HTMLInputElement;
+      const sugerencias = document.getElementById('cal-sugerencias')!;
+      const borrarBusca = document.getElementById('cal-buscar-limpiar')!;
+      const mapaNota = document.getElementById('cal-mapa-nota')!;
 
-    /**
-     * Igual que `fechaDe` del servidor: las actividades de todo el día vienen
-     * como `YYYY-MM-DD` y `new Date` las lee en UTC, lo que en Chile las
-     * corría al día anterior.
-     */
-    const fechaDe = (iso: string) => {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return new Date(iso);
-      const [anio, mes, dia] = iso.split('-').map(Number);
-      return new Date(anio, mes - 1, dia);
-    };
+      /* la ficha del año y sus huecos */
+      const ficha = document.getElementById('cal-actividad')!;
+      const volverAct = document.getElementById('cal-volver')!;
+      const actNombre = document.getElementById('cal-act-nombre')!;
+      const actRed = document.getElementById('cal-act-red')!;
+      const actLugar = document.getElementById('cal-act-lugar')!;
+      const actLugarTexto = document.getElementById('cal-act-lugar-texto')!;
+      const actCadencia = document.getElementById('cal-act-cadencia')!;
+      const actDescripcion = document.getElementById('cal-act-descripcion')!;
+      const actRotulo = document.getElementById('cal-act-rotulo')!;
+      const actFecha = document.getElementById('cal-act-fecha')!;
+      const actHora = document.getElementById('cal-act-hora')!;
+      const actAgendar = document.getElementById('cal-act-agendar') as HTMLAnchorElement;
+      const actBalance = document.getElementById('cal-act-balance')!;
+      const actMeses = document.getElementById('cal-act-meses')!;
+      const actSuscribir = document.getElementById('cal-act-suscribir') as HTMLAnchorElement;
+      const actDescargar = document.getElementById('cal-act-descargar') as HTMLAnchorElement;
 
-    /** La semana empieza el lunes, como los calendarios de acá. */
-    const lunesDe = (fecha: Date) => {
-      const d = new Date(fecha);
-      d.setHours(0, 0, 0, 0);
-      d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-      return d;
-    };
+      /** Lo escrito en el buscador, en minúsculas y sin tildes. */
+      let busca = '';
 
-    const sumarDias = (fecha: Date, dias: number) => {
-      const d = new Date(fecha);
-      d.setDate(d.getDate() + dias);
-      return d;
-    };
-
-    const hora = (iso: string) =>
-      new Date(iso).toLocaleTimeString('es-CL', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-
-    const diaCorto = (fecha: Date) =>
-      fecha.toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
-
-    /** «viernes 28 → sábado 29 de agosto», sin repetir el mes si es el mismo. */
-    const rangoFechas = (inicio: Date, fin: Date) => {
-      const mismoMes =
-        inicio.getMonth() === fin.getMonth() && inicio.getFullYear() === fin.getFullYear();
-      if (!mismoMes) return `${fechaLarga(inicio)} → ${fechaLarga(fin)}`;
-      const dia = (f: Date) => `${f.toLocaleDateString('es-CL', { weekday: 'long' })} ${f.getDate()}`;
-      return `${dia(inicio)} → ${dia(fin)} de ${fin.toLocaleDateString('es-CL', { month: 'long' })}`;
-    };
-
-    const fechaLarga = (fecha: Date) =>
-      fecha.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
-
-    /**
-     * Último día que ocupa la actividad. Importa para las que se pasan de la
-     * medianoche, como la Casa de Oración: empieza el viernes a las 13:00 y
-     * termina el sábado a la misma hora.
-     */
-    const ultimoDia = (actividad: Actividad) => {
-      const inicio = fechaDe(actividad.inicio);
-      if (!actividad.fin) return inicio;
-      const fin = fechaDe(actividad.fin);
-      if (fin <= inicio) return inicio;
-      // terminar justo a medianoche es cerrar el día anterior, no ocupar otro
-      if (!actividad.todoElDia && fin.getHours() === 0 && fin.getMinutes() === 0) {
-        return new Date(fin.getTime() - 1);
-      }
-      return fin;
-    };
-
-    const cruzaDias = (actividad: Actividad) =>
-      clave(fechaDe(actividad.inicio)) !== clave(ultimoDia(actividad));
-
-    /* --- índice por día ---------------------------------------------------- */
-
-    const porDia = new Map<string, Actividad[]>();
-    for (const actividad of actividades) {
-      const dia = fechaDe(actividad.inicio);
-      dia.setHours(0, 0, 0, 0);
-      const ultimo = ultimoDia(actividad);
-
-      // la que cruza la medianoche se anota en todos los días que ocupa
-      for (let i = 0; i < 366 && dia <= ultimo; i++) {
-        const k = clave(dia);
-        if (!porDia.has(k)) porDia.set(k, []);
-        porDia.get(k)!.push(actividad);
-        dia.setDate(dia.getDate() + 1);
-      }
-    }
-
-    /* --- estado ------------------------------------------------------------ */
-
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-
-    let vista: 'mes' | 'semana' = 'mes';
-    // si este mes no tiene nada, partimos donde está la próxima actividad
-    let ancla = (() => {
-      const hayEsteMes = actividades.some((a) => {
-        const d = fechaDe(a.inicio);
-        return d.getFullYear() === hoy.getFullYear() && d.getMonth() === hoy.getMonth();
-      });
-      if (hayEsteMes || actividades.length === 0) return new Date(hoy);
-      return fechaDe(actividades[0].inicio);
-    })();
-    let elegida: Actividad | null = null;
-
-    /* --- pintado ----------------------------------------------------------- */
-
-    /** Cuándo pasa una actividad, en una línea. Va en el `title` y en la barra. */
-    const cuando = (actividad: Actividad) => {
-      const inicio = fechaDe(actividad.inicio);
-      if (actividad.todoElDia) {
-        return cruzaDias(actividad)
-          ? `${fechaLarga(inicio)} → ${fechaLarga(ultimoDia(actividad))}`
-          : fechaLarga(inicio);
-      }
-      if (!actividad.fin) return `${fechaLarga(inicio)}, ${hora(actividad.inicio)}`;
-      const fin = fechaDe(actividad.fin);
-      return cruzaDias(actividad)
-        ? `${fechaLarga(inicio)}, ${hora(actividad.inicio)} → ${fechaLarga(fin)}, ${hora(actividad.fin)}`
-        : `${fechaLarga(inicio)}, ${hora(actividad.inicio)} – ${hora(actividad.fin)}`;
-    };
-
-    /**
-     * Actividad como etiqueta: en las celdas del mes y en la fila de arriba de
-     * la semana. Ahí el nombre se muestra completo porque la fila es ancha; en
-     * el mes hay que apretarlo.
-     */
-    const chip = (
-      actividad: Actividad,
-      indice: number,
-      opciones: { dia?: Date; texto?: string } = {}
-    ) => {
-      const boton = document.createElement('button');
-      boton.type = 'button';
-      boton.dataset.indice = String(indice);
-      // los colores viven en CSS: así el estado elegido gana también al hover
-      boton.className =
-        'cal-chip block w-full truncate rounded-md px-1.5 py-1 text-left text-[0.6875rem] sm:px-2 sm:text-xs';
+      /** Sin tildes y en minúsculas: «Oración» tiene que salir al teclear «oracion». */
+      const plano = (t: string) =>
+        t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
       /*
-        En una celda de móvil no cabe el nombre (quedaba "1..."), así que ahí
-        se muestra solo la hora —o un punto si dura todo el día— y el nombre
-        aparece al abrir el detalle.
+        Las actividades agrupadas por nombre, que es lo que el buscador ofrece
+        y lo que la ficha del año enseña: la serie entera —los diecisiete
+        domingos— y no una reunión suelta. `datos` ya viene ordenado por fecha,
+        así que cada lista queda ordenada sola y la primera es la próxima.
       */
-      if (opciones.texto !== undefined) {
-        boton.textContent = opciones.texto;
-      } else {
-        // en los días siguientes de una actividad que sigue, una flecha
-        const sigue =
-          opciones.dia && clave(opciones.dia) !== clave(fechaDe(actividad.inicio));
+      const porNombre = new Map<string, Fila[]>();
+      for (const fila of datos) {
+        const suyas = porNombre.get(fila.nombre);
+        if (suyas) suyas.push(fila);
+        else porNombre.set(fila.nombre, [fila]);
+      }
+      const nombres = [...porNombre.keys()];
 
-        const marca = document.createElement('span');
-        marca.textContent = sigue ? '→' : actividad.todoElDia ? '•' : hora(actividad.inicio);
+      /**
+       * Una clave `AAAA-MM-DD` como fecha local.
+       *
+       * No se usa `new Date(fila.inicio)` para esto: las actividades sin hora
+       * llegan de Notion como `AAAA-MM-DD` y ahí `new Date` lee UTC, que en
+       * Chile las corre al día anterior. La clave `dia` ya viene calculada al
+       * construir el sitio, con `fechaDe`, así que es la buena.
+       */
+      const comoFecha = (clave: string) => {
+        const [anio, mes, dia] = clave.split('-').map(Number);
+        return new Date(anio, mes - 1, dia);
+      };
 
-        const nombre = document.createElement('span');
-        nombre.className = 'hidden sm:inline';
-        nombre.textContent = ` ${actividad.nombre}`;
+      const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+      const ORDINALES = ['', 'primer', 'segundo', 'tercer', 'cuarto', 'quinto'];
+      const conMayuscula = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
-        boton.append(marca, nombre);
+      /**
+       * Cómo se repite una actividad, leído de sus propias fechas: es lo que
+       * convierte una lista de diecisiete domingos en una frase. Devuelve la
+       * larga —para la ficha— y la corta —para la lista del buscador—, y las
+       * dos vacías cuando el patrón no se deja resumir.
+       */
+      const cadenciaDe = (filas: Fila[]) => {
+        const nada = { larga: '', corta: '' };
+        if (filas.length < 2) return nada;
+
+        const fechas = filas.map((f) => comoFecha(f.dia));
+        const diaSemana = fechas[0].getDay();
+        if (fechas.some((f) => f.getDay() !== diaSemana)) return nada;
+
+        const nombre = DIAS[diaSemana];
+        // en español solo sábado y domingo hacen plural; el resto ya lo es
+        const plural = nombre.endsWith('s') ? nombre : `${nombre}s`;
+
+        /*
+          En días redondeados y no en milisegundos: la semana en que Chile
+          cambia la hora mide 167 u 169 horas, y comparar contra siete días
+          exactos daría por rota una cadencia semanal que no lo está.
+        */
+        const cadaSemana = fechas.every(
+          (f, i) => i === 0 || Math.round((f.getTime() - fechas[i - 1].getTime()) / 86_400_000) === 7
+        );
+        if (cadaSemana) return { larga: `Todos los ${plural}`, corta: conMayuscula(plural) };
+
+        const ultimoDelMes = (f: Date) =>
+          f.getDate() + 7 > new Date(f.getFullYear(), f.getMonth() + 1, 0).getDate();
+        if (fechas.every(ultimoDelMes)) {
+          return {
+            larga: `El último ${nombre} de cada mes`,
+            corta: `Último ${nombre} del mes`,
+          };
+        }
+
+        const orden = Math.ceil(fechas[0].getDate() / 7);
+        if (orden <= 5 && fechas.every((f) => Math.ceil(f.getDate() / 7) === orden)) {
+          return {
+            larga: `El ${ORDINALES[orden]} ${nombre} de cada mes`,
+            corta: `${conMayuscula(ORDINALES[orden])} ${nombre} del mes`,
+          };
+        }
+
+        return nada;
+      };
+
+      /** Cuántas jornadas se ven antes de pedir el resto del mes. */
+      const ASOMAN = 5;
+      /** Si el mes está desplegado entero. Se recoge al cambiar de mes. */
+      let todo = false;
+      const notaVacio = document.getElementById('cal-vacio-nota')!;
+
+      const bloques = [...agenda.querySelectorAll<HTMLElement>('.cal-mes')];
+
+      /* ---------- los meses ---------- */
+      const ahora = new Date();
+      const claveDe = (f: Date) =>
+        `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}`;
+      const mesDeHoy = claveDe(ahora);
+      const hoy = `${mesDeHoy}-${String(ahora.getDate()).padStart(2, '0')}`;
+
+      const conActividades = bloques.map((b) => b.dataset.mes!);
+
+      /*
+        La lista de meses no puede ser solo la de los que traen algo: si la
+        primera actividad cae en diciembre, el calendario abría en diciembre y
+        no había forma de volver a hoy. Se recorre el tramo entero desde el mes
+        de hoy hasta el último con actividades, y los de en medio se enseñan
+        vacíos, que también es una respuesta.
+      */
+      const meses: string[] = [];
+      {
+        const primero = [mesDeHoy, ...conActividades].sort()[0];
+        const ultimo = [mesDeHoy, ...conActividades].sort().pop()!;
+        const cursor = new Date(Number(primero.slice(0, 4)), Number(primero.slice(5)) - 1, 1);
+        const tope = new Date(Number(ultimo.slice(0, 4)), Number(ultimo.slice(5)) - 1, 1);
+        // el tramo es de meses, no de años: doce vueltas por año, sin sorpresas
+        while (cursor <= tope && meses.length < 120) {
+          meses.push(claveDe(cursor));
+          cursor.setMonth(cursor.getMonth() + 1);
+        }
       }
 
-      boton.title = `${actividad.nombre} · ${cuando(actividad)}`;
-      // pulsar la actividad ya abierta la cierra
-      boton.addEventListener('click', () =>
-        elegida === actividad ? cerrar() : seleccionar(actividad)
-      );
-      return boton;
-    };
+      const iHoy = meses.indexOf(mesDeHoy);
 
-    const celda = (dia: Date, delMes: boolean, alto: string) => {
-      const div = document.createElement('div');
-      div.className = `flex flex-col border-t border-ink/10 p-1 sm:p-2 ${alto}`;
+      /* ---------- estado ---------- */
+      let iMes = 0;
+      let vista: 'agenda' | 'mes' = 'agenda';
+      let red = '';
+      let dia = '';
+      /** El nombre de la actividad abierta en la ficha del año; '' si no hay. */
+      let actividad = '';
+      /** La fecha de esa actividad que se está mirando (clave `AAAA-MM-DD`). */
+      let fechaFoco = '';
 
-      const esHoy = clave(dia) === clave(hoy);
-      const numero = document.createElement('span');
-      numero.className = esHoy
-        ? 'grid size-6 place-items-center rounded-full bg-ink text-xs font-medium sobre-tinta sm:size-7'
-        : `px-1 text-xs font-medium ${delMes ? 'text-ink' : 'text-muted/40'}`;
-      numero.textContent = String(dia.getDate());
-      div.appendChild(numero);
+      /*
+        La vista de mes es de escritorio. Por debajo de ahí no se ofrece —el
+        conmutador va oculto— y aunque quedara elegida de antes, aquí se
+        ignora: siete columnas en un teléfono no son un calendario.
+      */
+      const grande = window.matchMedia('(min-width: 64rem)');
+      const vistaReal = () => (grande.matches ? vista : 'agenda');
 
-      // en móvil las actividades se apilan en fila (son puntos); desde sm, en columna
-      const lista = document.createElement('div');
-      lista.className = 'mt-1 flex flex-wrap items-center gap-1 sm:flex-col sm:items-stretch';
-      for (const actividad of porDia.get(clave(dia)) ?? []) {
-        lista.appendChild(chip(actividad, actividades.indexOf(actividad), { dia }));
-      }
-      div.appendChild(lista);
-
-      return div;
-    };
-
-    const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-
-    const cabecera = () => {
-      const fila = document.createElement('div');
-      fila.className = 'grid grid-cols-7';
-      for (const dia of DIAS) {
-        const c = document.createElement('div');
-        c.className = 'eyebrow px-2 pb-2';
-        c.textContent = dia;
-        fila.appendChild(c);
-      }
-      return fila;
-    };
-
-    /* --- vista de semana, con horas ---------------------------------------- */
-
-    /** Alto de una hora en la rejilla, en píxeles. */
-    const ALTO_HORA = 56;
-    /** Franja que se muestra siempre, aunque no haya nada a esas horas. */
-    const HORA_MIN = 8 * 60;
-    const HORA_MAX = 22 * 60;
-    /*
-      Ancho del canal de horas; el mismo en la cabecera, para que cuadre. Va
-      pegado a la izquierda porque en móvil la semana se desplaza en
-      horizontal y las horas tienen que seguir a la vista.
-    */
-    const CANAL = 'cal-canal sticky left-0 z-20 w-12 shrink-0 sm:w-14';
-
-    const minutosDe = (fecha: Date) => fecha.getHours() * 60 + fecha.getMinutes();
-
-    /**
-     * Minutos de inicio y término dentro de su día. Sin hora de término damos
-     * una hora; si la actividad se pasa de medianoche, se corta ahí (el resto
-     * ya se ve en el día siguiente).
-     */
-    const tramo = (actividad: Actividad) => {
-      const inicio = fechaDe(actividad.inicio);
-      const fin = actividad.fin ? fechaDe(actividad.fin) : new Date(inicio.getTime() + 3600000);
-      const desde = minutosDe(inicio);
-      const hasta = clave(fin) === clave(inicio) ? minutosDe(fin) : 24 * 60;
-      return { desde, hasta: Math.max(hasta, desde + 30) };
-    };
-
-    /*
-      A la rejilla de horas solo van las actividades que empiezan y terminan
-      el mismo día. Las de todo el día y las que se pasan de la medianoche van
-      a la fila de arriba, como una barra que abarca sus días: en la rejilla
-      obligarían a dibujar la noche entera para nada.
-    */
-    const enBarra = (actividad: Actividad) => actividad.todoElDia || cruzaDias(actividad);
-
-    const conHora = (dia: Date) => (porDia.get(clave(dia)) ?? []).filter((a) => !enBarra(a));
-
-    /** Barras de la fila de arriba, con la columna donde empiezan y cuánto abarcan. */
-    const barrasDe = (dias: Date[]) => {
-      const vistas = new Set<Actividad>();
-      const barras: { actividad: Actividad; desde: number; abarca: number }[] = [];
-
-      // los días que caen fuera de la semana se recortan a sus bordes
-      const columnaDe = (fecha: Date) =>
-        Math.round(
-          (new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()).getTime() -
-            dias[0].getTime()) /
-            86400000
+      const escapar = (texto: string) =>
+        texto.replace(/[&<>"']/g, (c) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
         );
 
-      for (const dia of dias) {
-        for (const actividad of porDia.get(clave(dia)) ?? []) {
-          if (!enBarra(actividad) || vistas.has(actividad)) continue;
-          vistas.add(actividad);
-          const desde = Math.max(0, columnaDe(fechaDe(actividad.inicio)));
-          const hasta = Math.min(6, columnaDe(ultimoDia(actividad)));
-          barras.push({ actividad, desde, abarca: hasta - desde + 1 });
-        }
-      }
-
-      return barras.sort((a, b) => a.desde - b.desde || b.abarca - a.abarca);
-    };
-
-    /** Texto de la barra: el nombre y, si tiene hora, hasta cuándo va. */
-    const textoBarra = (actividad: Actividad) => {
-      if (actividad.todoElDia || !actividad.fin) return actividad.nombre;
-      const fin = fechaDe(actividad.fin);
-      return `${actividad.nombre} · ${hora(actividad.inicio)} → ${diaCorto(fin)} ${hora(actividad.fin)}`;
-    };
-
-    /** Franja horaria que hay que dibujar: la de siempre más lo que se salga. */
-    const franja = (dias: Date[]) => {
-      let desde = HORA_MIN;
-      let hasta = HORA_MAX;
-      for (const dia of dias) {
-        for (const actividad of conHora(dia)) {
-          const t = tramo(actividad);
-          desde = Math.min(desde, t.desde);
-          hasta = Math.max(hasta, t.hasta);
-        }
-      }
-      return {
-        desde: Math.max(0, Math.floor(desde / 60) * 60),
-        hasta: Math.min(24 * 60, Math.ceil(hasta / 60) * 60),
-      };
-    };
-
-    /**
-     * Reparte en carriles las actividades que se pisan en el tiempo, para que
-     * dos reuniones a la misma hora se vean lado a lado y no una encima de la
-     * otra.
-     */
-    const carriles = (lista: Actividad[]) => {
-      const items = lista
-        .map((actividad) => ({ actividad, ...tramo(actividad), carril: 0, total: 1 }))
-        .sort((a, b) => a.desde - b.desde || a.hasta - b.hasta);
-
-      let grupo: typeof items = [];
-      let limite = -1;
-
-      const cerrarGrupo = () => {
-        const finales: number[] = [];
-        for (const item of grupo) {
-          const libre = finales.findIndex((fin) => fin <= item.desde);
-          item.carril = libre === -1 ? finales.length : libre;
-          finales[item.carril] = item.hasta;
-        }
-        for (const item of grupo) item.total = finales.length;
-        grupo = [];
-        limite = -1;
+      const nombreMes = (clave: string) => {
+        const [anio, mes] = clave.split('-').map(Number);
+        return new Date(anio, mes - 1, 1).toLocaleDateString('es-CL', {
+          month: 'long',
+          year: 'numeric',
+        });
       };
 
-      for (const item of items) {
-        if (grupo.length && item.desde >= limite) cerrarGrupo();
-        grupo.push(item);
-        limite = Math.max(limite, item.hasta);
-      }
-      if (grupo.length) cerrarGrupo();
+      /** Del mes visible: todas, y las que pasan el filtro de red. */
+      const delMes = () => datos.filter((a) => a.mes === meses[iMes]);
 
-      return items;
-    };
-
-    const bloque = (item: ReturnType<typeof carriles>[number], inicioFranja: number) => {
-      const { actividad } = item;
-      const boton = document.createElement('button');
-      boton.type = 'button';
-      boton.dataset.indice = String(actividades.indexOf(actividad));
-      // flex-col porque el navegador centra en vertical el contenido de un
-      // botón con alto fijo, y aquí el texto va arriba, junto a su hora
-      boton.className =
-        'cal-bloque absolute flex flex-col overflow-hidden rounded-md px-1.5 py-1 text-left text-[0.6875rem] leading-tight sm:px-2 sm:text-xs';
-
-      const alto = Math.max(24, ((item.hasta - item.desde) / 60) * ALTO_HORA - 2);
-      boton.style.top = `${((item.desde - inicioFranja) / 60) * ALTO_HORA}px`;
-      boton.style.height = `${alto}px`;
-
-      // los carriles reparten el ancho de la columna entre las que se pisan
-      const ancho = 100 / item.total;
-      boton.style.left = `calc(${item.carril * ancho}% + 1px)`;
-      boton.style.width = `calc(${ancho}% - 2px)`;
-
-      const nombre = document.createElement('span');
-      nombre.className = 'block truncate font-semibold';
-      nombre.textContent = actividad.nombre;
-      boton.appendChild(nombre);
-
-      // la hora solo si el bloque da para dos líneas; si no, estorba
-      if (alto >= 38) {
-        const cuando = document.createElement('span');
-        cuando.className = 'block truncate opacity-70';
-        cuando.textContent = `${hora(actividad.inicio)}${actividad.fin ? ` – ${hora(actividad.fin)}` : ''}`;
-        boton.appendChild(cuando);
-      }
-
-      boton.title = actividad.nombre;
-      boton.addEventListener('click', () =>
-        elegida === actividad ? cerrar() : seleccionar(actividad)
-      );
-      return boton;
-    };
-
-    const semana = (desde: Date) => {
-      const dias = Array.from({ length: 7 }, (_, i) => sumarDias(desde, i));
-      const { desde: inicioFranja, hasta: finFranja } = franja(dias);
-      const altoTotal = ((finFranja - inicioFranja) / 60) * ALTO_HORA;
+      /** ¿Hay una actividad abierta en la ficha del año? */
+      const enFicha = () => Boolean(actividad) && porNombre.has(actividad);
 
       /*
-        En pantallas chicas siete columnas con horas no caben, así que la
-        semana se desplaza en horizontal en vez de apretujarse.
+        Lo que el mapa del mes marca con un punto: todo lo del mes, o solo las
+        fechas de la actividad abierta. Es la mitad de la respuesta que da la
+        ficha —«esto cae aquí»— y sin esto el mapa seguiría contando otra cosa.
       */
-      const marco = document.createElement('div');
-      marco.className = 'overflow-x-auto';
-
-      const dentro = document.createElement('div');
-      dentro.className = 'min-w-[44rem] sm:min-w-0';
-      marco.appendChild(dentro);
-
-      /* cabecera: día de la semana y número, con el de hoy destacado */
-      const cabeza = document.createElement('div');
-      cabeza.className = 'flex border-b border-ink/15 pb-2';
-      const hueco = document.createElement('div');
-      hueco.className = CANAL;
-      cabeza.appendChild(hueco);
-
-      const cabeceraDias = document.createElement('div');
-      cabeceraDias.className = 'grid flex-1 grid-cols-7';
-      dias.forEach((dia, i) => {
-        const c = document.createElement('div');
-        c.className = 'flex flex-col items-center gap-1 px-1';
-
-        const nombre = document.createElement('span');
-        nombre.className = 'eyebrow';
-        nombre.textContent = DIAS[i];
-
-        const numero = document.createElement('span');
-        const esHoy = clave(dia) === clave(hoy);
-        numero.className = esHoy
-          ? 'grid size-7 place-items-center rounded-full bg-ink text-sm font-medium sobre-tinta'
-          : 'grid size-7 place-items-center text-sm font-medium text-ink';
-        numero.textContent = String(dia.getDate());
-
-        c.append(nombre, numero);
-        cabeceraDias.appendChild(c);
-      });
-      cabeza.appendChild(cabeceraDias);
-      dentro.appendChild(cabeza);
+      const enMapa = () => (enFicha() ? delMes().filter((a) => a.nombre === actividad) : delMes());
 
       /*
-        Fila de arriba: lo que dura todo el día y lo que se pasa de la
-        medianoche. Cada actividad es una barra que ocupa las columnas de los
-        días que abarca, así se ve de un vistazo que va de viernes a sábado.
+        Las actividades sin red son «de toda la iglesia», y su valor vacío no
+        puede ser también el de «sin filtro»: con los dos en '' el chip de
+        Iglesia se encendía junto al de Todas. Dentro se llama `__iglesia`.
       */
-      const barras = barrasDe(dias);
-      if (barras.length) {
-        const fila = document.createElement('div');
-        fila.className = 'flex border-b border-ink/10';
+      const suRedDe = (valor: string | null | undefined) => valor || '__iglesia';
+      const visibles = () =>
+        delMes().filter(
+          (a) => (!red || suRedDe(a.red) === red) && (!dia || a.dia === dia)
+        );
 
-        const etiqueta = document.createElement('div');
-        etiqueta.className = `${CANAL} py-2 pr-2 text-right text-[0.625rem] leading-tight text-muted`;
-        etiqueta.textContent = 'Todo el día';
-        fila.appendChild(etiqueta);
+      /* ---------- mapa del mes ---------- */
+      const pintarMapa = () => {
+        const [anio, mes] = meses[iMes].split('-').map(Number);
+        const primero = new Date(anio, mes - 1, 1);
+        // getDay() cuenta desde el domingo; aquí la semana empieza en lunes
+        const arranca = (primero.getDay() + 6) % 7;
+        const total = new Date(anio, mes, 0).getDate();
 
-        const celdas = document.createElement('div');
-        celdas.className = 'relative flex-1 border-r border-ink/10';
+        semana.innerHTML = ['l', 'm', 'm', 'j', 'v', 's', 'd']
+          .map(
+            (d) =>
+              `<span class="pb-2 text-center text-[0.6875rem] font-semibold tracking-[0.1em] text-ink/35 uppercase">${d}</span>`
+          )
+          .join('');
 
-        // las líneas de los días van detrás, porque las barras las cruzan
-        const lineas = document.createElement('div');
-        lineas.className = 'absolute inset-0 grid grid-cols-7';
-        for (let i = 0; i < 7; i++) {
-          const c = document.createElement('div');
-          c.className = 'border-l border-ink/10';
-          lineas.appendChild(c);
-        }
+        const conAlgo = new Set(enMapa().map((a) => a.dia));
+        const celdas: string[] = [];
 
-        const capa = document.createElement('div');
-        capa.className = 'relative grid grid-cols-7 gap-y-1 py-1';
-        for (const barra of barras) {
-          const boton = chip(barra.actividad, actividades.indexOf(barra.actividad), {
-            texto: textoBarra(barra.actividad),
-          });
-          boton.style.gridColumn = `${barra.desde + 1} / span ${barra.abarca}`;
-          boton.classList.add('mx-1');
-          capa.appendChild(boton);
-        }
-
-        celdas.append(lineas, capa);
-        fila.appendChild(celdas);
-        dentro.appendChild(fila);
-      }
-
-      /* rejilla de horas */
-      const cuerpo = document.createElement('div');
-      cuerpo.className = 'flex border-b border-ink/10';
-
-      const canal = document.createElement('div');
-      canal.className = `${CANAL} relative`;
-      canal.style.height = `${altoTotal}px`;
-      for (let m = inicioFranja; m < finFranja; m += 60) {
-        const etiqueta = document.createElement('span');
-        etiqueta.className = 'absolute right-2 text-[0.625rem] font-medium text-muted tabular-nums';
-        etiqueta.style.top = `${((m - inicioFranja) / 60) * ALTO_HORA + 2}px`;
-        etiqueta.textContent = `${String(m / 60).padStart(2, '0')}:00`;
-        canal.appendChild(etiqueta);
-      }
-      cuerpo.appendChild(canal);
-
-      const rejilla = document.createElement('div');
-      rejilla.className = 'grid flex-1 grid-cols-7 border-r border-ink/10';
-
-      let columnaHoy: HTMLElement | null = null;
-
-      for (const dia of dias) {
-        const columna = document.createElement('div');
-        columna.className = 'relative border-l border-ink/10';
-        columna.style.height = `${altoTotal}px`;
-        if (clave(dia) === clave(hoy)) columnaHoy = columna;
-
-        // las líneas de cada hora, de fondo
-        for (let m = inicioFranja + 60; m < finFranja; m += 60) {
-          const linea = document.createElement('div');
-          linea.className = 'pointer-events-none absolute inset-x-0 border-t border-ink/10';
-          linea.style.top = `${((m - inicioFranja) / 60) * ALTO_HORA}px`;
-          columna.appendChild(linea);
-        }
-
-        for (const item of carriles(conHora(dia))) {
-          columna.appendChild(bloque(item, inicioFranja));
-        }
-
-        // línea de la hora actual, solo en el día de hoy
-        if (clave(dia) === clave(hoy)) {
-          const ahora = minutosDe(new Date());
-          if (ahora >= inicioFranja && ahora <= finFranja) {
-            const linea = document.createElement('div');
-            linea.className = 'pointer-events-none absolute inset-x-0 z-10 border-t-2 border-accent';
-            linea.style.top = `${((ahora - inicioFranja) / 60) * ALTO_HORA}px`;
-
-            const punto = document.createElement('span');
-            punto.className = 'absolute -top-[5px] -left-1 size-2 rounded-full bg-accent';
-            linea.appendChild(punto);
-            columna.appendChild(linea);
-          }
-        }
-
-        rejilla.appendChild(columna);
-      }
-
-      cuerpo.appendChild(rejilla);
-      dentro.appendChild(cuerpo);
-
-      /*
-        Cuando la semana no cabe (móvil), la abrimos en el día de hoy en vez
-        de en el lunes. Va en una microtarea porque hasta que no está en la
-        página no se sabe cuánto se puede desplazar.
-      */
-      queueMicrotask(() => {
-        if (!columnaHoy || marco.scrollWidth <= marco.clientWidth) return;
-        const canalAncho = canal.getBoundingClientRect().width;
-        marco.scrollLeft +=
-          columnaHoy.getBoundingClientRect().left - marco.getBoundingClientRect().left - canalAncho;
-      });
-
-      return marco;
-    };
-
-    const pintar = () => {
-      cal.innerHTML = '';
-      cal.dataset.vista = vista;
-
-      if (vista === 'mes') {
-        cal.appendChild(cabecera());
-
-        const rejilla = document.createElement('div');
-        rejilla.className = 'grid grid-cols-7 border-b border-ink/10';
-
-        const primero = new Date(ancla.getFullYear(), ancla.getMonth(), 1);
-        const desde = lunesDe(primero);
-        // seis semanas cubren cualquier mes, con cualquier día de inicio
         for (let i = 0; i < 42; i++) {
-          const dia = sumarDias(desde, i);
-          rejilla.appendChild(celda(dia, dia.getMonth() === ancla.getMonth(), 'min-h-24'));
+          const n = i - arranca + 1;
+          const dentro = n >= 1 && n <= total;
+          if (i >= 35 && !dentro) continue;
+
+          if (!dentro) {
+            celdas.push('<span class="cal-celda" aria-hidden="true"></span>');
+            continue;
+          }
+
+          const clave = `${meses[iMes]}-${String(n).padStart(2, '0')}`;
+          const tiene = conAlgo.has(clave);
+          const marcado = enFicha() ? fechaFoco : dia;
+          const marca = tiene ? '<span class="cal-punto"></span>' : '';
+
+          celdas.push(
+            `<button type="button" class="cal-celda" data-dia="${clave}" data-tiene="${tiene ? 'si' : 'no'}" data-hoy="${clave === hoy ? 'si' : 'no'}" data-activa="${marcado === clave ? 'si' : 'no'}"${tiene ? '' : ' tabindex="-1"'}${clave === hoy ? ' aria-current="date"' : ''}>` +
+              `<span>${n}</span>${marca}</button>`
+          );
         }
 
-        cal.appendChild(rejilla);
-        titulo.textContent = ancla.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
-      } else {
-        const desde = lunesDe(ancla);
-        cal.appendChild(semana(desde));
+        dias.innerHTML = celdas.join('');
+      };
 
-        const hasta = sumarDias(desde, 6);
-        const mismoMes = desde.getMonth() === hasta.getMonth();
-        titulo.textContent = mismoMes
-          ? `${desde.getDate()} – ${hasta.getDate()} de ${desde.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}`
-          : `${desde.getDate()} ${desde.toLocaleDateString('es-CL', { month: 'short' })} – ${hasta.getDate()} ${hasta.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' })}`;
-      }
+      /* ---------- chips de red ---------- */
+      const pintarRedes = () => {
+        const nombres = [...new Set(delMes().map((a) => a.red ?? ''))];
+        // el orden manda: primero «todas», luego la iglesia entera, luego las redes
+        nombres.sort((a, b) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b)));
 
-      marcarElegida();
-    };
+        filtros.innerHTML = [
+          `<button type="button" class="cal-red" data-red="__todas" aria-pressed="${red ? 'false' : 'true'}">Todas</button>`,
+          ...nombres.map((n) => {
+            const valor = suRedDe(n);
+            return `<button type="button" class="cal-red" data-red="${escapar(valor)}" aria-pressed="${red === valor ? 'true' : 'false'}">${escapar(n || 'Iglesia')}</button>`;
+          }),
+        ].join('');
+      };
 
-    const marcarElegida = () => {
-      for (const boton of cal.querySelectorAll<HTMLElement>('.cal-chip, .cal-bloque')) {
-        const esta = elegida && actividades[Number(boton.dataset.indice)] === elegida;
-        boton.setAttribute('aria-current', String(Boolean(esta)));
-      }
-    };
+      /* ---------- rejilla del mes ---------- */
+      const pintarRejilla = () => {
+        const [anio, mes] = meses[iMes].split('-').map(Number);
+        const arranca = (new Date(anio, mes - 1, 1).getDay() + 6) % 7;
+        const total = new Date(anio, mes, 0).getDate();
+        const lista = visibles();
 
-    /* --- detalle ----------------------------------------------------------- */
+        const cabeceras = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
+          .map((d) => `<span class="eyebrow pb-2.5">${d}</span>`)
+          .join('');
 
-    /** Enlace para agregar la actividad al Google Calendar de quien visita. */
-    const googleCalendar = (actividad: Actividad) => {
-      const compacta = (fecha: Date, soloFecha: boolean) =>
-        soloFecha
-          ? `${fecha.getFullYear()}${String(fecha.getMonth() + 1).padStart(2, '0')}${String(fecha.getDate()).padStart(2, '0')}`
-          : fecha.toISOString().replace(/[-:]|\.\d{3}/g, '');
+        const celdas: string[] = [];
 
-      const inicio = fechaDe(actividad.inicio);
-      // sin hora de término, Google espera igual un fin: damos una hora
-      const fin = actividad.fin
-        ? fechaDe(actividad.fin)
-        : new Date(inicio.getTime() + (actividad.todoElDia ? 86400000 : 3600000));
+        for (let i = 0; i < 42; i++) {
+          const n = i - arranca + 1;
+          const dentro = n >= 1 && n <= total;
+          if (i >= 35 && !dentro) continue;
 
-      const fechas = `${compacta(inicio, actividad.todoElDia)}/${compacta(fin, actividad.todoElDia)}`;
+          if (!dentro) {
+            celdas.push('<div class="cal-rejilla-celda" data-fuera="si" aria-hidden="true"></div>');
+            continue;
+          }
 
-      const parametros = new URLSearchParams({
-        action: 'TEMPLATE',
-        text: actividad.nombre,
-        dates: fechas,
-        details: 'Actividad de Iglesia Viña Puerto Montt',
-      });
-      if (actividad.ubicacion) parametros.set('location', actividad.ubicacion);
+          const clave = `${meses[iMes]}-${String(n).padStart(2, '0')}`;
+          const delDia = lista.filter((a) => a.dia === clave);
 
-      return `https://calendar.google.com/calendar/render?${parametros}`;
-    };
+          const chips = delDia
+            .map(
+              (a) =>
+                `<button type="button" class="cal-chip" data-red="${a.red ? 'si' : 'no'}" data-abre="${escapar(a.dia)}|${escapar(a.nombre)}">` +
+                `<span class="block font-semibold">${escapar(a.horario.split(' ')[0])}</span>` +
+                `<span class="mt-px block">${escapar(a.nombre)}</span></button>`
+            )
+            .join('');
 
-    /** El texto viene de Notion y se inyecta como HTML: hay que escaparlo. */
-    const escapar = (texto: string) =>
-      texto.replace(
-        /[&<>"']/g,
-        (c) =>
-          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string
-      );
-
-    const dato = (icono: string, texto: string) =>
-      `<li class="flex items-center gap-2.5">
-         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0" aria-hidden="true">${icono}</svg>
-         <span>${texto}</span>
-       </li>`;
-
-    // trazos de lucide, en línea: el panel se arma desde el navegador
-    const ICONOS = {
-      reloj: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-      pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
-      gente:
-        '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/>',
-      calendario:
-        '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
-    };
-
-    const seleccionar = (actividad: Actividad) => {
-      elegida = actividad;
-      const inicio = fechaDe(actividad.inicio);
-
-      /*
-        Las que se pasan de la medianoche llevan los dos días y la flecha, que
-        si no «13:00 – 13:00» parecía que no duraba nada.
-      */
-      const sigueOtroDia = cruzaDias(actividad);
-      const fechas = sigueOtroDia
-        ? rangoFechas(inicio, ultimoDia(actividad))
-        : fechaLarga(inicio);
-
-      const datos = [
-        dato(ICONOS.calendario, escapar(fechas)),
-        actividad.todoElDia
-          ? ''
-          : dato(
-              ICONOS.reloj,
-              `${hora(actividad.inicio)}${
-                actividad.fin ? `${sigueOtroDia ? ' → ' : ' – '}${hora(actividad.fin)}` : ''
-              }`
-            ),
-        actividad.ubicacion ? dato(ICONOS.pin, escapar(actividad.ubicacion)) : '',
-        actividad.red ? dato(ICONOS.gente, escapar(actividad.red)) : '',
-      ].join('');
-
-      /*
-        El marco toma la forma de la foto en vez de al revés: las de Notion
-        vienen de todas las proporciones y encajarlas en un rectángulo fijo
-        obligaba a elegir entre recortar media imagen o dejar bandas vacías.
-        El `width`/`height` le reserva el sitio antes de cargar, así el panel
-        no salta.
-
-        El tope de alto es de escritorio, donde el panel va fijo al costado y
-        tiene que caber entero: descontando lo que ocupan el título, los datos
-        y los botones, a la foto le queda `100vh - 33rem`. Se achica completa,
-        manteniendo su forma, en vez de recortarse. En móvil no hace falta:
-        ahí el panel va en el flujo de la página y se baja con el dedo.
-      */
-      const foto = actividad.foto
-        ? `<img src="${escapar(actividad.foto)}" alt="" loading="lazy" decoding="async"
-                ${actividad.ancho && actividad.alto ? `width="${actividad.ancho}" height="${actividad.alto}"` : ''}
-                class="mx-auto mb-6 h-auto w-auto max-w-full rounded-[4px] lg:max-h-[max(9rem,min(26rem,calc(100vh_-_33rem)))]">`
-        : '';
-
-      panel.innerHTML = `
-        <div class="relative rounded-[10px] border border-ink/15 p-6 lg:p-7">
-          ${foto}
-          <button type="button" id="cal-cerrar"
-                  class="absolute top-4 right-4 z-10 grid size-9 place-items-center rounded-full cal-cerrar-fondo text-ink backdrop-blur-sm transition-colors">
-            <span class="sr-only">Cerrar detalle</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-          </button>
-
-          <p class="eyebrow">Actividad</p>
-          <h3 class="heading-md mt-3 pr-10 text-ink">${escapar(actividad.nombre)}</h3>
-
-          <ul class="mt-5 flex flex-col gap-3 text-sm text-muted">${datos}</ul>
-
-          <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-            <a href="${googleCalendar(actividad)}" target="_blank" rel="noopener noreferrer"
-               class="inline-flex items-center justify-center rounded-full bg-ink px-5 py-2.5 text-sm font-medium sobre-tinta transition-opacity hover:opacity-85">
-              Agregar a Google Calendar
-            </a>
-            ${
-              actividad.url
-                ? `<a href="${actividad.url}" target="_blank" rel="noopener noreferrer"
-                     class="enlace text-sm text-ink/80 transition-colors hover:text-ink">
-                     Ver detalle
-                   </a>`
-                : ''
-            }
-          </div>
-        </div>
-      `;
-      panel.classList.remove('hidden');
-      lienzo?.setAttribute('data-panel', 'abierto');
-      document.getElementById('cal-cerrar')?.addEventListener('click', cerrar);
-      marcarElegida();
-
-      // en móvil el panel queda debajo: lo traemos a la vista
-      if (window.matchMedia('(max-width: 63.99rem)').matches) {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    };
-
-    /** Cierra el detalle: por la X, con Escape o volviendo a pulsar la misma. */
-    const cerrar = () => {
-      elegida = null;
-      panel.innerHTML = '';
-      panel.classList.add('hidden');
-      lienzo?.setAttribute('data-panel', 'cerrado');
-      marcarElegida();
-    };
-
-    document.addEventListener('keydown', (evento) => {
-      if (evento.key === 'Escape' && elegida) cerrar();
-    });
-
-    /* --- controles --------------------------------------------------------- */
-
-    document.getElementById('cal-antes')?.addEventListener('click', () => {
-      ancla =
-        vista === 'mes'
-          ? new Date(ancla.getFullYear(), ancla.getMonth() - 1, 1)
-          : sumarDias(ancla, -7);
-      pintar();
-    });
-
-    document.getElementById('cal-despues')?.addEventListener('click', () => {
-      ancla =
-        vista === 'mes'
-          ? new Date(ancla.getFullYear(), ancla.getMonth() + 1, 1)
-          : sumarDias(ancla, 7);
-      pintar();
-    });
-
-    document.getElementById('cal-hoy')?.addEventListener('click', () => {
-      ancla = new Date(hoy);
-      pintar();
-    });
-
-    for (const boton of document.querySelectorAll<HTMLButtonElement>('.cal-vista')) {
-      boton.addEventListener('click', () => {
-        vista = boton.dataset.vista === 'semana' ? 'semana' : 'mes';
-        for (const otro of document.querySelectorAll<HTMLButtonElement>('.cal-vista')) {
-          otro.setAttribute('aria-pressed', String(otro === boton));
+          celdas.push(
+            `<div class="cal-rejilla-celda" data-tiene="${delDia.length ? 'si' : 'no'}" data-hoy="${clave === hoy ? 'si' : 'no'}">` +
+              `<span class="text-[0.9375rem] ${delDia.length ? 'text-ink' : 'text-ink/35'}">${n}</span>` +
+              `<div class="mt-2 flex flex-col gap-1.5">${chips}</div></div>`
+          );
         }
+
+        rejilla.innerHTML =
+          `<div class="mt-6 grid grid-cols-7 gap-1.5">${cabeceras}</div>` +
+          `<div class="grid grid-cols-7 gap-1.5">${celdas.join('')}</div>`;
+      };
+
+      /* ---------- ficha desplegada en la propia fila ---------- */
+
+      const cerrarFila = (fila: HTMLElement) => {
+        fila.removeAttribute('data-abierta');
+        fila.querySelector('.cal-item')?.setAttribute('aria-expanded', 'false');
+      };
+
+      /* Una cada vez: con dos abiertas el mes se estira y se pierde el sitio. */
+      const abrirFila = (fila: HTMLElement) => {
+        agenda.querySelectorAll<HTMLElement>('.cal-fila[data-abierta]').forEach((otra) => {
+          if (otra !== fila) cerrarFila(otra);
+        });
+        fila.setAttribute('data-abierta', '');
+        fila.querySelector('.cal-item')?.setAttribute('aria-expanded', 'true');
+      };
+
+      const alternarFila = (fila: HTMLElement) => {
+        if (fila.hasAttribute('data-abierta')) cerrarFila(fila);
+        else abrirFila(fila);
+      };
+
+      /* ---------- la ficha del año ---------- */
+
+      /*
+        Rellena los huecos de `#cal-actividad`. El marcado va servido y aquí
+        solo se escribe dentro; lo único que se dibuja es la cinta de meses,
+        que depende de cuántas fechas haya y en cuáles.
+      */
+      const pintarActividad = () => {
+        const filas = porNombre.get(actividad);
+        if (!filas || filas.length === 0) return;
+
+        const foco = filas.find((f) => f.dia === fechaFoco) ?? filas[0];
+
+        actNombre.textContent = actividad;
+
+        actRed.textContent = foco.red || 'Iglesia';
+        actRed.className =
+          'rounded-full border px-2.5 py-1 text-[0.8125rem] font-semibold tracking-[0.06em] uppercase ' +
+          (foco.red ? 'border-accent/35 text-accent' : 'border-ink/15 text-muted');
+
+        /*
+          El lugar sube al encabezado solo si es siempre el mismo; si cambia de
+          una fecha a otra, decirlo arriba sería mentir y se queda en la línea
+          de la fecha que se está mirando.
+        */
+        const lugares = [...new Set(filas.map((f) => f.ubicacion).filter(Boolean))];
+        const unLugar = lugares.length === 1;
+        actLugar.classList.toggle('hidden', !unLugar);
+        actLugar.classList.toggle('inline-flex', unLugar);
+        if (unLugar) actLugarTexto.textContent = lugares[0] as string;
+
+        const cadencia = cadenciaDe(filas).larga;
+        const horarios = [...new Set(filas.map((f) => f.horario))];
+        const linea = [cadencia, horarios.length === 1 ? horarios[0] : '']
+          .filter(Boolean)
+          .join(' · ');
+        actCadencia.textContent =
+          linea || `${filas.length} ${filas.length === 1 ? 'fecha' : 'fechas'} este año`;
+
+        // la descripción se escribe en una sola de las fechas: vale para todas
+        const descripcion = filas.map((f) => f.descripcion).find(Boolean) || '';
+        actDescripcion.textContent = descripcion;
+        actDescripcion.classList.toggle('hidden', !descripcion);
+
+        actRotulo.textContent = foco.dia === filas[0].dia ? 'La próxima' : 'La fecha que elegiste';
+        actFecha.textContent = foco.fechaLarga;
+        actHora.textContent = [foco.horario, foco.ubicacion].filter(Boolean).join(' · ');
+        actAgendar.href = foco.agendar;
+
+        const ultima = filas[filas.length - 1];
+        actBalance.textContent =
+          filas.length === 1
+            ? 'Una sola fecha'
+            : `${filas.length} fechas · hasta el ${ultima.fechaLarga}`;
+
+        /*
+          La cinta: un mes por columna y una píldora por fecha. Del título se
+          quita el año, que se repite columna tras columna; salvo que la serie
+          cruce de año, y entonces es justo lo que hay que distinguir.
+        */
+        const porMes = new Map<string, Fila[]>();
+        for (const fila of filas) {
+          const suyas = porMes.get(fila.mes);
+          if (suyas) suyas.push(fila);
+          else porMes.set(fila.mes, [fila]);
+        }
+        const variosAnios = new Set(filas.map((f) => f.mes.slice(0, 4))).size > 1;
+
+        actMeses.innerHTML = [...porMes.entries()]
+          .map(([clave, suyas]) => {
+            const titulo = variosAnios ? nombreMes(clave) : nombreMes(clave).replace(/ de \d+$/, '');
+            const pildoras = suyas
+              .map(
+                (f) =>
+                  `<button type="button" class="cal-fecha" data-dia="${f.dia}" data-hoy="${f.dia === hoy ? 'si' : 'no'}" aria-pressed="${f.dia === foco.dia ? 'true' : 'false'}">` +
+                  `<span class="sr-only">${escapar(f.fechaLarga)}</span>` +
+                  `<span aria-hidden="true">${Number(f.dia.slice(-2))}</span></button>`
+              )
+              .join('');
+            return (
+              `<div><p class="rotulo text-ink first-letter:uppercase">${escapar(titulo)}</p>` +
+              `<div class="mt-3 flex flex-wrap gap-2">${pildoras}</div></div>`
+            );
+          })
+          .join('');
+
+        /*
+          Su propio calendario suscribible. `webcal://` es lo que hace que el
+          sistema lo tome como calendario y no como descarga; el enlace de al
+          lado es el mismo archivo, para quien prefiera bajárselo.
+        */
+        const dominio = ficha.dataset.dominio || location.host;
+        actSuscribir.href = `webcal://${dominio}/calendarios/${foco.ranura}.ics`;
+        actDescargar.href = `/calendarios/${foco.ranura}.ics`;
+        actDescargar.textContent =
+          filas.length === 1 ? 'Descargar esta fecha' : `Descargar las ${filas.length} fechas`;
+      };
+
+      /** Cierra la ficha y devuelve el calendario tal como estaba. */
+      const salirDeFicha = () => {
+        actividad = '';
+        fechaFoco = '';
+        busca = '';
+        buscador.value = '';
+        cerrarSugerencias();
+        todo = false;
+      };
+
+      /** Abre la ficha del año de una actividad y se planta en su próxima fecha. */
+      const abrirActividad = (nombre: string) => {
+        const filas = porNombre.get(nombre);
+        if (!filas || filas.length === 0) return;
+
+        actividad = nombre;
+        fechaFoco = filas[0].dia;
+        buscador.value = nombre;
+        busca = plano(nombre);
+        red = '';
+        dia = '';
+        todo = false;
+        cerrarSugerencias();
+
+        // el mapa del mes acompaña: se planta en el mes de la próxima fecha
+        const i = meses.indexOf(filas[0].mes);
+        if (i >= 0) iMes = i;
+
+        pintar();
+      };
+
+      const pintar = () => {
+        const lista = visibles();
+        /*
+          Con una actividad abierta la columna de la derecha deja de ser la
+          agenda del mes: la agenda contesta «qué pasa este mes» y la ficha
+          contesta «cuándo es esto, todo el año». No caben las dos a la vez.
+        */
+        const ficheando = enFicha();
+        const suyas = ficheando ? porNombre.get(actividad)! : [];
+
+        tituloMes.textContent = nombreMes(meses[iMes]).replace(/ de \d+$/, '');
+        anioMes.textContent = meses[iMes].slice(0, 4);
+
+        /*
+          Una sola línea dice qué se está viendo y por qué: cuántas hay y, si
+          hay filtro, cuál. Antes eran dos sitios —el recuento en la barra y
+          un rótulo encima de la lista— diciendo la mitad cada uno.
+        */
+        const cuantas = lista.length;
+        const cuenta = `${cuantas} ${cuantas === 1 ? 'actividad' : 'actividades'}`;
+        const filtro = dia
+          ? comoFecha(dia).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric' })
+          : red
+            ? red === '__iglesia'
+              ? 'Iglesia'
+              : red
+            : '';
+        resumen.textContent = ficheando
+          ? `${suyas.length} ${suyas.length === 1 ? 'fecha' : 'fechas'} en el año`
+          : filtro
+            ? `${cuenta} · ${filtro}`
+            : `${cuenta} este mes`;
+
+        antes.disabled = iMes === 0;
+        despues.disabled = iMes === meses.length - 1;
+        limpiar.classList.toggle('hidden', ficheando || (!red && !dia && !busca));
+        borrarBusca.classList.toggle('hidden', !busca);
+        borrarBusca.classList.toggle('grid', Boolean(busca));
+        /*
+          «Hoy» está siempre; lo que cambia es si tiene algo que hacer. Se
+          apaga cuando ya estamos en su mes y sin filtros, que es cuando
+          pulsarlo no movería nada. Con una ficha abierta siempre tiene algo
+          que hacer: cerrarla.
+        */
+        hoyBoton.disabled =
+          iHoy === -1 || (!ficheando && iMes === iHoy && !red && !dia && !busca);
+
+        pintarMapa();
+        pintarRedes();
+
+        ficha.classList.toggle('hidden', !ficheando);
+        // la ficha del año no es ni agenda ni rejilla: el conmutador no pinta nada
+        vistas.classList.toggle('oculto', ficheando);
+        mapaNota.classList.toggle('hidden', !ficheando);
+        if (ficheando) {
+          pintarActividad();
+          mapaNota.textContent = 'El mapa marca solo las fechas de esta actividad.';
+        }
+
+        // la agenda ya está servida: aquí solo se decide qué se ve
+        bloques.forEach((bloque) => {
+          bloque.hidden =
+            ficheando || bloque.dataset.mes !== meses[iMes] || vistaReal() !== 'agenda';
+
+          bloque.querySelectorAll<HTMLElement>('.cal-jornada').forEach((jornada) => {
+            const filas = [...jornada.querySelectorAll<HTMLElement>('.cal-fila')];
+            let algunoVisible = false;
+
+            filas.forEach((fila) => {
+              const boton = fila.querySelector<HTMLElement>('.cal-item')!;
+              const suRed = suRedDe(boton.dataset.red);
+              const visible =
+                (!red || suRed === red) &&
+                (!dia || jornada.dataset.dia === dia) &&
+                (!busca || plano(boton.dataset.nombre || '').includes(busca));
+              fila.hidden = !visible;
+              // una ficha abierta que el filtro se lleva vuelve cerrada
+              if (!visible) cerrarFila(fila);
+              if (visible) algunoVisible = true;
+            });
+
+            jornada.hidden = !algunoVisible;
+          });
+        });
+
+        /*
+          Y de las que quedan visibles, solo asoman las primeras. Filtrando por
+          un día no hay nada que recortar, y en la rejilla tampoco.
+        */
+        const delMesActivo = bloques.find((b) => b.dataset.mes === meses[iMes]);
+        const jornadasVivas = delMesActivo
+          ? [...delMesActivo.querySelectorAll<HTMLElement>('.cal-jornada')].filter((j) => !j.hidden)
+          : [];
+        const recorta = vistaReal() === 'agenda' && !dia && !todo && jornadasVivas.length > ASOMAN;
+
+        jornadasVivas.forEach((jornada, i) => {
+          if (recorta && i >= ASOMAN) jornada.hidden = true;
+        });
+
+        const quedan = jornadasVivas
+          .slice(ASOMAN)
+          .reduce((n, j) => n + [...j.querySelectorAll<HTMLElement>('.cal-fila')].filter((f) => !f.hidden).length, 0);
+
+        const ofreceMas =
+          !ficheando && vistaReal() === 'agenda' && !dia && jornadasVivas.length > ASOMAN;
+        masBoton.classList.toggle('hidden', !ofreceMas);
+        masBoton.classList.toggle('flex', ofreceMas);
+        if (ofreceMas) {
+          masTexto.textContent = recorta
+            ? quedan === 1
+              ? 'Ver la que queda del mes'
+              : `Ver las ${quedan} que quedan del mes`
+            : 'Ver solo lo próximo';
+          masIcono.classList.toggle('rotate-180', !recorta);
+        }
+
+        // con la rejilla grande delante, el mapa pequeño diría lo mismo dos veces
+        mini.classList.toggle('hidden', !ficheando && vistaReal() === 'mes');
+
+        if (!ficheando && vistaReal() === 'mes') {
+          pintarRejilla();
+          rejilla.classList.remove('hidden');
+        } else {
+          rejilla.classList.add('hidden');
+        }
+
+        const sinNada = !ficheando && vistaReal() === 'agenda' && lista.length === 0;
+        vacio.classList.toggle('hidden', !sinNada);
+        if (sinNada) {
+          notaVacio.textContent =
+            red || dia
+              ? 'Con este filtro no hay actividades este mes. Prueba con otra red o pasa al mes siguiente.'
+              : 'Este mes no hay actividades agendadas. Prueba con el mes siguiente.';
+        }
+
+        document.querySelectorAll<HTMLButtonElement>('.cal-vista').forEach((boton) => {
+          boton.setAttribute('aria-pressed', String(boton.dataset.vista === vistaReal()));
+        });
+      };
+
+      /* ---------- gestos ---------- */
+      antes.addEventListener('click', () => {
+        if (iMes === 0) return;
+        iMes -= 1;
+        red = '';
+        dia = '';
+        salirDeFicha();
         pintar();
       });
+
+      despues.addEventListener('click', () => {
+        if (iMes === meses.length - 1) return;
+        iMes += 1;
+        red = '';
+        dia = '';
+        salirDeFicha();
+        pintar();
+      });
+
+      hoyBoton.addEventListener('click', () => {
+        if (iHoy === -1) return;
+        iMes = iHoy;
+        red = '';
+        dia = '';
+        salirDeFicha();
+        pintar();
+      });
+
+      limpiar.addEventListener('click', () => {
+        red = '';
+        dia = '';
+        salirDeFicha();
+        pintar();
+      });
+
+      /* ---------- buscador ---------- */
+
+      const cerrarSugerencias = () => {
+        sugerencias.classList.add('hidden');
+        sugerencias.innerHTML = '';
+        buscador.setAttribute('aria-expanded', 'false');
+      };
+
+      /**
+       * Las actividades del año que casan con lo escrito, con su cadencia y
+       * cuántas veces se repiten. Se ofrecen nombres y no días porque las
+       * actividades se repiten: quien busca «avivamiento» quiere las
+       * diecisiete, no una.
+       *
+       * Mira el año entero y no el mes a la vista: si «Casa de oración» no
+       * cae en septiembre, el buscador tiene que poder decirlo igual, que es
+       * justo lo que se le está preguntando.
+       */
+      const pintarSugerencias = (todas = false) => {
+        const escrito = todas ? '' : plano(buscador.value.trim());
+
+        const casan = nombres.filter((n) => !escrito || plano(n).includes(escrito)).slice(0, 8);
+        if (!casan.length) return cerrarSugerencias();
+
+        sugerencias.innerHTML = [
+          `<li class="eyebrow px-3.5 pt-2.5 pb-2" role="presentation">En todo el año</li>`,
+          ...casan.map((n) => {
+            const filas = porNombre.get(n)!;
+            const pista = [
+              cadenciaDe(filas).corta,
+              `${filas.length} ${filas.length === 1 ? 'fecha' : 'fechas'}`,
+            ]
+              .filter(Boolean)
+              .join(' · ');
+
+            return (
+              `<li role="option" aria-selected="false">` +
+              `<button type="button" class="cal-sugerencia flex w-full flex-col items-start gap-0.5 rounded-[0.875rem] px-3.5 py-2.5 text-left transition-colors hover:bg-mist" data-nombre="${escapar(n)}">` +
+              `<span class="text-[0.9375rem] text-ink">${escapar(n)}</span>` +
+              `<span class="text-[0.8125rem] tracking-[-0.011em] text-muted">${escapar(pista)}</span>` +
+              `</button></li>`
+            );
+          }),
+        ].join('');
+        sugerencias.classList.remove('hidden');
+        buscador.setAttribute('aria-expanded', 'true');
+      };
+
+      buscador.addEventListener('input', () => {
+        busca = plano(buscador.value.trim());
+        // teclear es empezar de nuevo: la ficha que hubiera abierta se cierra
+        actividad = '';
+        fechaFoco = '';
+        todo = false;
+        pintarSugerencias();
+        pintar();
+      });
+
+      buscador.addEventListener('focus', () => {
+        /*
+          Al entrar en el campo se ofrecen todas: sin escribir nada, la lista
+          ya es la respuesta. Y con una ficha abierta el campo trae escrito su
+          nombre, así que filtrar por él ofrecería solo lo que ya se está
+          mirando: se ofrecen todas igual y se deja el texto seleccionado,
+          para que teclear lo reemplace en vez de añadirse.
+        */
+        if (enFicha()) buscador.select();
+        pintarSugerencias(enFicha());
+      });
+
+      buscador.addEventListener('keydown', (evento) => {
+        if (evento.key === 'Escape') {
+          cerrarSugerencias();
+          buscador.blur();
+        }
+      });
+
+      sugerencias.addEventListener('click', (evento) => {
+        const boton = (evento.target as HTMLElement).closest<HTMLElement>('.cal-sugerencia');
+        if (!boton) return;
+        abrirActividad(boton.dataset.nombre || '');
+      });
+
+      borrarBusca.addEventListener('click', () => {
+        salirDeFicha();
+        pintar();
+        buscador.focus();
+      });
+
+      volverAct.addEventListener('click', () => {
+        salirDeFicha();
+        pintar();
+      });
+
+      /*
+        Las píldoras de la cinta. Cambian la fecha que se mira —y con ella el
+        botón de agendar— y llevan el mapa del mes a su mes, para que las dos
+        columnas cuenten lo mismo.
+      */
+      actMeses.addEventListener('click', (evento) => {
+        const pildora = (evento.target as HTMLElement).closest<HTMLElement>('.cal-fecha');
+        if (!pildora) return;
+        fechaFoco = pildora.dataset.dia!;
+        const i = meses.indexOf(fechaFoco.slice(0, 7));
+        if (i >= 0) iMes = i;
+        pintar();
+      });
+
+      // clic fuera: el desplegable se recoge
+      document.addEventListener('click', (evento) => {
+        const dentro = (evento.target as HTMLElement).closest('#cal-buscar, #cal-sugerencias');
+        if (!dentro) cerrarSugerencias();
+      });
+
+      masBoton.addEventListener('click', () => {
+        todo = !todo;
+        pintar();
+        // al recoger, quien estuviera abajo se quedaría mirando el pie
+        if (!todo) masBoton.scrollIntoView({ block: 'center' });
+      });
+
+      // al pasar de agenda a mes la página se acorta de golpe: sin esto, quien
+      // estuviera leyendo abajo se quedaba mirando el pie de página
+      const volverALaLista = () => {
+        if (columna.getBoundingClientRect().top < 0) {
+          columna.scrollIntoView({ block: 'start' });
+        }
+      };
+
+      filtros.addEventListener('click', (evento) => {
+        const boton = (evento.target as HTMLElement).closest<HTMLElement>('.cal-red');
+        if (!boton) return;
+        const valor = boton.dataset.red!;
+        red = valor === '__todas' ? '' : valor;
+        // filtrar por red es volver a mirar el mes: la ficha del año se cierra
+        if (enFicha()) salirDeFicha();
+        pintar();
+      });
+
+      dias.addEventListener('click', (evento) => {
+        const celda = (evento.target as HTMLElement).closest<HTMLElement>('.cal-celda[data-tiene="si"]');
+        if (!celda) return;
+        /*
+          Con la ficha abierta el mapa ya solo marca fechas de esta actividad,
+          así que pulsar una es elegirla, no filtrar el mes por ese día.
+        */
+        if (enFicha()) fechaFoco = celda.dataset.dia!;
+        else dia = dia === celda.dataset.dia ? '' : celda.dataset.dia!;
+        pintar();
+      });
+
+      document.querySelectorAll<HTMLButtonElement>('.cal-vista').forEach((boton) => {
+        boton.addEventListener('click', () => {
+          vista = boton.dataset.vista === 'mes' ? 'mes' : 'agenda';
+          // las dos vistas son del mes: cualquiera de ellas cierra la ficha
+          if (enFicha()) salirDeFicha();
+          pintar();
+          volverALaLista();
+        });
+      });
+
+      // al cruzar el ancho de escritorio hay que rehacer: cambia qué vista vale
+      grande.addEventListener('change', pintar);
+
+      agenda.addEventListener('click', (evento) => {
+        const item = (evento.target as HTMLElement).closest<HTMLElement>('.cal-item');
+        if (item) alternarFila(item.closest<HTMLElement>('.cal-fila')!);
+      });
+
+      /*
+        La ficha vive ahora en la agenda, así que la rejilla no puede abrirla
+        donde está: cede el sitio, se despliega la fila y la lleva a la vista.
+        `todo` va a verdadero porque la jornada podría ser de las que el
+        recorte deja fuera, y entonces no habría fila que abrir.
+      */
+      rejilla.addEventListener('click', (evento) => {
+        const chip = (evento.target as HTMLElement).closest<HTMLElement>('.cal-chip');
+        if (!chip) return;
+        const [claveDia, nombre] = (chip.dataset.abre || '').split('|');
+
+        vista = 'agenda';
+        todo = true;
+        pintar();
+
+        const item = [...agenda.querySelectorAll<HTMLElement>('.cal-item')].find(
+          (b) => b.dataset.nombre === nombre && b.closest<HTMLElement>('.cal-jornada')?.dataset.dia === claveDia
+        );
+        const fila = item?.closest<HTMLElement>('.cal-fila');
+        if (!fila) return;
+
+        abrirFila(fila);
+        fila.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+
+      /*
+        Se abre en el mes de hoy si tiene algo; si no, en el primero que venga
+        con actividades — mejor eso que recibir a nadie con una página vacía.
+        El botón «Hoy» está justo ahí para volver.
+      */
+      const primeroConAlgo = meses.findIndex((m) => conActividades.includes(m));
+      iMes = conActividades.includes(mesDeHoy)
+        ? iHoy
+        : primeroConAlgo === -1
+          ? Math.max(0, iHoy)
+          : primeroConAlgo;
+
+      raiz.classList.add('cal-vivo');
+      // el estado plegado es de aquí: en el marcado las fichas van abiertas
+      agenda
+        .querySelectorAll<HTMLElement>('.cal-item')
+        .forEach((boton) => boton.setAttribute('aria-expanded', 'false'));
+      // el puesto de mando y el conmutador solo tienen sentido con el guion vivo
+      mapa.classList.remove('hidden');
+      vistas.classList.add('vivo');
+      pintar();
     }
-
-    /* --- arranque ---------------------------------------------------------- */
-
-    // con JavaScript mandamos el calendario; la agenda era el plan B
-    agenda.classList.add('hidden');
-    barra.classList.remove('hidden');
-    barra.classList.add('flex');
-    cal.classList.remove('hidden');
-    pintar();
   }
 </script>
