@@ -128,18 +128,23 @@ mensajes de commit van en español.
   navegador sigue sirviendo el viejo. Hay que recargar con ⌘⇧R.
 
 - **El relato de «Nuestra historia» se queda quieto y las fotos corren por al
-  lado.** Es un `sticky`, y un bloque pegajoso más alto que la ventana se lee a
-  medias: se ancla arriba y el final nunca llega a verse. Por eso el `sticky`
-  vive en `nosotros.astro` detrás de dos consultas de medios con altura mínima,
-  y esas alturas están medidas sobre el texto que hay hoy —no elegidas a ojo—.
-  A partir de 80rem de ancho el `max-w-xl` de los párrafos toca techo y el
-  relato mide 681px; más estrecho, adelgaza y sube a 873px, de ahí los dos
-  peldaños. **Si cambia `historia.body` en `content.ts` hay que volver a
-  medirlo**: sobra o falta un párrafo y esos números mienten en silencio. Se
-  mide con puppeteer leyendo el alto de `.relato-historia` y comparándolo con
-  `innerHeight` menos el `top`. Por la misma razón la cita del pastor cierra la
-  sección a todo el ancho, tras la pila de fotos, y no dentro de la columna
-  pegajosa: ahí dentro no cabía.
+  lado.** Es un `sticky`, y ahí está la trampa: un bloque pegajoso más alto que
+  la ventana se ancla arriba y su final nunca llega a verse. Hubo una primera
+  versión con la altura mínima escrita en dos consultas de medios, medida sobre
+  el texto de entonces; el efecto se apagaba entero en cuanto la ventana bajaba
+  de 752px —un portátil de 13" con la barra de marcadores puesta ya no llega—, y
+  cualquier párrafo de más en `historia.body` movía el número sin avisar.
+
+  Ahora el tope lo calcula el script de `nosotros.astro` y lo deja en `--tope`:
+  `min(64, innerHeight − alto del relato − 16)`. En ventanas holgadas da los
+  4rem de siempre; en las cortas sale negativo y el relato asoma por arriba,
+  dejando a la vista su final, que es lo que se venía leyendo al llegar. Se
+  recalcula al redimensionar y cuando entra la tipografía, porque el alto
+  cambia. Así no hay número que mantener.
+
+  Por lo mismo el relato va en `subtitle` y no en `subtitle-lg`: es texto
+  corrido, no la bajada de un título, y en cuerpo grande medía 681px, justo lo
+  que da una ventana de portátil, así que el titular asomaba cortado.
 
 - **El afiche de la radio tiene dos versiones.** La apaisada
   (`radio-programacion.png`) es la de escritorio. La vertical

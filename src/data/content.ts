@@ -38,7 +38,9 @@ import historiaBautizosChamiza from '../assets/img/historia-bautizos-chamiza.jpg
 import historiaCampamentoNinos from '../assets/img/historia-campamento-ninos.jpg';
 import historiaConstruccion from '../assets/img/historia-construccion.jpg';
 import historiaEdificioBlanco from '../assets/img/historia-edificio-blanco.jpg';
+import historiaEquipoAdoracion from '../assets/img/historia-equipo-adoracion.jpg';
 import historiaMatrimonioPastores from '../assets/img/historia-matrimonio-pastores.jpg';
+import historiaSalon from '../assets/img/historia-salon.jpg';
 import logoCentroMedico from '../assets/img/logo-centro-medico.png';
 import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
@@ -58,6 +60,7 @@ import equipoDaniloLena2 from '../assets/img/equipo-danilo-lena-2.jpg';
 import equipoRodolfoNatalie from '../assets/img/equipo-rodolfo-natalie.jpg';
 import equipoRodolfoNatalie2 from '../assets/img/equipo-rodolfo-natalie-2.jpg';
 import equipoNicole from '../assets/img/equipo-nicole.jpg';
+import equipoNicole2 from '../assets/img/equipo-nicole-2.jpg';
 import equipoJonathanCarmen from '../assets/img/equipo-jonathan-carmen.jpg';
 import equipoDavidCamila from '../assets/img/equipo-david-camila.jpg';
 import equipoDavidCamila2 from '../assets/img/equipo-david-camila-2.jpg';
@@ -535,8 +538,9 @@ export const avisos: Aviso[] = [
  *   el que se acerca (`object-position` y `transform-origin` van juntos, así
  *   que subir el zoom no descoloca lo que ya cuadraba).
  *
- * Solo lo llevan los retratos que mandan en la tarjeta: las segundas fotos
- * —las del hover— ya vienen cuadradas y no hace falta encuadrarlas.
+ * Lo llevan los retratos que mandan en la tarjeta y, si hace falta, también
+ * las segundas —las del hover—: casi todas ya vienen cuadradas y no lo
+ * necesitan, pero alguna llega apaisada y hay que decirle qué se ve.
  *
  * Los valores están puestos a ojo, tarjeta por tarjeta, tomando a Daniel y
  * Nahara de referencia: cabezas del mismo tamaño, ojos a la misma altura y el
@@ -579,6 +583,8 @@ export type MiembroEquipo = {
    * Opcional; sin ella la tarjeta simplemente no cambia.
    */
   photoHover?: ImageMetadata | null;
+  /** Solo si la segunda foto no viene ya cuadrada. */
+  encuadreHover?: Encuadre;
 };
 
 export type FotoHistorica = {
@@ -596,9 +602,9 @@ export const about = {
     title: 'Nuestra historia',
     /** Un párrafo por entrada. */
     body: [
-      'Nuestra historia comenzó en el living de la casa de nuestros pastores, donde durante tres meses se reunieron siete familias con el anhelo de buscar a Dios y crecer en Su presencia.',
+      'Nuestra historia comenzó en el living de la casa de nuestros pastores, donde durante tres meses nos reuníamos siete familias con el anhelo de buscar a Dios y crecer en Su presencia.',
       'A medida que la iglesia creció, las reuniones pasaron al Jardín Infantil Lunita y luego a una casona en Egaña 2070, que fue remodelada para recibir a la congregación. Más tarde, fue necesario trasladarse al galpón de la misma propiedad, llegando a reunir cerca de 130 personas.',
-      'Después de una temporada difícil, la iglesia quedó conformada por 28 personas y comenzó una nueva etapa en un quincho de la población Kennedy. En 2005, Dios llamó a nuestro pastor Jairo a dedicar tres meses a sumergirse profundamente en Su presencia, con la promesa de llevarlo más alto y más profundo que nunca antes.',
+      'Después de una temporada difícil, la iglesia quedó conformada por 28 personas y comenzó una nueva etapa en un quincho de la población Kennedy. En 2005, Dios llamó a nuestro pastor Jairo a dedicar tres meses a sumergirse profundamente en Su presencia, con la promesa de que él lo llevaría más alto y más profundo, como nunca antes.',
       'Al finalizar ese tiempo, Dios abrió la puerta para adquirir la propiedad donde hoy se encuentra nuestra iglesia, la cual ha sido ampliada y transformada a lo largo de los años.',
       'Miramos hacia atrás reconociendo la fidelidad de Dios en cada etapa, y creemos que nuestra historia aún se está escribiendo.',
     ],
@@ -610,6 +616,8 @@ export const about = {
     */
     fotos: [
       { caption: 'El matrimonio de los pastores', image: historiaMatrimonioPastores },
+      { caption: 'El equipo de adoración', image: historiaEquipoAdoracion },
+      { caption: 'Una reunión en el salón', image: historiaSalon },
       { caption: 'El edificio blanco', image: historiaEdificioBlanco },
       { caption: 'Construcciones', image: historiaConstruccion },
       { caption: 'Campamento de niños', image: historiaCampamentoNinos },
@@ -617,14 +625,6 @@ export const about = {
     ] satisfies FotoHistorica[],
   },
 
-  /** TODO: pendiente la cita real y quién la dice. */
-  cita: {
-    quote:
-      '«Pendiente: unas líneas de los pastores contando por qué la iglesia es como es. Dos o tres frases.»',
-    name: 'Nombre del pastor o pastora',
-    role: 'Pastor',
-    photo: null as ImageMetadata | null,
-  },
 
   valores: [
     {
@@ -747,6 +747,13 @@ export const about = {
           foto.
         */
         encuadre: { zoom: 1, x: '50%', y: '0%' },
+        photoHover: equipoNicole2,
+        /*
+          Apaisada, y con las dos abrazadas a la izquierda del encuadre: el
+          cuadrado se corre hacia allá para que queden centradas. Del río
+          entra lo justo.
+        */
+        encuadreHover: { zoom: 1, x: '20%', y: '50%' },
       },
       {
         name: 'Jonathan Rogel y Carmen Mansilla',
@@ -789,7 +796,7 @@ export const about = {
         name: 'Gerardo Andrade y Maria Eliana Zornow',
         photo: equipoGerardoMariaEliana,
         luz: 0.762,
-        encuadre: { zoom: 1.48, x: '49%', y: '30%' },
+        encuadre: { zoom: 1.48, x: '44%', y: '33%' },
       },
       {
         name: 'Cecilia Alvarado',

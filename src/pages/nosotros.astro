@@ -51,7 +51,7 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
     </div>
   </section>
 
-  {/* Historia: la pila de fotos a un lado y el relato al otro, con la cita al pie */}
+  {/* Historia: la pila de fotos a un lado y el relato al otro */}
   <section id="historia" class="pb-28 lg:pb-48" aria-label="Nuestra historia">
     <div class="container-page">
       <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
@@ -87,40 +87,17 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
         <div class="relato-historia mt-12 lg:mt-0">
           <h2 class="heading-lg text-ink">{about.historia.title}</h2>
 
-          <div class="mt-4 flex flex-col gap-3">
-            {about.historia.body.map((parrafo) => <p class="subtitle-lg max-w-xl">{parrafo}</p>)}
+          {/*
+            El relato va en `subtitle`, no en `subtitle-lg`: son cinco párrafos
+            de texto corrido, no la bajada de un título, y en cuerpo grande no
+            cabía entero en una ventana de portátil.
+          */}
+          <div class="mt-5 flex flex-col gap-4">
+            {about.historia.body.map((parrafo) => <p class="subtitle max-w-xl">{parrafo}</p>)}
           </div>
         </div>
       </div>
 
-      {/* La cita cierra la historia, ya cruzada toda la pila de fotos */}
-      <figure class="mt-16 border-t border-ink/15 pt-8 lg:mt-24">
-        <blockquote class="max-w-xl text-[1.25rem] leading-relaxed tracking-[-0.014em] text-ink">
-          {about.cita.quote}
-        </blockquote>
-
-        <figcaption class="mt-6 flex items-center gap-4">
-          {
-            about.cita.photo ? (
-              <Image
-                src={about.cita.photo}
-                alt={about.cita.name}
-                widths={[64, 128]}
-                sizes="56px"
-                class="size-14 shrink-0 rounded-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <FotoPendiente label="Retrato" class="size-14 shrink-0 rounded-full !p-1" />
-            )
-          }
-
-          <div>
-            <p class="text-[0.9375rem] font-semibold text-ink">{about.cita.name}</p>
-            <p class="nota">{about.cita.role}</p>
-          </div>
-        </figcaption>
-      </figure>
     </div>
   </section>
 
@@ -180,7 +157,7 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
                     sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
                     style={encuadrar(miembro.encuadre, miembro.luz)}
                     class:list={[
-                      'retrato absolute inset-0 size-full object-cover transition duration-500',
+                      'retrato encuadrada absolute inset-0 size-full object-cover transition duration-500',
                       miembro.photoHover ? 'group-hover:opacity-0' : 'se-enciende',
                     ]}
                     loading="lazy"
@@ -192,7 +169,8 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
                       alt=""
                       widths={[480, 720, 1080]}
                       sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
-                      class="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                      style={encuadrar(miembro.encuadreHover)}
+                      class="encuadrada absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                       loading="lazy"
                     />
                   )}
@@ -287,7 +265,11 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
     --contraste-retrato: 1.06;
   }
 
-  .equipo-lista .retrato {
+  /*
+    El encuadre va aparte del tratamiento: las segundas fotos —las del hover—
+    también se encuadran, pero salen a color y sin tocar.
+  */
+  .equipo-lista .encuadrada {
     object-position: var(--x, 50%) var(--y, 50%);
     transform: scale(var(--zoom, 1));
     /*
@@ -296,6 +278,9 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
       pueden tocar por separado.
     */
     transform-origin: var(--x, 50%) var(--y, 50%);
+  }
+
+  .equipo-lista .retrato {
     /*
       El blanco y negro, el brillo y el contraste van en un solo `filter`
       —encadenar dos reglas de filtro no se suma, la última gana— y viven en
@@ -319,34 +304,17 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
   /*
     El relato se queda quieto mientras la pila de fotos pasa por al lado.
 
-    Un bloque pegajoso más alto que la ventana se lee a medias: se ancla arriba
-    y el final nunca llega a verse. Por eso el `sticky` solo entra cuando la
-    ventana da para el relato entero; por debajo de esa altura la columna baja
-    con el resto de la página, que es la única forma de leerla completa.
-
-    Las dos alturas están medidas sobre este texto, no elegidas a ojo. A partir
-    de 80rem de ancho el `max-w-xl` de los párrafos toca techo y el relato se
-    queda en 681px, que con los 4rem de arriba pide una ventana de 47rem. Más
-    estrecho que eso la columna adelgaza, el texto dobla en más líneas y llega a
-    873px, y entonces hacen falta 60rem. Si cambia el texto de `historia.body`
-    hay que volver a medirlo: sobra o falta un párrafo y estos números mienten.
-
-    Los 4rem de arriba también están ajustados: con 5rem, un portátil de 1440x900
-    —que deja unos 780px de ventana una vez descontadas las barras del navegador—
-    se quedaba a cuatro píxeles de la altura mínima y perdía el efecto. La barra
-    flota y se retrae al bajar, así que no estorba tan arriba.
+    El anclaje no es un número fijo: lo calcula el script del final y lo deja en
+    `--tope`. Un bloque pegajoso más alto que la ventana se ancla arriba y su
+    final nunca llega a verse, así que en ventanas cortas el tope se vuelve
+    negativo —el relato asoma por arriba— y lo que queda a la vista es el final
+    del texto, que es lo que se estaba leyendo al llegar. Los 4rem del `fallback`
+    son el caso holgado, y también lo que se ve si el script no llega a correr.
   */
-  @media (min-width: 80rem) and (min-height: 47rem) {
+  @media (min-width: 64rem) {
     .relato-historia {
       position: sticky;
-      top: 4rem;
-    }
-  }
-
-  @media (min-width: 64rem) and (max-width: 79.99rem) and (min-height: 60rem) {
-    .relato-historia {
-      position: sticky;
-      top: 4rem;
+      top: var(--tope, 4rem);
     }
   }
 </style>
@@ -382,6 +350,31 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
 </style>
 
 <script>
+  /*
+    El tope del relato pegajoso de «Nuestra historia»: lo más arriba que puede
+    anclarse sin que su final se salga de la ventana. Se calcula en vez de
+    escribirse porque el alto del relato depende del texto y del ancho de la
+    columna, y un número a mano se queda mentiroso en cuanto cambia un párrafo.
+  */
+  const relato = document.querySelector<HTMLElement>('.relato-historia');
+
+  if (relato) {
+    const holgura = 16;
+    const tope = 64;
+
+    const ajustarTope = () => {
+      relato.style.setProperty(
+        '--tope',
+        `${Math.min(tope, window.innerHeight - relato.offsetHeight - holgura)}px`
+      );
+    };
+
+    ajustarTope();
+    addEventListener('resize', ajustarTope);
+    // El alto cambia cuando entra la tipografía de la página.
+    document.fonts?.ready.then(ajustarTope);
+  }
+
   const seccion = document.getElementById('equipo');
   const lista = document.getElementById('equipo-lista');
   const boton = seccion?.querySelector<HTMLButtonElement>('[data-equipo-mas]');
