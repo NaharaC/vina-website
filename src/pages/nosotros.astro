@@ -115,23 +115,28 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
   <SuenosTerreno />
 
   {/*
-    Nuestros valores: el encabezado se queda quieto a la izquierda y la lista
+    Nuestros valores: el encabezado se queda quieto a media pantalla y la lista
     pasa por al lado. Cada valor es una fila plegada —el nombre y un «+»— que
     se abre para leer el párrafo entero; así la sección se lee primero como
     índice, que es lo que se quiere de una lista de valores, y solo después se
     entra en el que interese.
 
-    Los nombres van en gris hasta que se abren: el negro señala cuál se está
-    leyendo, igual que el hover.
+    Los nombres van en gris y solo uno va en tinta: el que queda a la altura
+    del encabezado. Se marca al desplazar la página, así que la lista se lee
+    sola —el negro va bajando de valor en valor conforme se avanza— sin tener
+    que abrir nada. Abrir uno lo marca a él mientras esté abierto.
   */}
   <section id="creemos" class="pb-28 lg:pb-48" aria-labelledby="valores-titulo">
     <div class="container-page">
       <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24">
         {/*
-          Se para a 2rem del filo por lo mismo que la columna de Compasión: es
-          lo que deja libre la píldora de navegación, que baja hasta los 69px.
+          El encabezado se ancla al centro de la ventana, no arriba: es la
+          línea contra la que se marca el valor de turno, y el script mide
+          contra esa misma altura, así que lo que se ve en tinta es siempre lo
+          que queda enfrente. El anclaje lo calcula el script y lo deja en
+          `--anclaje`; el CSS de abajo lo usa.
         */}
-        <div class="lg:sticky lg:top-8">
+        <div class="encabezado-valores">
           <SectionHeading
             id="valores-titulo"
             eyebrow={about.valores.eyebrow}
@@ -145,29 +150,33 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
         <ul class="lista-valores">
           {
             about.valores.items.map((valor, i) => (
-              <li class="border-t border-ink/15 last:border-b">
+              /*
+                `data-activo` es el que va en tinta. Lo mueve el script con el
+                desplazamiento; aquí sale puesto en el primero para que la
+                lista no aparezca entera en gris —ni parpadee— mientras el
+                script no ha corrido, y para que se vea marcada aunque no
+                llegue a correr nunca.
+              */
+              <li class="valor border-t border-ink/15 last:border-b" data-activo={i === 0 ? '' : undefined}>
                 {/*
                   El <h3> carga con el nivel del índice y el botón con el
                   mando. El párrafo está en el marcado desde el principio
                   —plegado por CSS, como el resto del equipo—, así que el
                   buscador lo lee aunque en pantalla empiece cerrado.
-
-                  El primero arranca abierto: así se ve de entrada qué hay
-                  dentro de cada fila y la lista no empieza como un muro gris.
                 */}
                 <h3>
                   <button
                     type="button"
                     data-valor
-                    aria-expanded={i === 0 ? 'true' : 'false'}
+                    aria-expanded="false"
                     aria-controls={`valor-${i}`}
-                    class="group flex w-full items-start justify-between gap-6 py-6 text-left lg:py-7"
+                    class="group flex w-full items-start justify-between gap-6 py-9 text-left lg:py-12"
                   >
-                    <span class="heading-md text-balance text-muted transition-colors duration-200 group-hover:text-ink group-aria-expanded:text-ink">
+                    <span class="titulo-valor heading-md text-balance transition-colors duration-500 group-hover:text-ink">
                       {valor.title}
                     </span>
                     <span
-                      class="mt-1 grid size-6 shrink-0 place-items-center text-muted transition-[transform,color] duration-300 group-hover:text-ink group-aria-expanded:rotate-45 group-aria-expanded:text-ink"
+                      class="mas-valor mt-1 grid size-6 shrink-0 place-items-center transition-[transform,color] duration-300 group-hover:text-ink group-aria-expanded:rotate-45"
                       aria-hidden="true"
                     >
                       <Icon name="lucide:plus" width={22} height={22} />
@@ -182,7 +191,7 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
                 */}
                 <div id={`valor-${i}`} class="detalle-valor">
                   <div class="overflow-hidden">
-                    <p class="subtitle max-w-2xl pb-8 text-pretty lg:pb-9">{valor.body}</p>
+                    <p class="subtitle max-w-2xl pb-10 text-pretty lg:pb-12">{valor.body}</p>
                   </div>
                 </div>
               </li>
@@ -423,8 +432,55 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
     transition: grid-template-rows 0.42s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
-  li:has(> h3 > button[aria-expanded='true']) > .detalle-valor {
+  .valor:has(> h3 > button[aria-expanded='true']) > .detalle-valor {
     grid-template-rows: 1fr;
+  }
+
+  /*
+    El aire de arriba y de abajo de la lista. No es decoración: es lo que le
+    da recorrido al encabezado anclado. Sin él la lista mide casi lo mismo que
+    el encabezado, el anclaje dura dos dedos de desplazamiento y la marca se
+    queda parada en el valor del medio —los dos suben a la vez— en vez de ir
+    bajando de uno en uno.
+
+    Lo calcula el script, porque depende del alto del encabezado y del de una
+    fila, y los dos cambian con el texto y con el ancho de la ventana. En el
+    teléfono no hay nada anclado y el aire sobra, así que solo se aplica de
+    64rem para arriba.
+  */
+  @media (min-width: 64rem) {
+    .lista-valores {
+      padding-top: var(--respiro-arriba, 0);
+      padding-bottom: var(--respiro-abajo, 0);
+    }
+
+    /*
+      El anclaje es `50vh` menos medio encabezado, y no `50vh` con la mitad
+      descontada por `transform`, porque el `transform` no cuenta para el
+      pegajoso: el bloque seguiría reservando su alto desde la línea hacia
+      abajo y se despegaría medio encabezado antes de tiempo, justo cuando le
+      toca el último valor. Los 2rem del `fallback` son lo que se ve mientras
+      el script no ha corrido.
+    */
+    .encabezado-valores {
+      position: sticky;
+      top: var(--anclaje, 2rem);
+    }
+  }
+
+  /*
+    El gris de los valores que no tocan. Es más claro que el `muted` del resto
+    de la página —el contraste con la tinta es lo que hace el efecto— pero no
+    tanto como en la referencia, donde el texto apagado no se lee: se queda en
+    el gris más claro que sigue siendo legible por sí solo.
+  */
+  .titulo-valor,
+  .mas-valor {
+    color: color-mix(in srgb, var(--color-ink) 50%, white);
+  }
+
+  .valor[data-activo] :is(.titulo-valor, .mas-valor) {
+    color: var(--color-ink);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -491,18 +547,141 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
   }
 
   /*
-    Los valores se abren de uno en uno: al abrir uno se cierra el que estaba,
-    para que el negro señale siempre un solo valor —el que se está leyendo— y
-    la lista no se convierta en un muro de texto.
-  */
-  document.querySelectorAll<HTMLButtonElement>('[data-valor]').forEach((boton, _i, botones) => {
-    boton.addEventListener('click', () => {
-      const abierto = boton.getAttribute('aria-expanded') === 'true';
+    Los valores. Dos cosas a la vez:
 
-      botones.forEach((otro) => otro.setAttribute('aria-expanded', 'false'));
-      boton.setAttribute('aria-expanded', String(!abierto));
+    - Solo uno va en tinta, el que queda a la altura del encabezado, que está
+      anclado a media ventana. Se elige por la distancia de su centro a esa
+      misma altura —no por un umbral ni por un observador con márgenes—, que
+      es lo único que garantiza que se marque el que se tiene enfrente y no el
+      de al lado.
+    - Se abren de uno en uno con el «+». Mientras hay uno abierto es él el que
+      va en tinta, pase lo que pase con el desplazamiento: es el que se está
+      leyendo.
+  */
+  const lista = document.querySelector<HTMLElement>('.lista-valores');
+
+  if (lista) {
+    const filas = Array.from(lista.querySelectorAll<HTMLLIElement>('.valor'));
+    const botones = filas.map((fila) => fila.querySelector<HTMLButtonElement>('[data-valor]'));
+
+    /*
+      La altura contra la que se mide es la del encabezado, no media ventana:
+      mientras está anclado son la misma, pero al final de la sección el
+      encabezado se despega y sigue subiendo, y así el valor en tinta sigue
+      siendo el que se tiene enfrente en vez de quedarse desfasado. En el
+      teléfono no hay encabezado anclado —va arriba del todo— y la referencia
+      pasa a ser el medio de la ventana.
+    */
+    const anclado = matchMedia('(min-width: 64rem)');
+    const encabezado = document.querySelector<HTMLElement>('.encabezado-valores');
+
+    const linea = () => {
+      if (!anclado.matches || !encabezado) return window.innerHeight / 2;
+
+      const caja = encabezado.getBoundingClientRect();
+      return caja.top + caja.height / 2;
+    };
+
+    const marcar = () => {
+      const altura = linea();
+      const abierta = filas.find(
+        (_fila, i) => botones[i]?.getAttribute('aria-expanded') === 'true'
+      );
+
+      let activa = abierta;
+
+      if (!activa) {
+        let cerca = Infinity;
+
+        for (const fila of filas) {
+          const caja = fila.getBoundingClientRect();
+          const distancia = Math.abs(caja.top + caja.height / 2 - altura);
+
+          if (distancia < cerca) {
+            cerca = distancia;
+            activa = fila;
+          }
+        }
+      }
+
+      filas.forEach((fila) => fila.toggleAttribute('data-activo', fila === activa));
+    };
+
+    /*
+      El aire de arriba y de abajo de la lista, que es lo que hace que el
+      encabezado siga anclado mientras la marca recorre los cinco valores.
+
+      Arriba: lo que hay que bajar la primera fila para que su centro caiga en
+      la línea justo cuando el encabezado se ancla. Abajo: lo que necesita el
+      encabezado por debajo de la línea para no despegarse cuando la última
+      fila llega a ella. Las dos medidas son la misma cuenta —media diferencia
+      entre el alto del encabezado y el de la fila— porque la línea pasa por
+      el centro de los dos.
+    */
+    const respirar = () => {
+      if (!anclado.matches || !encabezado) {
+        lista.style.removeProperty('--respiro-arriba');
+        lista.style.removeProperty('--respiro-abajo');
+        encabezado?.style.removeProperty('--anclaje');
+        return;
+      }
+
+      const mitad = encabezado.offsetHeight / 2;
+
+      encabezado.style.setProperty('--anclaje', `calc(50vh - ${Math.round(mitad)}px)`);
+
+      const aire = (fila?: HTMLLIElement) =>
+        `${Math.max(0, Math.round(mitad - (fila?.offsetHeight ?? 0) / 2))}px`;
+
+      lista.style.setProperty('--respiro-arriba', aire(filas[0]));
+      lista.style.setProperty('--respiro-abajo', aire(filas[filas.length - 1]));
+    };
+
+    /*
+      Una sola pasada por cuadro: el desplazamiento dispara mucho más a menudo
+      de lo que se pinta, y medir cinco cajas en cada evento es leer el diseño
+      cinco veces por nada.
+    */
+    let pedido = 0;
+
+    const pedirMarca = () => {
+      if (pedido) return;
+      pedido = requestAnimationFrame(() => {
+        pedido = 0;
+        marcar();
+      });
+    };
+
+    botones.forEach((boton, i) => {
+      boton?.addEventListener('click', () => {
+        const abierto = boton.getAttribute('aria-expanded') === 'true';
+
+        botones.forEach((otro) => otro?.setAttribute('aria-expanded', 'false'));
+        boton.setAttribute('aria-expanded', String(!abierto));
+        marcar();
+
+        /*
+          Al cerrar, la fila se encoge y lo que queda enfrente ya es otro: hay
+          que volver a mirar cuando el pliegue termine, no mientras se mueve.
+        */
+        filas[i]
+          ?.querySelector('.detalle-valor')
+          ?.addEventListener('transitionend', marcar, { once: true });
+      });
     });
-  });
+
+    const medir = () => {
+      respirar();
+      marcar();
+    };
+
+    medir();
+    addEventListener('scroll', pedirMarca, { passive: true });
+    addEventListener('resize', medir);
+    anclado.addEventListener('change', medir);
+    // El alto del encabezado y el de las filas cambian al entrar la tipografía.
+    document.fonts?.ready.then(medir);
+  }
 
   /*
     El botón de «Ver todo el equipo pastoral». Hay uno por tramo que se pliegue
