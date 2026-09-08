@@ -717,7 +717,6 @@ export const about = {
 
   equipo: {
     title: 'Equipo pastoral',
-    description: 'Primero quienes fundaron la iglesia; después el equipo que pastorea cada área.',
     /**
      * Dos tramos, cada uno con su rótulo: primero los fundadores y luego los
      * asociados. En los asociados salen los primeros `visibles` y el resto
@@ -725,9 +724,9 @@ export const about = {
      * lista es el orden en que aparecen, así que para adelantar a alguien se
      * sube aquí.
      *
-     * TODO: pendientes los cargos de casi todos, el retrato de estudio de
-     * Eduardo y Priscila —ahora va una foto suya de familia— y el de Juan y
-     * Lina.
+     * TODO: pendientes el cargo de Juan y Lina, su retrato y el retrato de
+     * estudio de Eduardo y Priscila, que de momento llevan una foto suya de
+     * familia.
      */
     grupos: [
       {
@@ -785,12 +784,14 @@ export const about = {
           },
           {
             name: 'Danilo Vargas y Lena Miller',
+            role: 'Pastores de Jóvenes Pro',
             photo: equipoDaniloLena,
             luz: 0.888,
             photoHover: equipoDaniloLena2,
           },
           {
             name: 'Rodolfo Cabezas y Natalie Alfaro',
+            role: 'Pastores de Adolescentes Jeer',
             photo: equipoRodolfoNatalie,
             luz: 0.804,
             encuadre: { zoom: 1.36, x: '50%', y: '27%' },
@@ -798,6 +799,7 @@ export const about = {
           },
           {
             name: 'Nicole Bruyere',
+            role: 'Pastora de Mujeres de Gracia',
             photo: equipoNicole,
             luz: 1.081,
             /*
@@ -821,6 +823,7 @@ export const about = {
           },
           {
             name: 'Jonathan Rogel y Carmen Mansilla',
+            role: 'Pastora de Escuela Bíblica y Pastor de Adoración',
             photo: equipoJonathanCarmen,
             luz: 0.784,
             encuadre: { zoom: 1.28, x: '49%', y: '32%' },
@@ -834,6 +837,7 @@ export const about = {
           },
           {
             name: 'David Balbontín y Camila Gallardo',
+            role: 'Pastores de Presentaciones de Niños',
             photo: equipoDavidCamila,
             luz: 0.735,
             encuadre: { zoom: 1.18, x: '50%', y: '34%' },
@@ -841,6 +845,7 @@ export const about = {
           },
           {
             name: 'Hardy Aqueveque y Ruth Venegas',
+            role: 'Pastores de Matrimonios Senior',
             photo: equipoHardyRuth,
             luz: 0.811,
             /*
@@ -854,6 +859,7 @@ export const about = {
           },
           {
             name: 'Eduardo Alister y Priscila Almonacid',
+            role: 'Pastores de Matrimonios Pro',
             /*
               Provisional, mientras no llegue el retrato de estudio: es una
               foto suya de familia y va con el mismo tratamiento que las
@@ -872,6 +878,7 @@ export const about = {
           },
           {
             name: 'Eugenia Soto',
+            role: 'Pastora de Mujeres de Gracia',
             photo: equipoEugenia,
             luz: 0.791,
             encuadre: { zoom: 1.44, x: '48%', y: '24%' },
@@ -879,12 +886,14 @@ export const about = {
           },
           {
             name: 'Gerardo Andrade y Maria Eliana Zornow',
+            role: 'Pastor de Hombres y Pastora de Mujeres',
             photo: equipoGerardoMariaEliana,
             luz: 0.762,
             encuadre: { zoom: 1.48, x: '44%', y: '33%' },
           },
           {
             name: 'Cecilia Alvarado',
+            role: 'Pastora de Arte Profético',
             photo: equipoCecilia,
             luz: 0.774,
             encuadre: { zoom: 1.6, x: '52%', y: '22%' },
