@@ -1,0 +1,175 @@
+---
+/**
+ * Lo que viene.
+ *
+ * De los proyectos futuros no hay más foto que la del terreno nuevo, así que
+ * aquí no hay un rectángulo por proyecto como en los de compasión social: hay
+ * uno solo, con la foto quieta dentro, y los cuatro sueños suben por al lado.
+ *
+ * En el teléfono no hay nada que se quede quieto: la foto va arriba y los
+ * sueños debajo, uno tras otro.
+ */
+import { Image } from 'astro:assets';
+import BotonPalabra from './BotonPalabra.astro';
+import SectionHeading from './SectionHeading.astro';
+import { about } from '../data/content';
+
+const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.sueños;
+---
+
+<section id="suenos" class="pb-28 lg:pb-48" aria-labelledby="suenos-titulo">
+  <div class="container-page">
+    <SectionHeading id="suenos-titulo" eyebrow={eyebrow} title={title} />
+  </div>
+
+  <div class="tira-suenos mt-16 lg:mt-24">
+    {/*
+      La foto va antes que el texto en el marcado: en el teléfono se lee
+      primero, y en escritorio la rejilla la manda a la derecha.
+    */}
+    <div class="panel-terreno">
+      <div class="terreno-quieto">
+        <figure class="terreno-foto">
+          <Image
+            src={foto}
+            alt={fotoAlt}
+            widths={[640, 960, 1440]}
+            sizes="(min-width: 64rem) 700px, 90vw"
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+
+        <p class="nota mt-5 max-w-lg">{fotoPie}</p>
+      </div>
+    </div>
+
+    <div class="columna-suenos">
+      {
+        items.map((sueno) => (
+          <article>
+            <h3 class="heading-lg text-ink">{sueno.title}</h3>
+
+            <p class="sueno-cuerpo mt-5">{sueno.body}</p>
+
+            {sueno.lista && (
+              <ul class="mt-7 list-none p-0">
+                {sueno.lista.map((linea) => <li class="nota">{linea}</li>)}
+              </ul>
+            )}
+          </article>
+        ))
+      }
+
+      <div>
+        <p class="subtitle-lg max-w-lg text-ink">{cierre}</p>
+
+        <BotonPalabra
+          label={action.label}
+          href={action.href}
+          external={action.external}
+          class="mt-5"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* el mismo margen que `container-page` a la izquierda y ninguno a la
+     derecha: el rectángulo llega al filo, como el de los proyectos */
+  .tira-suenos {
+    padding-inline-start: 1.25rem;
+  }
+
+  @media (width >= 40rem) {
+    .tira-suenos {
+      padding-inline-start: 2rem;
+    }
+  }
+
+  @media (width >= 64rem) {
+    .tira-suenos {
+      padding-inline-start: 3rem;
+    }
+  }
+
+  .panel-terreno {
+    background-color: var(--color-mist);
+    border-radius: 1.5rem 0 0 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .terreno-foto {
+    margin: 0;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 1.25rem 3rem rgba(17, 17, 17, 0.14);
+  }
+
+  .columna-suenos {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    margin-top: 3rem;
+    padding-inline-end: 1.25rem;
+  }
+
+  @media (width >= 40rem) {
+    .columna-suenos {
+      padding-inline-end: 2rem;
+    }
+  }
+
+  .sueno-cuerpo {
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+    line-height: 1.5;
+    letter-spacing: -0.014em;
+    color: var(--color-ink);
+    max-width: 34rem;
+  }
+
+  @media (width >= 64rem) {
+    .tira-suenos {
+      display: grid;
+      grid-template-columns: 28.75rem minmax(0, 1fr);
+      gap: 6rem;
+      align-items: stretch;
+    }
+
+    /* la foto a la derecha, el texto a la izquierda */
+    .panel-terreno {
+      order: 2;
+      border-radius: 2rem 0 0 2rem;
+      padding: 3.5rem 4rem;
+    }
+
+    .columna-suenos {
+      order: 1;
+      gap: 7rem;
+      margin-top: 0;
+      padding-block: 0.5rem 3rem;
+      padding-inline-end: 0;
+    }
+
+    /*
+      La foto se queda quieta mientras los sueños suben. El gris de detrás
+      acompaña a toda la columna, así que lo pegajoso es la foto y no el
+      rectángulo.
+    */
+    .terreno-quieto {
+      position: sticky;
+      top: 7rem;
+    }
+  }
+</style>
+
+{/* los estilos con ámbito no alcanzan a `<Image>` */}
+<style is:global>
+  .tira-suenos .terreno-foto img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>

@@ -3,8 +3,9 @@ import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import ArrowButton from '../components/ArrowButton.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import CintaScroll from '../components/CintaScroll.astro';
 import FotoPendiente from '../components/FotoPendiente.astro';
+import ProyectosCompasion from '../components/ProyectosCompasion.astro';
+import SuenosTerreno from '../components/SuenosTerreno.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import TarjetaEquipo from '../components/TarjetaEquipo.astro';
 import { about, site, stats, whatsappHref } from '../data/content';
@@ -108,15 +109,10 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
     </div>
   </section>
 
-  <CintaScroll id="proyectos" title={about.proyectos.title} items={about.proyectos.items} />
+  <ProyectosCompasion />
 
-  {/* Lo que viene: el título cambia de lado y la cinta pasa a la izquierda */}
-  <CintaScroll
-    id="suenos"
-    title={about.sueños.title}
-    items={about.sueños.items}
-    cinta="izquierda"
-  />
+  {/* Lo que viene: una sola foto quieta y los sueños subiendo por al lado */}
+  <SuenosTerreno />
 
   {/* Qué creemos: filas separadas por líneas, título a un lado y texto al otro */}
   <section id="creemos" class="pb-28 lg:pb-48" aria-label="Qué creemos">

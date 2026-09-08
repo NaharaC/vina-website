@@ -41,6 +41,10 @@ import historiaEdificioBlanco from '../assets/img/historia-edificio-blanco.jpg';
 import historiaEquipoAdoracion from '../assets/img/historia-equipo-adoracion.jpg';
 import historiaMatrimonioPastores from '../assets/img/historia-matrimonio-pastores.jpg';
 import historiaSalon from '../assets/img/historia-salon.jpg';
+import centroMedico2 from '../assets/img/centro-medico-2.jpg';
+import educaMontealto2 from '../assets/img/educa-montealto-2.jpg';
+import dadoresDeAmor2 from '../assets/img/dadores-de-amor-2.jpg';
+import terrenoNuevo from '../assets/img/terreno-nuevo.jpg';
 import logoCentroMedico from '../assets/img/logo-centro-medico.png';
 import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
@@ -632,6 +636,31 @@ export type FotoHistorica = {
   image: ImageMetadata | null;
 };
 
+/**
+ * Un proyecto de compasión social: el relato a un lado y, al otro, sus dos
+ * fotos con el logotipo encima.
+ */
+export type ProyectoCompasion = {
+  title: string;
+  body: string;
+  /** Las líneas sueltas que se leen de un vistazo. Sin viñetas. */
+  lista: string[];
+  action: NavLink;
+  photo: ImageMetadata;
+  photoAlt: string;
+  photoSecundaria: ImageMetadata;
+  photoSecundariaAlt: string;
+  logo?: ImageMetadata;
+  logoAlt?: string;
+};
+
+/** Un proyecto que todavía no existe: solo texto. */
+export type Sueno = {
+  title: string;
+  body: string;
+  lista?: string[];
+};
+
 export const about = {
   eyebrow: 'Nosotros',
   title: 'Somos una familia compasiva imitando a Jesús',
@@ -689,39 +718,120 @@ export const about = {
   ],
 
   /*
-    Se leen de a uno mientras se baja: el que va llegando al centro de la
-    pantalla se enciende y los demás se apagan.
+    Cada proyecto es un bloque: a un lado el relato —párrafo y una lista de
+    líneas sueltas con los datos sueltos— y al otro un rectángulo gris con
+    sus dos fotos montadas y el logotipo. El texto se queda quieto mientras
+    el rectángulo sube por al lado.
+
+    `lista` no lleva viñetas ni orden: son las líneas que se leen de un
+    vistazo (qué atiende, dónde, cada cuánto, a quién escribir). Si un
+    proyecto no tiene `logo`, la tarjetita no se dibuja.
   */
   proyectos: {
     title: 'Nuestros proyectos de compasión social',
-    items: [
-      { title: 'Proyecto educativo Educa Montealto' },
-      { title: 'Centro Médico Viña Puerto Montt' },
-      { title: 'Entrega de canastas de alimento «Dadores de Amor»' },
-    ],
-  },
-
-  /** Lo que viene. Aquí cada uno lleva una línea explicando de qué se trata. */
-  sueños: {
-    title: 'Seguimos soñando con',
+    eyebrow: 'Compasión social',
     items: [
       {
-        title: 'Primera Universidad Cristiana del sur de Chile',
-        body: 'En el terreno adquirido recientemente se proyecta la Universidad «Velos», primera universidad cristiana del sur de Chile.',
+        title: 'Educa Montealto',
+        body: 'Nuestro proyecto educativo Educa Montealto cuenta actualmente con más de 120 estudiantes, desde los 2 años hasta 8° básico. Hasta el momento nuestros alumnos rinden exámenes libres, desarrollándose en un proyecto que busca entregar una educación de excelencia académica acompañada de una sólida formación en valores y principios cristianos. A través de los años hemos visto cómo este proyecto ha impactado no solo a los estudiantes, sino también a sus familias.',
+        lista: [
+          'Educa Montealto Kids · de 2 años a kínder',
+          'Educa Montealto básica · de 1° a 8° básico',
+          'Más de 120 estudiantes',
+          'Exámenes libres',
+          'En las instalaciones de la iglesia',
+          'Postulaciones: educamontealto@gmail.com',
+          '+56 9 4408 7458',
+        ],
+        action: {
+          label: 'Ver en Instagram',
+          href: 'https://www.instagram.com/educamontealto/',
+          external: true,
+        },
+        photo: educaMontealto,
+        photoAlt: 'Estudiante orando en una actividad del colegio',
+        photoSecundaria: educaMontealto2,
+        photoSecundariaAlt: 'Estudiantes de Educa Montealto en la sala de clases',
+        logo: logoEducaMontealto,
+        logoAlt: 'Educa Montealto',
       },
       {
-        title: 'Academia y CFT',
+        title: 'Centro Médico Viña Puerto Montt',
+        body: 'Más de 12 mil atenciones en diversas especialidades, sobre todo en odontología. Además de una atención de alta calidad y bajo costo, este espacio opera como un puente para que las personas conozcan y reciban a Cristo en sus corazones. Cada cierto tiempo realizamos también operativos gratuitos.',
+        lista: [
+          'Medicina general',
+          'Odontología',
+          'Psicología, entre otras especialidades',
+          'Atención presencial jueves y viernes',
+          'En las instalaciones de la iglesia',
+          '+56 9 6618 2335',
+        ],
+        action: { label: 'Visitar página web', href: 'https://cm.vinapm.cl/', external: true },
+        photo: centroMedico,
+        photoAlt: 'Profesional de la salud atendiendo a un paciente',
+        photoSecundaria: centroMedico2,
+        photoSecundariaAlt: 'Atención odontológica a un niño en el Centro Médico',
+        logo: logoCentroMedico,
+        logoAlt: 'Centro Médico viñapm',
+      },
+      {
+        title: 'Dadores de Amor',
+        body: 'Una iniciativa nacida en tiempos de pandemia que sigue funcionando hasta hoy. Llevamos canastas de mercadería a los hogares, y esa canasta es la excusa para llevar también una palabra de esperanza.',
+        lista: [
+          'Se reparte en todo Puerto Montt',
+          'Las canastas se arman con lo que dona la iglesia',
+          'Recibimos donaciones cada domingo, en las reuniones principales',
+          'Para aportar, escríbenos al +56 9 5782 9898',
+        ],
+        action: {
+          label: 'Quiero aportar',
+          href: whatsappHref('Hola, quiero aportar a Dadores de Amor'),
+          external: true,
+        },
+        photo: dadoresDeAmor,
+        photoAlt: 'Canastas con mercadería preparadas para entregar a familias',
+        photoSecundaria: dadoresDeAmor2,
+        photoSecundariaAlt: 'Matrimonio junto a las canastas de mercadería de Dadores de Amor',
+        logo: logoDadoresDeAmor,
+        logoAlt: 'Dadores de Amor',
+      },
+    ] satisfies ProyectoCompasion[],
+  },
+
+  /*
+    Lo que viene. De los proyectos futuros no hay más foto que el terreno, así
+    que aquí no hay un rectángulo por proyecto: hay uno solo, con la foto
+    quieta, y los cuatro sueños suben por al lado.
+  */
+  sueños: {
+    title: 'Seguimos soñando con',
+    eyebrow: 'Lo que viene',
+    foto: terrenoNuevo,
+    fotoAlt:
+      'Vista aérea del terreno nuevo de 80.000 m², a unos metros de la propiedad actual',
+    fotoPie:
+      'El terreno nuevo: 80.000 m² a unos metros de la propiedad actual, donde se proyectan estos sueños.',
+    cierre: 'Sé parte de nuestros proyectos',
+    action: { label: 'Dar', href: contactChannels.givingUrl, external: true },
+    items: [
+      {
+        title: 'Universidad «Velos»',
+        body: 'En el terreno adquirido recientemente se proyecta la Universidad «Velos», primera universidad cristiana del sur de Chile.',
+        lista: ['Nuevo terreno, a unos metros del actual'],
+      },
+      {
+        title: 'Academia y Centro de Formación Técnica',
         body: 'También se proyecta nuestro Centro de Formación Técnica, complementado con un programa de capacitación para emprendedores locales, abriendo puertas de futuro para niños, adolescentes y jóvenes de nuestra región.',
       },
       {
-        title: 'Proyecto Hospital Clínico La Viña',
+        title: 'Hospital Clínico La Viña',
         body: 'En fe, sobre este nuevo terreno, construiremos este centro clínico, ampliando nuestra capacidad de servicio y sanidad en la comuna.',
       },
       {
-        title: 'Proyecto de Residencia de Niños y Familias de Acogida',
+        title: 'Residencia de niños y familias de acogida',
         body: 'Anhelamos brindar un entorno seguro, de amor, restauración y cuidado integral a niños que lo necesitan, acompañando y capacitando a familias que abren sus corazones bajo esta hermosa labor de acogida.',
       },
-    ],
+    ] satisfies Sueno[],
   },
 
   equipo: {

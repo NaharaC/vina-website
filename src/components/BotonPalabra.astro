@@ -1,0 +1,39 @@
+---
+/**
+ * La pastilla gris con la flecha suelta al lado. Es el botón de la palabra
+ * profética de la portada, y el que llevan los proyectos de compasión social.
+ *
+ * No es un `ArrowButton`: aquel es la pastilla de color con el círculo, y este
+ * es el discreto, el que acompaña a un texto largo sin llamar la atención.
+ */
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  label: string;
+  href: string;
+  external?: boolean;
+  class?: string;
+}
+
+const { label, href, external = false, class: className = '' } = Astro.props;
+---
+
+<a
+  href={href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+  class:list={[
+    'group inline-flex items-center gap-3 rounded-full bg-mist px-7 py-3.5 text-[1rem] font-semibold text-carbon transition-colors hover:bg-[#e4e3de]',
+    className,
+  ]}
+>
+  {label}
+  {external && <span class="sr-only">(se abre en una ventana nueva)</span>}
+  <Icon
+    name="lucide:arrow-right"
+    width={18}
+    height={18}
+    class="transition-transform duration-200 group-hover:translate-x-0.5"
+    aria-hidden="true"
+  />
+</a>

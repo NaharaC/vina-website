@@ -1,0 +1,296 @@
+---
+/**
+ * Los proyectos de compasión social, uno debajo de otro.
+ *
+ * Cada proyecto es un bloque de dos columnas: a la izquierda el relato —el
+ * nombre, el párrafo y la lista de datos sueltos—, y a la derecha un
+ * rectángulo gris con sus dos fotos montadas y el logotipo. El texto se queda
+ * quieto mientras el rectángulo sube por al lado.
+ *
+ * El rectángulo llega al filo derecho de la ventana: es el único bloque de la
+ * web que lo hace, y por eso el redondeo va solo en las esquinas de la
+ * izquierda. En el teléfono no hay dos columnas: el texto va arriba y el
+ * rectángulo debajo, y las fotos se apilan en vez de montarse.
+ */
+import { Image } from 'astro:assets';
+import BotonPalabra from './BotonPalabra.astro';
+import SectionHeading from './SectionHeading.astro';
+import { about } from '../data/content';
+
+const { title, eyebrow, items } = about.proyectos;
+---
+
+<section id="proyectos" class="pb-28 lg:pb-48" aria-labelledby="proyectos-titulo">
+  {/* El encabezado sí se queda en la caja de la página; el que sale al filo es
+      el rectángulo de las fotos, más abajo. */}
+  <div class="container-page">
+    <SectionHeading id="proyectos-titulo" eyebrow={eyebrow} title={title} />
+  </div>
+
+  <div class="tira-proyectos mt-16 lg:mt-24">
+    {
+      items.map((proyecto) => (
+        <article class="bloque-proyecto">
+          <div class="bloque-texto">
+            <h3 class="heading-lg text-ink">{proyecto.title}</h3>
+
+            <p class="bloque-cuerpo mt-5">{proyecto.body}</p>
+
+            <ul class="mt-7 list-none p-0">
+              {proyecto.lista.map((linea) => <li class="nota">{linea}</li>)}
+            </ul>
+
+            <BotonPalabra
+              label={proyecto.action.label}
+              href={proyecto.action.href}
+              external={proyecto.action.external}
+              class="mt-9"
+            />
+          </div>
+
+          {/*
+            Las dos fotos y el logotipo. En escritorio se montan una sobre otra
+            dentro del rectángulo; en el teléfono se apilan.
+          */}
+          <div class="panel-fotos">
+            <div class="collage">
+              <figure class="pieza pieza-grande">
+                <Image
+                  src={proyecto.photo}
+                  alt={proyecto.photoAlt}
+                  widths={[480, 720, 1080]}
+                  sizes="(min-width: 64rem) 600px, 90vw"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+
+              <figure class="pieza pieza-chica">
+                <Image
+                  src={proyecto.photoSecundaria}
+                  alt={proyecto.photoSecundariaAlt}
+                  widths={[360, 540, 800]}
+                  sizes="(min-width: 64rem) 400px, 90vw"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+
+              {proyecto.logo && (
+                <figure class="pieza pieza-logo">
+                  <Image
+                    src={proyecto.logo}
+                    alt={proyecto.logoAlt ?? ''}
+                    widths={[220, 440]}
+                    sizes="220px"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </figure>
+              )}
+            </div>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  /*
+    La tira sale de la caja de la página por la derecha: el margen de la
+    izquierda es el mismo que el de `container-page`, y por la derecha no hay
+    margen ninguno. Se escribe aquí y no con utilidades porque hay que repetir
+    los tres escalones de `container-page`.
+  */
+  .tira-proyectos {
+    padding-inline-start: 1.25rem;
+  }
+
+  @media (width >= 40rem) {
+    .tira-proyectos {
+      padding-inline-start: 2rem;
+    }
+  }
+
+  @media (width >= 64rem) {
+    .tira-proyectos {
+      padding-inline-start: 3rem;
+    }
+  }
+
+  .bloque-proyecto + .bloque-proyecto {
+    margin-top: 5rem;
+  }
+
+  /* el texto sí respeta el margen de la derecha; el que sale al filo es el
+     rectángulo gris */
+  .bloque-texto {
+    padding-inline-end: 1.25rem;
+  }
+
+  @media (width >= 40rem) {
+    .bloque-texto {
+      padding-inline-end: 2rem;
+    }
+  }
+
+  /* el párrafo del bloque va en tinta: aquí es el texto principal, no una
+     bajada, así que no lleva el gris de `subtitle` */
+  .bloque-cuerpo {
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+    line-height: 1.5;
+    letter-spacing: -0.014em;
+    color: var(--color-ink);
+    max-width: 34rem;
+  }
+
+  .panel-fotos {
+    background-color: var(--color-mist);
+    border-radius: 1.5rem 0 0 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .collage {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .pieza {
+    margin: 0;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 1.25rem 3rem rgba(17, 17, 17, 0.14);
+  }
+
+  /*
+    Los logotipos son blancos, así que su tarjeta va oscura. La tarjeta manda
+    el alto y el logotipo lo llena por dentro: nada de centrar con rejilla,
+    que deja el alto en el aire y el porcentaje del logotipo sin contra qué
+    medirse.
+  */
+  .pieza-logo {
+    padding: 1rem 1.5rem;
+    height: 4.75rem;
+    background-color: var(--color-carbon);
+  }
+
+  /* En cuanto hay sitio: dos columnas, el texto quieto y las fotos montadas */
+  @media (width >= 64rem) {
+    .bloque-proyecto {
+      display: grid;
+      grid-template-columns: 28.75rem minmax(0, 1fr);
+      gap: 6rem;
+      align-items: start;
+    }
+
+    .bloque-proyecto + .bloque-proyecto {
+      margin-top: 8rem;
+    }
+
+    /*
+      El relato se queda quieto mientras el rectángulo sube. Los bloques son
+      más altos que el texto, así que no hace falta el cálculo de «Nuestra
+      historia»: nunca se pega uno más alto que la ventana.
+    */
+    .bloque-texto {
+      position: sticky;
+      top: 7rem;
+      padding-inline-end: 0;
+    }
+
+    .panel-fotos {
+      border-radius: 2rem 0 0 2rem;
+      padding: 3.5rem 4rem;
+      min-height: 40rem;
+    }
+
+    .collage {
+      display: block;
+      position: relative;
+      height: 100%;
+      min-height: 33rem;
+    }
+
+    .pieza {
+      position: absolute;
+      transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .pieza-grande {
+      top: 0;
+      left: 0;
+      width: 66%;
+      aspect-ratio: 4 / 3;
+    }
+
+    .pieza-chica {
+      right: 0;
+      bottom: 6%;
+      width: 44%;
+      aspect-ratio: 1 / 1;
+    }
+
+    .pieza-logo {
+      left: 6%;
+      bottom: 0;
+      width: 13.75rem;
+      height: 5.75rem;
+      border-radius: 1rem;
+    }
+
+    /* al pasar el ratón las fotos se separan un poco */
+    .panel-fotos:hover .pieza-grande {
+      transform: translateY(-0.625rem);
+    }
+
+    .panel-fotos:hover .pieza-chica {
+      transform: translateY(0.625rem);
+    }
+
+    .panel-fotos:hover .pieza-logo {
+      transform: translateY(0.375rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pieza {
+      transition: none;
+    }
+  }
+</style>
+
+{/*
+  Los estilos con ámbito no alcanzan a `<Image>`: lo pinta el componente y no
+  recibe el atributo de ámbito. De ahí este bloque global, acotado por la
+  clase del contenedor.
+*/}
+<style is:global>
+  /* Apiladas manda la foto, que trae su propia proporción; montadas manda el
+     marco, y la foto lo rellena. */
+  .tira-proyectos .pieza img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  @media (width >= 64rem) {
+    .tira-proyectos .pieza img {
+      height: 100%;
+    }
+  }
+
+  /*
+    El logotipo llena su tarjeta y `contain` le guarda la proporción. Con
+    `width: auto` y `max-height: 100%` la rejilla centrada lo dejaba en 0×0:
+    el alto de la fila salía de la imagen y el de la imagen, de la fila.
+  */
+  .tira-proyectos .pieza-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+</style>
