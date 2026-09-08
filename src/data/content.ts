@@ -868,14 +868,7 @@ export const about = {
             name: 'Roberto Quinteros y Araceli Chaparro',
             role: 'Pastores de Jóvenes',
             photo: equipoRobertoAraceli,
-            /*
-              La suya no es de estudio sino una foto de interior, mucho más
-              oscura: para igualar el fondo haría falta un 2.3, y pasado 1.3 se le
-              queman las caras. Se queda en el tope y su tarjeta sigue siendo la
-              más oscura de la cuadrícula; eso lo arregla una foto de estudio, no
-              el brillo.
-            */
-            luz: 1.3,
+            luz: 0.73,
             photoHover: equipoRobertoAraceli2,
           },
           {

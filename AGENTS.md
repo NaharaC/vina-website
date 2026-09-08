@@ -89,10 +89,14 @@ mensajes de commit van en español.
   arregla una fórmula. Si hay que retocar una tarjeta, se retoca a ojo y
   mirando las demás.
 
-  Roberto y Araceli es la única que no llega del todo: su foto no es de la
-  sesión de estudio sino una instantánea ya recortada en cuadrado, así que no
-  se puede abrir más (`zoom` no baja de 1) y se ven algo más grandes que el
-  resto. Se arregla con una foto suya de estudio.
+  Roberto y Araceli es la única que no llega del todo. Su foto sí es de fondo
+  blanco y el tono ya iguala al resto, pero llega recortada en cuadrado y
+  ajustada: los dos se salen por los tres filos —el hombro de él por la
+  izquierda, ella por la derecha, los dos por abajo— y las caras salen algo
+  más grandes que en las demás tarjetas. No se puede abrir más: `zoom` no baja
+  de 1, y ensanchar el lienzo con blanco tampoco vale, porque el corte de un
+  hombro oscuro contra el blanco añadido se ve como una línea recta. Se
+  arregla con el archivo completo de la sesión, no con CSS.
 
   Fuera de la sesión de estudio quedan otras dos, y las dos van sin `luz`,
   que es un ajuste pensado para el fondo blanco: los fundadores posan sobre
