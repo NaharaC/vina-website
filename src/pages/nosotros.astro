@@ -114,18 +114,82 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
   {/* Lo que viene: una sola foto quieta y los sueños subiendo por al lado */}
   <SuenosTerreno />
 
-  {/* Qué creemos: filas separadas por líneas, título a un lado y texto al otro */}
-  <section id="creemos" class="pb-28 lg:pb-48" aria-label="Qué creemos">
+  {/*
+    Nuestros valores: el encabezado se queda quieto a la izquierda y la lista
+    pasa por al lado. Cada valor es una fila plegada —el nombre y un «+»— que
+    se abre para leer el párrafo entero; así la sección se lee primero como
+    índice, que es lo que se quiere de una lista de valores, y solo después se
+    entra en el que interese.
+
+    Los nombres van en gris hasta que se abren: el negro señala cuál se está
+    leyendo, igual que el hover.
+  */}
+  <section id="creemos" class="pb-28 lg:pb-48" aria-labelledby="valores-titulo">
     <div class="container-page">
-      {
-        about.valores.map((valor) => (
-          <div class="border-t border-ink/15 py-10 lg:grid lg:grid-cols-2 lg:gap-16 lg:py-14">
-            <h2 class="heading-lg max-w-md text-ink">{valor.title}</h2>
-            <p class="subtitle-lg mt-4 max-w-xl lg:mt-0">{valor.body}</p>
-          </div>
-        ))
-      }
-      <div class="border-t border-ink/15"></div>
+      <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24">
+        {/*
+          Se para a 2rem del filo por lo mismo que la columna de Compasión: es
+          lo que deja libre la píldora de navegación, que baja hasta los 69px.
+        */}
+        <div class="lg:sticky lg:top-8">
+          <SectionHeading
+            id="valores-titulo"
+            eyebrow={about.valores.eyebrow}
+            title={about.valores.title}
+            subtitle={about.valores.subtitle}
+            estrecho
+          />
+          <p class="nota mt-5">{about.valores.cita}</p>
+        </div>
+
+        <ul class="lista-valores">
+          {
+            about.valores.items.map((valor, i) => (
+              <li class="border-t border-ink/15 last:border-b">
+                {/*
+                  El <h3> carga con el nivel del índice y el botón con el
+                  mando. El párrafo está en el marcado desde el principio
+                  —plegado por CSS, como el resto del equipo—, así que el
+                  buscador lo lee aunque en pantalla empiece cerrado.
+
+                  El primero arranca abierto: así se ve de entrada qué hay
+                  dentro de cada fila y la lista no empieza como un muro gris.
+                */}
+                <h3>
+                  <button
+                    type="button"
+                    data-valor
+                    aria-expanded={i === 0 ? 'true' : 'false'}
+                    aria-controls={`valor-${i}`}
+                    class="group flex w-full items-start justify-between gap-6 py-6 text-left lg:py-7"
+                  >
+                    <span class="heading-md text-balance text-muted transition-colors duration-200 group-hover:text-ink group-aria-expanded:text-ink">
+                      {valor.title}
+                    </span>
+                    <span
+                      class="mt-1 grid size-6 shrink-0 place-items-center text-muted transition-[transform,color] duration-300 group-hover:text-ink group-aria-expanded:rotate-45 group-aria-expanded:text-ink"
+                      aria-hidden="true"
+                    >
+                      <Icon name="lucide:plus" width={22} height={22} />
+                    </span>
+                  </button>
+                </h3>
+
+                {/*
+                  El pliegue va con una rejilla de 0fr a 1fr: es la única forma
+                  de animar hasta el alto que pida el texto sin escribir un
+                  número que se queda corto en cuanto cambia el párrafo.
+                */}
+                <div id={`valor-${i}`} class="detalle-valor">
+                  <div class="overflow-hidden">
+                    <p class="subtitle max-w-2xl pb-8 text-pretty lg:pb-9">{valor.body}</p>
+                  </div>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -344,6 +408,34 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
 
 <style>
   /*
+    El pliegue de un valor. La rejilla pasa de 0fr a 1fr: así el detalle se
+    abre hasta el alto que pida su párrafo, sin un número escrito a mano que
+    se quede corto en cuanto el texto cambie. El `overflow` lo pone el hijo,
+    que es quien tiene que recortarse mientras la fila crece.
+
+    Lo abre el atributo del botón, no una clase: el estado ya vive en
+    `aria-expanded` —que es el que oyen los lectores de pantalla— y no hace
+    falta guardarlo dos veces.
+  */
+  .detalle-valor {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  li:has(> h3 > button[aria-expanded='true']) > .detalle-valor {
+    grid-template-rows: 1fr;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .detalle-valor {
+      transition: none;
+    }
+  }
+</style>
+
+<style>
+  /*
     El resto del equipo va en el marcado desde el principio —así lo lee el
     buscador— y se pliega con una clase. La pone el CSS de salida, no el
     script, para que no haya un parpadeo con las catorce tarjetas antes de
@@ -397,6 +489,20 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
     // El alto cambia cuando entra la tipografía de la página.
     document.fonts?.ready.then(ajustarTope);
   }
+
+  /*
+    Los valores se abren de uno en uno: al abrir uno se cierra el que estaba,
+    para que el negro señale siempre un solo valor —el que se está leyendo— y
+    la lista no se convierta en un muro de texto.
+  */
+  document.querySelectorAll<HTMLButtonElement>('[data-valor]').forEach((boton, _i, botones) => {
+    boton.addEventListener('click', () => {
+      const abierto = boton.getAttribute('aria-expanded') === 'true';
+
+      botones.forEach((otro) => otro.setAttribute('aria-expanded', 'false'));
+      boton.setAttribute('aria-expanded', String(!abierto));
+    });
+  });
 
   /*
     El botón de «Ver todo el equipo pastoral». Hay uno por tramo que se pliegue

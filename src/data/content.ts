@@ -700,20 +700,42 @@ export const about = {
   },
 
 
-  valores: [
-    {
-      title: 'Una familia compasiva imitando a Jesús',
-      body: 'La compasión no es un programa: es la forma en que entendemos la fe. Por eso la iglesia se extiende en salud, educación y ayuda social.',
-    },
-    {
-      title: 'Iglesia en movimiento',
-      body: 'Seguimos creciendo como comunidad y sirviendo a la ciudad, con la convicción de que la palabra declarada trae transformación.',
-    },
-    {
-      title: 'Una casa abierta',
-      body: 'Cada reunión, red y actividad existe para que nadie tenga que llegar solo: hay lugar para quien viene por primera vez y para quien lleva años.',
-    },
-  ],
+  /*
+    Los valores centrales del movimiento —los mismos de la Asociación de
+    Iglesias Viña Chile, no una redacción propia de Puerto Montt—. En pantalla
+    van plegados: se lee la lista entera de un vistazo y cada uno se abre con
+    el «+». Por eso el `body` puede ser largo, que es como está escrito en el
+    documento; lo que tiene que caber de una línea es el `title`.
+  */
+  valores: {
+    eyebrow: 'Valores centrales',
+    title: 'Nuestros valores fundamentales',
+    subtitle:
+      'Están fundados en la persona de Jesús, porque todas las cosas han sido creadas de Él, por Él y para Él.',
+    cita: 'Romanos 11:36; Juan 1',
+    items: [
+      {
+        title: 'Intimidad con Dios',
+        body: 'Valoramos la búsqueda de una relación personal y estrecha con Dios. Tenemos hambre de oír su voz y de que, por el Espíritu Santo, el amor, la misericordia, la gracia, la verdad, la pureza, el poder y la integridad de Jesús brillen en todo lo que somos y hacemos.',
+      },
+      {
+        title: 'Relaciones auténticas',
+        body: 'Valoramos las relaciones basadas en la sinceridad y la transparencia, en amor sin fingimiento ni apariencias; relaciones que sostienen el respeto mutuo, la comunicación abierta y la máxima colaboración, creyendo y hablando lo mejor los unos de los otros, y solucionando los conflictos constructivamente.',
+      },
+      {
+        title: 'Vivir el Reino de Dios',
+        body: 'Queremos vivir con la conciencia de que el Reino ha llegado a través de la vida y el ministerio de Jesús, reconociéndolo como Rey soberano que ha iniciado el restablecimiento del reino de Dios sobre la tierra. Buscamos sujetar nuestras vidas a su autoridad y vivir arriesgándonos a ser instrumentos del Espíritu Santo, en todo lugar y circunstancia. Valoramos la expresión del reino en todos los aspectos de la vida personal, de la Iglesia y de la sociedad.',
+      },
+      {
+        title: 'Valoramos la Palabra de Dios',
+        body: 'Valoramos la Biblia como nuestra autoridad final para la vida y la fe. Buscamos enseñar y capacitar a las personas en las Escrituras, teniendo como meta oír a Dios a través de su Palabra y luego obedecer y hacer lo que Él dice. Buscamos motivar a las personas a tener hambre por la Palabra de Dios y a profundizar en ella.',
+      },
+      {
+        title: 'Gracia y misericordia',
+        body: 'Creemos que la gracia y la misericordia son fundamentales para todo lo que Dios hace en la salvación y en la vida; por eso aspiramos a tener gracia y misericordia unos con otros, expresando y llevando misericordia en acción social a los necesitados.',
+      },
+    ],
+  },
 
   /*
     Cada proyecto es un bloque: a un lado el relato —párrafo y una lista de
