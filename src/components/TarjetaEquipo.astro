@@ -1,0 +1,76 @@
+---
+import { Image } from 'astro:assets';
+import FotoPendiente from './FotoPendiente.astro';
+import type { Encuadre, MiembroEquipo } from '../data/content';
+
+/**
+ * Una tarjeta del equipo pastoral: el retrato cuadrado, el nombre y —si lo
+ * tiene— el cargo. Sale igual en los dos tramos de la sección, fundadores y
+ * asociados, y por eso vive aquí y no dentro de la página.
+ *
+ * El tratamiento (blanco y negro, brillo y contraste) lo pone el CSS de
+ * `nosotros.astro`, acotado por la clase de la lista que envuelve estas
+ * tarjetas: los estilos con ámbito no alcanzan a `<Image>`.
+ */
+interface Props {
+  miembro: MiembroEquipo;
+}
+
+const { miembro } = Astro.props;
+
+/*
+  El encuadre de cada retrato viaja como variables CSS. Se pone en el atributo
+  `style` y no en una clase porque es un valor por foto, no un estilo que se
+  repita: cada tarjeta lleva el suyo, afinado a ojo (ver `Encuadre` en
+  `content.ts`).
+*/
+const encuadrar = (e?: Encuadre, luz?: number) =>
+  `--zoom:${e?.zoom ?? 1};--x:${e?.x ?? '50%'};--y:${e?.y ?? '50%'};--luz:${luz ?? 1}`;
+---
+
+{
+  miembro.photo ? (
+    /*
+      Las fotos entran enteras y el marco cuadrado enseña el trozo que le dice
+      `encuadre`: así se afina el recorte mirando la página, sin tocar los
+      archivos.
+
+      La cuadrícula va en blanco y negro y el color llega al pasar el ratón:
+      si hay segunda foto, se cambia la de arriba por la de abajo, que va a
+      color; si no la hay, la misma foto destiñe a color. En ambos casos el
+      gesto es el mismo —pasar por encima y que la persona se encienda—, así
+      que las tarjetas sin segunda foto no se quedan muertas.
+    */
+    <div class="group relative aspect-square w-full overflow-hidden rounded-[1rem]">
+      <Image
+        src={miembro.photo}
+        alt={miembro.name}
+        widths={[480, 720, 1080]}
+        sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
+        style={encuadrar(miembro.encuadre, miembro.luz)}
+        class:list={[
+          'retrato encuadrada absolute inset-0 size-full object-cover transition duration-500',
+          miembro.photoHover ? 'group-hover:opacity-0' : 'se-enciende',
+        ]}
+        loading="lazy"
+      />
+
+      {miembro.photoHover && (
+        <Image
+          src={miembro.photoHover}
+          alt=""
+          widths={[480, 720, 1080]}
+          sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
+          style={encuadrar(miembro.encuadreHover)}
+          class="encuadrada absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          loading="lazy"
+        />
+      )}
+    </div>
+  ) : (
+    <FotoPendiente label="Retrato · cuadrado 1:1" class="aspect-square w-full rounded-[1rem]" />
+  )
+}
+
+<p class="mt-4 text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">{miembro.name}</p>
+{miembro.role && <p class="nota mt-0.5">{miembro.role}</p>}

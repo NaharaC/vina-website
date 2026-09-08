@@ -5,27 +5,24 @@ import ArrowButton from '../components/ArrowButton.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CintaScroll from '../components/CintaScroll.astro';
 import FotoPendiente from '../components/FotoPendiente.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import TarjetaEquipo from '../components/TarjetaEquipo.astro';
 import { about, site, stats, whatsappHref } from '../data/content';
-import type { Encuadre } from '../data/content';
 
 const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') || '/#contacto';
 
 /*
-  El equipo entero está en el marcado desde el principio —así lo lee el
-  buscador y así funciona sin JavaScript—, pero los que pasan de `visibles`
-  salen marcados para que el CSS los pliegue y el botón los despliegue.
+  Los dos tramos del equipo —fundadores y asociados— con lo que necesita cada
+  uno para pintarse: el tramo entero está en el marcado desde el principio
+  —así lo lee el buscador y así funciona sin JavaScript—, pero los que pasan
+  de `visibles` salen marcados para que el CSS los pliegue y el botón los
+  despliegue. El id enlaza el botón con su lista: hay uno por tramo.
 */
-const { visibles, miembros } = about.equipo;
-const hayResto = miembros.length > visibles;
-
-/*
-  El encuadre de cada retrato viaja como variables CSS. Se pone en el atributo
-  `style` y no en una clase porque es un valor por foto, no un estilo que se
-  repita: cada tarjeta lleva el suyo, afinado a ojo (ver `Encuadre` en
-  `content.ts`).
-*/
-const encuadrar = (e?: Encuadre, luz?: number) =>
-  `--zoom:${e?.zoom ?? 1};--x:${e?.x ?? '50%'};--y:${e?.y ?? '50%'};--luz:${luz ?? 1}`;
+const grupos = about.equipo.grupos.map((grupo, i) => ({
+  ...grupo,
+  id: `equipo-lista-${i}`,
+  hayResto: grupo.visibles !== undefined && grupo.miembros.length > grupo.visibles,
+}));
 ---
 
 {/*
@@ -132,79 +129,41 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
       <h2 id="equipo-titulo" class="heading-lg text-ink">{about.equipo.title}</h2>
       <p class="subtitle-lg mt-3 max-w-md">{about.equipo.description}</p>
 
-      <ul id="equipo-lista" class="equipo-lista mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3">
-        {
-          miembros.map((miembro, i) => (
-            <li class:list={[i >= visibles && 'miembro-plegado']}>
-              {miembro.photo ? (
-                /*
-                  Las fotos entran enteras y el marco cuadrado enseña el trozo
-                  que le dice `encuadre`: así se afina el recorte mirando la
-                  página, sin tocar los archivos.
-
-                  La cuadrícula va en blanco y negro y el color llega al pasar
-                  el ratón: si hay segunda foto, se cambia la de arriba por la
-                  de abajo, que va a color; si no la hay, la misma foto
-                  destiñe a color. En ambos casos el gesto es el mismo —pasar
-                  por encima y que la persona se encienda—, así que las
-                  tarjetas sin segunda foto no se quedan muertas.
-                */
-                <div class="group relative aspect-square w-full overflow-hidden rounded-[1rem]">
-                  <Image
-                    src={miembro.photo}
-                    alt={miembro.name}
-                    widths={[480, 720, 1080]}
-                    sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
-                    style={encuadrar(miembro.encuadre, miembro.luz)}
-                    class:list={[
-                      'retrato encuadrada absolute inset-0 size-full object-cover transition duration-500',
-                      miembro.photoHover ? 'group-hover:opacity-0' : 'se-enciende',
-                    ]}
-                    loading="lazy"
-                  />
-
-                  {miembro.photoHover && (
-                    <Image
-                      src={miembro.photoHover}
-                      alt=""
-                      widths={[480, 720, 1080]}
-                      sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
-                      style={encuadrar(miembro.encuadreHover)}
-                      class="encuadrada absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                      loading="lazy"
-                    />
-                  )}
-                </div>
-              ) : (
-                <FotoPendiente label="Retrato · cuadrado 1:1" class="aspect-square w-full rounded-[1rem]" />
-              )}
-
-              <p class="mt-4 text-[1.0625rem] font-semibold tracking-[-0.02em] text-ink">
-                {miembro.name}
-              </p>
-              {miembro.role && <p class="nota mt-0.5">{miembro.role}</p>}
-            </li>
-          ))
-        }
-      </ul>
-
       {
-        hayResto && (
-          <div class="equipo-mas mt-12 flex justify-center lg:mt-16">
-            <button
-              type="button"
-              data-equipo-mas
-              aria-expanded="false"
-              aria-controls="equipo-lista"
-              class="group inline-flex shrink-0 items-center gap-3 rounded-full bg-mist py-2 pl-5 pr-2 text-[1rem] font-semibold text-carbon transition-colors hover:bg-ink/10"
+        grupos.map((grupo) => (
+          <div class="mt-14 lg:mt-20">
+            {/* El rótulo del tramo: el título grande es el de la sección */}
+            <SectionHeading eyebrow={grupo.rotulo} as="p" />
+
+            <ul
+              id={grupo.id}
+              class="equipo-lista mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-12 lg:grid-cols-3"
             >
-              <span class="whitespace-nowrap">Ver todo el equipo pastoral</span>
-              <span class="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-white transition-transform duration-200 group-aria-expanded:rotate-180">
-                <Icon name="lucide:chevron-down" width={16} height={16} aria-hidden="true" />
-              </span>
-            </button>
+              {grupo.miembros.map((miembro, i) => (
+                <li class:list={[grupo.visibles !== undefined && i >= grupo.visibles && 'miembro-plegado']}>
+                  <TarjetaEquipo miembro={miembro} />
+                </li>
+              ))}
+            </ul>
+
+            {grupo.hayResto && (
+              <div class="equipo-mas mt-12 flex justify-center lg:mt-16">
+                <button
+                  type="button"
+                  data-equipo-mas
+                  aria-expanded="false"
+                  aria-controls={grupo.id}
+                  class="group inline-flex shrink-0 items-center gap-3 rounded-full bg-mist py-2 pl-5 pr-2 text-[1rem] font-semibold text-carbon transition-colors hover:bg-ink/10"
+                >
+                  <span class="whitespace-nowrap">Ver todo el equipo pastoral</span>
+                  <span class="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-white transition-transform duration-200 group-aria-expanded:rotate-180">
+                    <Icon name="lucide:chevron-down" width={16} height={16} aria-hidden="true" />
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
-        )
+        ))
       }
     </div>
   </section>
@@ -375,12 +334,19 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
     document.fonts?.ready.then(ajustarTope);
   }
 
+  /*
+    El botón de «Ver todo el equipo pastoral». Hay uno por tramo que se pliegue
+    —hoy solo el de los asociados— y cada uno dice en `aria-controls` cuál es
+    su lista, así que no hace falta que el script sepa cuántos tramos hay.
+  */
   const seccion = document.getElementById('equipo');
-  const lista = document.getElementById('equipo-lista');
-  const boton = seccion?.querySelector<HTMLButtonElement>('[data-equipo-mas]');
-  const etiqueta = boton?.querySelector('span');
 
-  if (seccion && lista && boton && etiqueta) {
+  seccion?.querySelectorAll<HTMLButtonElement>('[data-equipo-mas]').forEach((boton) => {
+    const lista = document.getElementById(boton.getAttribute('aria-controls') ?? '');
+    const etiqueta = boton.querySelector('span');
+
+    if (!lista || !etiqueta) return;
+
     boton.addEventListener('click', () => {
       const abierta = lista.classList.toggle('esta-abierta');
 
@@ -388,12 +354,12 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
       etiqueta.textContent = abierta ? 'Ver menos' : 'Ver todo el equipo pastoral';
 
       /*
-        Al plegar, la sección se acorta de golpe y el botón se va hacia
-        arriba: si ya quedó por encima de la ventana, se vuelve a él.
+        Al plegar, el tramo se acorta de golpe y el botón se va hacia arriba:
+        si ya quedó por encima de la ventana, se vuelve al rótulo del tramo.
       */
       if (!abierta && boton.getBoundingClientRect().top < 0) {
-        seccion.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        (lista.parentElement ?? lista).scrollIntoView({ block: 'start', behavior: 'smooth' });
       }
     });
-  }
+  });
 </script>

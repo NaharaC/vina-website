@@ -90,6 +90,13 @@ mensajes de commit van en español.
   se puede abrir más (`zoom` no baja de 1) y se ven algo más grandes que el
   resto. Se arregla con una foto suya de estudio.
 
+  Fuera de la sesión de estudio quedan otras dos, y las dos van sin `luz`,
+  que es un ajuste pensado para el fondo blanco: los fundadores posan sobre
+  fondo negro, y Eduardo y Priscila llevan de momento una foto suya de
+  familia —caras más pequeñas que en el resto, y no se arregla acercándose
+  porque el zoom les corta la cabeza a los hijos— hasta que llegue su
+  retrato.
+
   La cuadrícula se afinó en dos tandas y cada una tiene su referencia: la
   primera mitad se ajustó contra Daniel y Nahara, y la segunda —Jonathan,
   Hardy, Eugenia, Gerardo y Cecilia— contra David y Camila. Son las dos fotos

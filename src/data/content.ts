@@ -62,6 +62,7 @@ import equipoRodolfoNatalie2 from '../assets/img/equipo-rodolfo-natalie-2.jpg';
 import equipoNicole from '../assets/img/equipo-nicole.jpg';
 import equipoNicole2 from '../assets/img/equipo-nicole-2.jpg';
 import equipoJonathanCarmen from '../assets/img/equipo-jonathan-carmen.jpg';
+import equipoJonathanCarmen2 from '../assets/img/equipo-jonathan-carmen-2.jpg';
 import equipoDavidCamila from '../assets/img/equipo-david-camila.jpg';
 import equipoDavidCamila2 from '../assets/img/equipo-david-camila-2.jpg';
 import equipoHardyRuth from '../assets/img/equipo-hardy-ruth.jpg';
@@ -70,6 +71,10 @@ import equipoEugenia from '../assets/img/equipo-eugenia.jpg';
 import equipoEugenia2 from '../assets/img/equipo-eugenia-2.jpg';
 import equipoGerardoMariaEliana from '../assets/img/equipo-gerardo-maria-eliana.jpg';
 import equipoCecilia from '../assets/img/equipo-cecilia.jpg';
+import equipoCecilia2 from '../assets/img/equipo-cecilia-2.jpg';
+import equipoEduardoPriscila from '../assets/img/equipo-eduardo-priscila.jpg';
+import equipoJairoVeronica from '../assets/img/equipo-jairo-veronica.jpg';
+import equipoJairoVeronica2 from '../assets/img/equipo-jairo-veronica-2.jpg';
 import predicacion from '../assets/img/predicacion.jpg';
 import radioProgramacion from '../assets/img/radio-programacion.png';
 import radioProgramacionVertical from '../assets/img/radio-programacion-vertical.jpg';
@@ -587,6 +592,23 @@ export type MiembroEquipo = {
   encuadreHover?: Encuadre;
 };
 
+/**
+ * Un tramo de la lista de pastores. Son dos —los fundadores y los asociados—
+ * y cada uno lleva su rótulo: el título de la sección es uno solo, así que
+ * quien mira sabe por qué hay dos cuadrículas.
+ */
+export type GrupoEquipo = {
+  /** Rótulo del tramo, en versalitas y con la línea fina debajo. */
+  rotulo: string;
+  /**
+   * Cuántas tarjetas se ven de entrada; el resto espera detrás del botón. Sin
+   * `visibles` se ve el tramo entero y no sale botón, que es lo que hace el
+   * de los fundadores: una sola tarjeta no se pliega.
+   */
+  visibles?: number;
+  miembros: MiembroEquipo[];
+};
+
 export type FotoHistorica = {
   /** Pie de foto: año, lugar o qué se ve. */
   caption: string;
@@ -679,136 +701,188 @@ export const about = {
 
   equipo: {
     title: 'Equipo pastoral',
-    description: 'Conoce a nuestros pastores asociados',
+    description: 'Conoce a quienes pastorean la iglesia',
     /**
-     * En pantalla salen los primeros `visibles` y el resto espera detrás del
-     * botón «Ver todo el equipo pastoral». El orden de la lista es el orden
-     * en que aparecen: para adelantar a alguien, se sube aquí.
+     * Dos tramos, cada uno con su rótulo: primero los fundadores y luego los
+     * asociados. En los asociados salen los primeros `visibles` y el resto
+     * espera detrás del botón «Ver todo el equipo pastoral»; el orden de la
+     * lista es el orden en que aparecen, así que para adelantar a alguien se
+     * sube aquí.
      *
-     * TODO: pendientes los cargos de casi todos, y los retratos de Eduardo y
-     * Priscila y de Juan y Lina.
+     * TODO: pendientes los cargos de casi todos, el retrato de estudio de
+     * Eduardo y Priscila —ahora va una foto suya de familia— y el de Juan y
+     * Lina.
      */
-    visibles: 6,
-    miembros: [
+    grupos: [
       {
-        name: 'Roberto Quinteros y Araceli Chaparro',
-        role: 'Pastores de Jóvenes',
-        photo: equipoRobertoAraceli,
-        /*
-          La suya no es de estudio sino una foto de interior, mucho más
-          oscura: para igualar el fondo haría falta un 2.3, y pasado 1.3 se le
-          queman las caras. Se queda en el tope y su tarjeta sigue siendo la
-          más oscura de la cuadrícula; eso lo arregla una foto de estudio, no
-          el brillo.
-        */
-        luz: 1.3,
-        photoHover: equipoRobertoAraceli2,
+        rotulo: 'Pastores fundadores',
+        miembros: [
+              {
+                name: 'Jairo Quinteros y Verónica Mayne',
+                /*
+                  La única sobre fondo oscuro, así que aquí no hay `luz` que
+                  igualar: el `luz` de las demás lleva su fondo blanco al gris
+                  común, y este fondo ya es negro. Apaisada y con los dos
+                  centrados, así que el cuadrado la coge tal cual.
+                */
+                photo: equipoJairoVeronica,
+                photoHover: equipoJairoVeronica2,
+              },
+            ],
+          },
+          {
+            rotulo: 'Pastores asociados',
+            visibles: 6,
+            miembros: [
+          {
+            name: 'Roberto Quinteros y Araceli Chaparro',
+            role: 'Pastores de Jóvenes',
+            photo: equipoRobertoAraceli,
+            /*
+              La suya no es de estudio sino una foto de interior, mucho más
+              oscura: para igualar el fondo haría falta un 2.3, y pasado 1.3 se le
+              queman las caras. Se queda en el tope y su tarjeta sigue siendo la
+              más oscura de la cuadrícula; eso lo arregla una foto de estudio, no
+              el brillo.
+            */
+            luz: 1.3,
+            photoHover: equipoRobertoAraceli2,
+          },
+          {
+            name: 'Daniel Quinteros y Nahara Gutiérrez',
+            role: 'Pastores de Matrimonios Jóvenes',
+            photo: equipoDanielNahara,
+            luz: 0.825,
+            photoHover: equipoDanielNahara2,
+          },
+          {
+            name: 'Carlos Moya y Thiare Pivet',
+            role: 'Pastores de Matrimonios',
+            photo: equipoCarlosThiare,
+            luz: 0.725,
+            encuadre: { zoom: 1.56, x: '50%', y: '32%' },
+            photoHover: equipoCarlosThiare2,
+          },
+          {
+            name: 'Danilo Vargas y Lena Miller',
+            photo: equipoDaniloLena,
+            luz: 0.888,
+            photoHover: equipoDaniloLena2,
+          },
+          {
+            name: 'Rodolfo Cabezas y Natalie Alfaro',
+            photo: equipoRodolfoNatalie,
+            luz: 0.804,
+            encuadre: { zoom: 1.36, x: '50%', y: '27%' },
+            photoHover: equipoRodolfoNatalie2,
+          },
+          {
+            name: 'Nicole Bruyere',
+            photo: equipoNicole,
+            luz: 1.081,
+            /*
+              La única foto vertical del grupo, y por eso la más apretada: al
+              cubrir el cuadrado se escala por el ancho, así que sobra alto y hay
+              que elegir qué franja se ve. `y: '0%'` enseña el filo de arriba de la
+              foto, que es donde está el aire sobre el pelo; con más, la coronilla
+              se iba fuera. `zoom: 1` es lo más abierto posible —por debajo
+              quedarían franjas a los lados—, así que aquí no hay margen para
+              alejarse más: se ve algo más grande que el resto y es lo que da la
+              foto.
+            */
+            encuadre: { zoom: 1, x: '50%', y: '0%' },
+            photoHover: equipoNicole2,
+            /*
+              Apaisada, y con las dos abrazadas a la izquierda del encuadre: el
+              cuadrado se corre hacia allá para que queden centradas. Del río
+              entra lo justo.
+            */
+            encuadreHover: { zoom: 1, x: '20%', y: '50%' },
+          },
+          {
+            name: 'Jonathan Rogel y Carmen Mansilla',
+            photo: equipoJonathanCarmen,
+            luz: 0.784,
+            encuadre: { zoom: 1.28, x: '49%', y: '32%' },
+            photoHover: equipoJonathanCarmen2,
+            /*
+              Apaisada y con los cuatro repartidos de lado a lado: el cuadrado
+              se corre un poco a la derecha para que al hijo mayor no le pille
+              el filo, que era lo único que no cabía.
+            */
+            encuadreHover: { x: '52%' },
+          },
+          {
+            name: 'David Balbontín y Camila Gallardo',
+            photo: equipoDavidCamila,
+            luz: 0.735,
+            encuadre: { zoom: 1.18, x: '50%', y: '34%' },
+            photoHover: equipoDavidCamila2,
+          },
+          {
+            name: 'Hardy Aqueveque y Ruth Venegas',
+            photo: equipoHardyRuth,
+            luz: 0.811,
+            /*
+              Hardy llega muy arriba en su foto, así que el zoom se toma desde el
+              filo de arriba (`y: '0%'`): el aire sobre su cabeza crece con la
+              escala en vez de comérsela. Con el origen a media altura, ampliar le
+              cortaba la coronilla.
+            */
+            encuadre: { zoom: 1.2, x: '48%', y: '0%' },
+            photoHover: equipoHardyRuth2,
+          },
+          {
+            name: 'Eduardo Alister y Priscila Almonacid',
+            /*
+              Provisional, mientras no llegue el retrato de estudio: es una
+              foto suya de familia y va con el mismo tratamiento que las
+              demás —blanco y negro, y a color al pasar por encima—, así que
+              la tarjeta no se sale de la cuadrícula aunque la foto sea de
+              otro sitio. Las caras salen más pequeñas que en el resto y no
+              hay forma de arreglarlo acercándose: con más zoom se les corta
+              la cabeza a los hijos.
+
+              `x: '40%'` corre el cuadrado hacia la izquierda; centrado, a
+              Priscila le cortaba media cara. Sin `luz`, que es cosa del
+              fondo de estudio.
+            */
+            photo: equipoEduardoPriscila,
+            encuadre: { x: '40%' },
+          },
+          {
+            name: 'Eugenia Soto',
+            photo: equipoEugenia,
+            luz: 0.791,
+            encuadre: { zoom: 1.44, x: '48%', y: '24%' },
+            photoHover: equipoEugenia2,
+          },
+          {
+            name: 'Gerardo Andrade y Maria Eliana Zornow',
+            photo: equipoGerardoMariaEliana,
+            luz: 0.762,
+            encuadre: { zoom: 1.48, x: '44%', y: '33%' },
+          },
+          {
+            name: 'Cecilia Alvarado',
+            photo: equipoCecilia,
+            luz: 0.774,
+            encuadre: { zoom: 1.6, x: '52%', y: '22%' },
+            photoHover: equipoCecilia2,
+            /*
+              Vertical, así que del alto sobra y hay que elegir la franja:
+              arriba del todo entraba el cuadro de la pared y abajo se le iba
+              la cara, y en el 28% quedan ella y el lienzo que está pintando.
+            */
+            encuadreHover: { y: '28%' },
+          },
+          {
+            name: 'Juan y Lina',
+            photo: null,
+          },
+        ],
       },
-      {
-        name: 'Daniel Quinteros y Nahara Gutiérrez',
-        role: 'Pastores de Matrimonios Jóvenes',
-        photo: equipoDanielNahara,
-        luz: 0.825,
-        photoHover: equipoDanielNahara2,
-      },
-      {
-        name: 'Carlos Moya y Thiare Pivet',
-        role: 'Pastores de Matrimonios',
-        photo: equipoCarlosThiare,
-        luz: 0.725,
-        encuadre: { zoom: 1.56, x: '50%', y: '32%' },
-        photoHover: equipoCarlosThiare2,
-      },
-      {
-        name: 'Danilo Vargas y Lena Miller',
-        photo: equipoDaniloLena,
-        luz: 0.888,
-        photoHover: equipoDaniloLena2,
-      },
-      {
-        name: 'Rodolfo Cabezas y Natalie Alfaro',
-        photo: equipoRodolfoNatalie,
-        luz: 0.804,
-        encuadre: { zoom: 1.36, x: '50%', y: '27%' },
-        photoHover: equipoRodolfoNatalie2,
-      },
-      {
-        name: 'Nicole Bruyere',
-        photo: equipoNicole,
-        luz: 1.081,
-        /*
-          La única foto vertical del grupo, y por eso la más apretada: al
-          cubrir el cuadrado se escala por el ancho, así que sobra alto y hay
-          que elegir qué franja se ve. `y: '0%'` enseña el filo de arriba de la
-          foto, que es donde está el aire sobre el pelo; con más, la coronilla
-          se iba fuera. `zoom: 1` es lo más abierto posible —por debajo
-          quedarían franjas a los lados—, así que aquí no hay margen para
-          alejarse más: se ve algo más grande que el resto y es lo que da la
-          foto.
-        */
-        encuadre: { zoom: 1, x: '50%', y: '0%' },
-        photoHover: equipoNicole2,
-        /*
-          Apaisada, y con las dos abrazadas a la izquierda del encuadre: el
-          cuadrado se corre hacia allá para que queden centradas. Del río
-          entra lo justo.
-        */
-        encuadreHover: { zoom: 1, x: '20%', y: '50%' },
-      },
-      {
-        name: 'Jonathan Rogel y Carmen Mansilla',
-        photo: equipoJonathanCarmen,
-        luz: 0.784,
-        encuadre: { zoom: 1.28, x: '49%', y: '32%' },
-      },
-      {
-        name: 'David Balbontín y Camila Gallardo',
-        photo: equipoDavidCamila,
-        luz: 0.735,
-        encuadre: { zoom: 1.18, x: '50%', y: '34%' },
-        photoHover: equipoDavidCamila2,
-      },
-      {
-        name: 'Hardy Aqueveque y Ruth Venegas',
-        photo: equipoHardyRuth,
-        luz: 0.811,
-        /*
-          Hardy llega muy arriba en su foto, así que el zoom se toma desde el
-          filo de arriba (`y: '0%'`): el aire sobre su cabeza crece con la
-          escala en vez de comérsela. Con el origen a media altura, ampliar le
-          cortaba la coronilla.
-        */
-        encuadre: { zoom: 1.2, x: '48%', y: '0%' },
-        photoHover: equipoHardyRuth2,
-      },
-      {
-        name: 'Eduardo Alister y Priscila Almonacid',
-        photo: null,
-      },
-      {
-        name: 'Eugenia Soto',
-        photo: equipoEugenia,
-        luz: 0.791,
-        encuadre: { zoom: 1.44, x: '48%', y: '24%' },
-        photoHover: equipoEugenia2,
-      },
-      {
-        name: 'Gerardo Andrade y Maria Eliana Zornow',
-        photo: equipoGerardoMariaEliana,
-        luz: 0.762,
-        encuadre: { zoom: 1.48, x: '44%', y: '33%' },
-      },
-      {
-        name: 'Cecilia Alvarado',
-        photo: equipoCecilia,
-        luz: 0.774,
-        encuadre: { zoom: 1.6, x: '52%', y: '22%' },
-      },
-      {
-        name: 'Juan y Lina',
-        photo: null,
-      },
-    ] satisfies MiembroEquipo[],
+    ] satisfies GrupoEquipo[],
   },
 };
 
