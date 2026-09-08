@@ -653,13 +653,22 @@ export const about = {
       cortar justo lo que se quiere ver.
     */
     fotos: [
-      { caption: 'El matrimonio de los pastores', image: historiaMatrimonioPastores },
-      { caption: 'El equipo de adoración', image: historiaEquipoAdoracion },
-      { caption: 'Una reunión en el salón', image: historiaSalon },
-      { caption: 'El edificio blanco', image: historiaEdificioBlanco },
-      { caption: 'Construcciones', image: historiaConstruccion },
-      { caption: 'Campamento de niños', image: historiaCampamentoNinos },
-      { caption: 'Bautizos en Chamiza', image: historiaBautizosChamiza },
+      {
+        caption: 'Matrimonio de nuestros pastores fundadores. Valparaíso, año 1981.',
+        image: historiaMatrimonioPastores,
+      },
+      {
+        caption: 'Nuestras primeras reuniones, en calle Egaña. Año 2001.',
+        image: historiaEquipoAdoracion,
+      },
+      { caption: 'Nuestras primeras reuniones, en calle Egaña. Año 2001.', image: historiaSalon },
+      {
+        caption: 'Uno de los primeros bautizos. Chamiza, año 2002.',
+        image: historiaBautizosChamiza,
+      },
+      { caption: 'Campamento de niños, Chamiza, año 2003.', image: historiaCampamentoNinos },
+      { caption: 'Ampliación Edificio antiguo, La Vara. Año 2011.', image: historiaEdificioBlanco },
+      { caption: 'Ampliación Edificio antiguo, La Vara. Año 2011.', image: historiaConstruccion },
     ] satisfies FotoHistorica[],
   },
 
