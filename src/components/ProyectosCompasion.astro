@@ -7,6 +7,10 @@
  * rectángulo gris con sus dos fotos montadas y el logotipo. El texto se queda
  * quieto mientras el rectángulo sube por al lado.
  *
+ * El nombre del proyecto va en `heading-md` y no en `heading-lg`: el
+ * título de la sección ya ocupa ese peldaño, y con los dos en el mismo
+ * cuerpo no se distingue cuál es cuál.
+ *
  * El rectángulo llega al filo derecho de la ventana: es el único bloque de la
  * web que lo hace, y por eso el redondeo va solo en las esquinas de la
  * izquierda. En el teléfono no hay dos columnas: el texto va arriba y el
@@ -32,7 +36,7 @@ const { title, eyebrow, items } = about.proyectos;
       items.map((proyecto) => (
         <article class="bloque-proyecto">
           <div class="bloque-texto">
-            <h3 class="heading-lg text-ink">{proyecto.title}</h3>
+            <h3 class="heading-md text-ink">{proyecto.title}</h3>
 
             <p class="bloque-cuerpo mt-5">{proyecto.body}</p>
 

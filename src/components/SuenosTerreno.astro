@@ -6,6 +6,9 @@
  * aquí no hay un rectángulo por proyecto como en los de compasión social: hay
  * uno solo, con la foto quieta dentro, y los cuatro sueños suben por al lado.
  *
+ * El nombre de cada sueño va un peldaño por debajo del título de la
+ * sección, como en los proyectos de compasión social.
+ *
  * En el teléfono no hay nada que se quede quieto: la foto va arriba y los
  * sueños debajo, uno tras otro.
  */
@@ -48,7 +51,7 @@ const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.
       {
         items.map((sueno) => (
           <article>
-            <h3 class="heading-lg text-ink">{sueno.title}</h3>
+            <h3 class="heading-md text-ink">{sueno.title}</h3>
 
             <p class="sueno-cuerpo mt-5">{sueno.body}</p>
 
