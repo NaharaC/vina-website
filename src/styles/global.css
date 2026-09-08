@@ -118,6 +118,31 @@
   }
 }
 
+/*
+  Como `container-page` por la izquierda y sin nada por la derecha: la franja
+  empieza donde empieza el texto de la página y sigue hasta el filo de la
+  ventana. La usan los rectángulos de fotos de los proyectos y de los sueños.
+
+  El `max()` es el que hace que coincidan: mientras la ventana es más
+  estrecha que la caja, manda el margen suelto; en cuanto la caja se centra,
+  manda lo que sobra a cada lado.
+*/
+@utility tira-derecha {
+  padding-inline-start: max(1.25rem, calc((100% - 84rem) / 2 + 1.25rem));
+}
+
+@media (width >= 40rem) {
+  .tira-derecha {
+    padding-inline-start: max(2rem, calc((100% - 84rem) / 2 + 2rem));
+  }
+}
+
+@media (width >= 64rem) {
+  .tira-derecha {
+    padding-inline-start: max(3rem, calc((100% - 84rem) / 2 + 3rem));
+  }
+}
+
 /* ---------------------------------------------------------------------------
    Escala tipográfica
 

@@ -22,7 +22,7 @@ const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.
     <SectionHeading id="suenos-titulo" eyebrow={eyebrow} title={title} />
   </div>
 
-  <div class="tira-suenos mt-16 lg:mt-24">
+  <div class="tira-suenos tira-derecha mt-16 lg:mt-24">
     {/*
       La foto va antes que el texto en el marcado: en el teléfono se lee
       primero, y en escritorio la rejilla la manda a la derecha.
@@ -76,24 +76,6 @@ const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.
 </section>
 
 <style>
-  /* el mismo margen que `container-page` a la izquierda y ninguno a la
-     derecha: el rectángulo llega al filo, como el de los proyectos */
-  .tira-suenos {
-    padding-inline-start: 1.25rem;
-  }
-
-  @media (width >= 40rem) {
-    .tira-suenos {
-      padding-inline-start: 2rem;
-    }
-  }
-
-  @media (width >= 64rem) {
-    .tira-suenos {
-      padding-inline-start: 3rem;
-    }
-  }
-
   .panel-terreno {
     background-color: var(--color-mist);
     border-radius: 1.5rem 0 0 1.5rem;

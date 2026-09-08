@@ -27,7 +27,7 @@ const { title, eyebrow, items } = about.proyectos;
     <SectionHeading id="proyectos-titulo" eyebrow={eyebrow} title={title} />
   </div>
 
-  <div class="tira-proyectos mt-16 lg:mt-24">
+  <div class="tira-proyectos tira-derecha mt-16 lg:mt-24">
     {
       items.map((proyecto) => (
         <article class="bloque-proyecto">
@@ -97,28 +97,6 @@ const { title, eyebrow, items } = about.proyectos;
 </section>
 
 <style>
-  /*
-    La tira sale de la caja de la página por la derecha: el margen de la
-    izquierda es el mismo que el de `container-page`, y por la derecha no hay
-    margen ninguno. Se escribe aquí y no con utilidades porque hay que repetir
-    los tres escalones de `container-page`.
-  */
-  .tira-proyectos {
-    padding-inline-start: 1.25rem;
-  }
-
-  @media (width >= 40rem) {
-    .tira-proyectos {
-      padding-inline-start: 2rem;
-    }
-  }
-
-  @media (width >= 64rem) {
-    .tira-proyectos {
-      padding-inline-start: 3rem;
-    }
-  }
-
   .bloque-proyecto + .bloque-proyecto {
     margin-top: 5rem;
   }
