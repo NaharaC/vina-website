@@ -8,7 +8,7 @@ import ProyectosCompasion from '../components/ProyectosCompasion.astro';
 import SuenosTerreno from '../components/SuenosTerreno.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import TarjetaEquipo from '../components/TarjetaEquipo.astro';
-import { about, site, stats, whatsappHref } from '../data/content';
+import { about, site, whatsappHref } from '../data/content';
 import type { Encuadre, GrupoEquipo } from '../data/content';
 
 const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') || '/#contacto';
@@ -301,40 +301,29 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
     </div>
   </section>
 
-  {/* Las mismas cifras de la home, para no repetir el dato en dos lugares */}
-  <section class="pb-28 lg:pb-48" aria-label="La iglesia en cifras">
-    <div class="container-page">
-      <div class="grid gap-x-16 gap-y-12 border-t border-ink/15 pt-10 sm:grid-cols-2 lg:grid-cols-4">
-        {
-          stats.map((stat) => (
-            <div>
-              <p class="eyebrow">{stat.caption}</p>
-              <p class="cifra mt-4 text-ink">{stat.value}</p>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
   {/* Cierre */}
   <section class="pb-20 lg:pb-32" aria-label="Visítanos">
     <div class="container-page">
       <div class="rounded-[2rem] bg-mist px-8 py-14 text-center lg:rounded-[2.75rem] lg:px-16 lg:py-20">
         <h2 class="heading-lg mx-auto max-w-2xl text-ink">Te esperamos en casa</h2>
         <p class="subtitle-lg mx-auto mt-4 max-w-md">
-          Ven a conocernos un domingo o escríbenos si quieres saber más.
+          Visítanos o escríbenos para más información.
         </p>
 
+        {/*
+          Primero la página de quien viene por primera vez, que es a quien va
+          dirigido el cierre; el contacto queda al lado, para quien prefiere
+          preguntar antes de venir.
+        */}
         <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <ArrowButton label="Soy nuevo" href="/soy-nuevo" variant="accent" size="md" />
           <ArrowButton
             label="Contactar"
             href={contactHref}
             external={contactHref.startsWith('http')}
-            variant="accent"
+            variant="light"
             size="md"
           />
-          <ArrowButton label="Ver reuniones" href="/#reuniones" variant="light" size="md" />
         </div>
       </div>
     </div>

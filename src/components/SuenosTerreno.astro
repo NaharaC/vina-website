@@ -13,7 +13,7 @@
  * sueños debajo, uno tras otro.
  */
 import { Image } from 'astro:assets';
-import BotonPalabra from './BotonPalabra.astro';
+import ArrowButton from './ArrowButton.astro';
 import SectionHeading from './SectionHeading.astro';
 import { about } from '../data/content';
 
@@ -64,14 +64,22 @@ const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.
         ))
       }
 
+      {/*
+        El cierre de los sueños es la única llamada de la sección, y va
+        después de leerlos todos: pide más voz que un sueño más —de ahí el
+        cuerpo de título— y la pastilla naranja, que es la de las llamadas de
+        la web. El botón discreto se quedaba enterrado al final de la columna.
+      */}
       <div>
-        <p class="subtitle-lg max-w-lg text-ink">{cierre}</p>
+        <p class="heading-md max-w-lg text-ink text-balance">{cierre}</p>
 
-        <BotonPalabra
+        <ArrowButton
           label={action.label}
           href={action.href}
           external={action.external}
-          class="mt-5"
+          variant="accent"
+          size="md"
+          class="mt-6"
         />
       </div>
     </div>
