@@ -22,3 +22,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Los archivos de trabajo del lienzo de diseño (las maquetas de la sección de
+# equipo). Viven aquí para poder rehacer el lienzo, pero no son parte del
+# sitio: llevan copias reducidas de las mismas fotos que ya están en assets.
+/disenos-equipo/

@@ -8,6 +8,7 @@ import FotoPendiente from '../components/FotoPendiente.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import TarjetaEquipo from '../components/TarjetaEquipo.astro';
 import { about, site, stats, whatsappHref } from '../data/content';
+import type { Encuadre, GrupoEquipo } from '../data/content';
 
 const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') || '/#contacto';
 
@@ -18,11 +19,20 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
   de `visibles` salen marcados para que el CSS los pliegue y el botón los
   despliegue. El id enlaza el botón con su lista: hay uno por tramo.
 */
-const grupos = about.equipo.grupos.map((grupo, i) => ({
+/* El tipo declarado y no el que infiere el literal: dentro del literal, el
+   miembro de los fundadores solo tiene los campos que trae escritos, y el
+   marcado usa el resto (`encuadre`, `luz`) para todos por igual. */
+const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
   ...grupo,
   id: `equipo-lista-${i}`,
   hayResto: grupo.visibles !== undefined && grupo.miembros.length > grupo.visibles,
 }));
+
+/* El tratamiento de las fotos —blanco y negro y encuadre— es el mismo en los
+   dos formatos, así que las variables viajan igual (ver `Encuadre` en
+   `content.ts`). */
+const encuadrar = (e?: Encuadre, luz?: number) =>
+  `--zoom:${e?.zoom ?? 1};--x:${e?.x ?? '50%'};--y:${e?.y ?? '50%'};--luz:${luz ?? 1}`;
 ---
 
 {/*
@@ -124,7 +134,7 @@ const grupos = about.equipo.grupos.map((grupo, i) => ({
   </section>
 
   {/* Equipo pastoral */}
-  <section id="equipo" class="pb-28 lg:pb-48" aria-labelledby="equipo-titulo">
+  <section id="equipo" class="equipo-retratos pb-28 lg:pb-48" aria-labelledby="equipo-titulo">
     <div class="container-page">
       <h2 id="equipo-titulo" class="heading-lg text-ink">{about.equipo.title}</h2>
       <p class="subtitle-lg mt-3 max-w-md">{about.equipo.description}</p>
@@ -132,35 +142,90 @@ const grupos = about.equipo.grupos.map((grupo, i) => ({
       {
         grupos.map((grupo) => (
           <div class="mt-14 lg:mt-20">
-            {/* El rótulo del tramo: el título grande es el de la sección */}
-            <SectionHeading eyebrow={grupo.rotulo} as="p" />
+            {grupo.formato === 'retrato' ? (
+              /*
+                El tramo de una sola pareja: la foto grande a un lado y, al
+                otro, el rótulo, el nombre en cuerpo de titular y su bajada.
+                Aquí el rótulo va sin la línea fina —la lleva el tramo que
+                abre una cuadrícula— porque lo que sigue no es una fila de
+                tarjetas sino una sola foto.
+              */
+              grupo.miembros.map((miembro) => (
+                <div class="grid gap-8 lg:grid-cols-[minmax(0,41.25rem)_minmax(0,1fr)] lg:items-center lg:gap-14">
+                  {miembro.photo ? (
+                    <div class="group relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] sm:aspect-[3/2] lg:rounded-[1.75rem]">
+                      <Image
+                        src={miembro.photo}
+                        alt={miembro.name}
+                        widths={[480, 720, 900]}
+                        sizes="(min-width: 64rem) 41.25rem, 92vw"
+                        style={encuadrar(miembro.encuadre, miembro.luz)}
+                        class:list={[
+                          'retrato encuadrada absolute inset-0 size-full object-cover transition duration-500',
+                          miembro.photoHover ? 'group-hover:opacity-0' : 'se-enciende',
+                        ]}
+                      />
 
-            <ul
-              id={grupo.id}
-              class="equipo-lista mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-12 lg:grid-cols-3"
-            >
-              {grupo.miembros.map((miembro, i) => (
-                <li class:list={[grupo.visibles !== undefined && i >= grupo.visibles && 'miembro-plegado']}>
-                  <TarjetaEquipo miembro={miembro} />
-                </li>
-              ))}
-            </ul>
+                      {miembro.photoHover && (
+                        <Image
+                          src={miembro.photoHover}
+                          alt=""
+                          widths={[480, 720, 1200]}
+                          sizes="(min-width: 64rem) 41.25rem, 92vw"
+                          style={encuadrar(miembro.encuadreHover)}
+                          class="encuadrada absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <FotoPendiente
+                      label="Retrato · apaisado 3:2"
+                      class="aspect-[4/3] w-full rounded-[1.5rem] sm:aspect-[3/2] lg:rounded-[1.75rem]"
+                    />
+                  )}
 
-            {grupo.hayResto && (
-              <div class="equipo-mas mt-12 flex justify-center lg:mt-16">
-                <button
-                  type="button"
-                  data-equipo-mas
-                  aria-expanded="false"
-                  aria-controls={grupo.id}
-                  class="group inline-flex shrink-0 items-center gap-3 rounded-full bg-mist py-2 pl-5 pr-2 text-[1rem] font-semibold text-carbon transition-colors hover:bg-ink/10"
+                  <div class="flex flex-col gap-4 lg:gap-5">
+                    <p class="eyebrow">{grupo.rotulo}</p>
+                    <h3 class="heading-lg text-ink text-balance">{miembro.name}</h3>
+                    {miembro.bajada && (
+                      <p class="subtitle-lg max-w-md text-pretty">{miembro.bajada}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <Fragment>
+                {/* El rótulo del tramo: el título grande es el de la sección */}
+                <SectionHeading eyebrow={grupo.rotulo} as="p" />
+
+                <ul
+                  id={grupo.id}
+                  class="equipo-lista mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-12 lg:grid-cols-3"
                 >
-                  <span class="whitespace-nowrap">Ver todo el equipo pastoral</span>
-                  <span class="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-white transition-transform duration-200 group-aria-expanded:rotate-180">
-                    <Icon name="lucide:chevron-down" width={16} height={16} aria-hidden="true" />
-                  </span>
-                </button>
-              </div>
+                  {grupo.miembros.map((miembro, i) => (
+                    <li class:list={[grupo.visibles !== undefined && i >= grupo.visibles && 'miembro-plegado']}>
+                      <TarjetaEquipo miembro={miembro} />
+                    </li>
+                  ))}
+                </ul>
+
+                {grupo.hayResto && (
+                  <div class="equipo-mas mt-12 flex justify-center lg:mt-16">
+                    <button
+                      type="button"
+                      data-equipo-mas
+                      aria-expanded="false"
+                      aria-controls={grupo.id}
+                      class="group inline-flex shrink-0 items-center gap-3 rounded-full bg-mist py-2 pl-5 pr-2 text-[1rem] font-semibold text-carbon transition-colors hover:bg-ink/10"
+                    >
+                      <span class="whitespace-nowrap">Ver todo el equipo pastoral</span>
+                      <span class="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-white transition-transform duration-200 group-aria-expanded:rotate-180">
+                        <Icon name="lucide:chevron-down" width={16} height={16} aria-hidden="true" />
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </Fragment>
             )}
           </div>
         ))
@@ -215,11 +280,15 @@ const grupos = about.equipo.grupos.map((grupo, i) => ({
   acotado por la clase de la lista.
 */}
 <style is:global>
-  .equipo-lista {
+  /*
+    Acotado a la sección entera y no a la cuadrícula: el tramo de los
+    fundadores va fuera de la lista y lleva el mismo tratamiento.
+  */
+  .equipo-retratos {
     /*
       El contraste es el mismo para todas: lo que cambia de una foto a otra es
       el brillo (`--luz`, en `content.ts`), porque cada una venía expuesta de
-      su manera. Subirlo aquí sube el de la cuadrícula entera.
+      su manera. Subirlo aquí sube el de la sección entera.
     */
     --contraste-retrato: 1.06;
   }
@@ -228,7 +297,7 @@ const grupos = about.equipo.grupos.map((grupo, i) => ({
     El encuadre va aparte del tratamiento: las segundas fotos —las del hover—
     también se encuadran, pero salen a color y sin tocar.
   */
-  .equipo-lista .encuadrada {
+  .equipo-retratos .encuadrada {
     object-position: var(--x, 50%) var(--y, 50%);
     transform: scale(var(--zoom, 1));
     /*
@@ -239,7 +308,7 @@ const grupos = about.equipo.grupos.map((grupo, i) => ({
     transform-origin: var(--x, 50%) var(--y, 50%);
   }
 
-  .equipo-lista .retrato {
+  .equipo-retratos .retrato {
     /*
       El blanco y negro, el brillo y el contraste van en un solo `filter`
       —encadenar dos reglas de filtro no se suma, la última gana— y viven en
@@ -254,7 +323,7 @@ const grupos = about.equipo.grupos.map((grupo, i) => ({
     paso sueltan el ajuste de tono: lo que se ve es la foto tal cual, igual que
     las segundas fotos, que tampoco van tratadas.
   */
-  .equipo-lista .group:hover .retrato.se-enciende {
+  .equipo-retratos .group:hover .retrato.se-enciende {
     filter: none;
   }
 </style>

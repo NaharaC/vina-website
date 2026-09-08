@@ -584,6 +584,12 @@ export type MiembroEquipo = {
    */
   luz?: number;
   /**
+   * La línea que acompaña al nombre. Solo la enseña el tramo en `retrato`
+   * —ahí hay sitio al lado de la foto grande—; en la cuadrícula, donde debajo
+   * del nombre solo cabe el cargo, no se pinta.
+   */
+  bajada?: string;
+  /**
    * Segunda foto, más personal: aparece al pasar el ratón por la tarjeta.
    * Opcional; sin ella la tarjeta simplemente no cambia.
    */
@@ -600,6 +606,16 @@ export type MiembroEquipo = {
 export type GrupoEquipo = {
   /** Rótulo del tramo, en versalitas y con la línea fina debajo. */
   rotulo: string;
+  /**
+   * Cómo se pinta el tramo.
+   *
+   * - `rejilla` (lo normal) — las tarjetas cuadradas, de tres en tres.
+   * - `retrato` — una sola persona o pareja: la foto grande a un lado y, al
+   *   otro, el nombre en cuerpo de titular con su bajada. Es lo que les da la
+   *   preeminencia a los fundadores; con una tarjeta suelta en la cuadrícula
+   *   la fila quedaba a medias y los dos tramos pesaban igual.
+   */
+  formato?: 'rejilla' | 'retrato';
   /**
    * Cuántas tarjetas se ven de entrada; el resto espera detrás del botón. Sin
    * `visibles` se ve el tramo entero y no sale botón, que es lo que hace el
@@ -701,7 +717,7 @@ export const about = {
 
   equipo: {
     title: 'Equipo pastoral',
-    description: 'Conoce a quienes pastorean la iglesia',
+    description: 'Primero quienes fundaron la iglesia; después el equipo que pastorea cada área.',
     /**
      * Dos tramos, cada uno con su rótulo: primero los fundadores y luego los
      * asociados. En los asociados salen los primeros `visibles` y el resto
@@ -716,24 +732,28 @@ export const about = {
     grupos: [
       {
         rotulo: 'Pastores fundadores',
+        formato: 'retrato',
         miembros: [
-              {
-                name: 'Jairo Quinteros y Verónica Mayne',
-                /*
-                  La única sobre fondo oscuro, así que aquí no hay `luz` que
-                  igualar: el `luz` de las demás lleva su fondo blanco al gris
-                  común, y este fondo ya es negro. Apaisada y con los dos
-                  centrados, así que el cuadrado la coge tal cual.
-                */
-                photo: equipoJairoVeronica,
-                photoHover: equipoJairoVeronica2,
-              },
-            ],
-          },
           {
-            rotulo: 'Pastores asociados',
-            visibles: 6,
-            miembros: [
+            name: 'Jairo Quinteros y Verónica Mayne',
+            bajada:
+              'Fundadores y pastores de nuestra Iglesia Cristiana Viña Puerto Montt, quienes desde sus inicios hasta hoy han guiado y acompañado esta familia.',
+            /*
+              La única sobre fondo oscuro, así que aquí no hay `luz` que
+              igualar: el `luz` de las demás lleva su fondo blanco al gris
+              común, y este fondo ya es negro. Las dos son apaisadas y las dos
+              traen a los protagonistas centrados, así que el marco 3:2 del
+              tramo en retrato las coge tal cual, sin encuadre.
+            */
+            photo: equipoJairoVeronica,
+            photoHover: equipoJairoVeronica2,
+          },
+        ],
+      },
+      {
+        rotulo: 'Pastores asociados',
+        visibles: 6,
+        miembros: [
           {
             name: 'Roberto Quinteros y Araceli Chaparro',
             role: 'Pastores de Jóvenes',
