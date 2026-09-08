@@ -101,6 +101,14 @@ const { title, eyebrow, items } = about.proyectos;
 </section>
 
 <style>
+  /* apilado, el rectángulo necesita aire por arriba: si no, el botón queda
+     pegado al gris */
+  .bloque-proyecto {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
   .bloque-proyecto + .bloque-proyecto {
     margin-top: 5rem;
   }
