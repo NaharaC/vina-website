@@ -42,7 +42,11 @@ mensajes de commit van en español.
   todos»). Las secciones cuyo contenido ya trae tipografía grande usan solo el
   rótulo: si los dos van en cuerpo grande, no se distingue cuál es cuál.
 - Los bloques de imagen a sangre llevan esquina redondeada (2rem, 2.75rem en
-  escritorio), no llegan a filo con el borde de la ventana.
+  escritorio), no llegan a filo con el borde de la ventana. La excepción son
+  los rectángulos grises de `ProyectosCompasion` y `SuenosTerreno`: esos sí
+  llegan al filo derecho, y por eso redondean solo las esquinas de la
+  izquierda. El margen de la izquierda lo repiten a mano, con los tres
+  escalones de `container-page`.
 
 ## Trampas conocidas
 
