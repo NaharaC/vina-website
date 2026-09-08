@@ -53,7 +53,7 @@ const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.
           <article>
             <h3 class="heading-md text-ink">{sueno.title}</h3>
 
-            <p class="sueno-cuerpo mt-5">{sueno.body}</p>
+            <p class="subtitle sueno-cuerpo mt-5 max-w-md">{sueno.body}</p>
 
             {sueno.lista && (
               <ul class="mt-7 list-none p-0">
@@ -107,12 +107,9 @@ const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.
     }
   }
 
+  /* como el de los proyectos: el cuerpo de `subtitle`, en tinta */
   .sueno-cuerpo {
-    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
-    line-height: 1.5;
-    letter-spacing: -0.014em;
     color: var(--color-ink);
-    max-width: 34rem;
   }
 
   @media (width >= 64rem) {

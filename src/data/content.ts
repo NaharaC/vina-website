@@ -650,8 +650,6 @@ export type ProyectoCompasion = {
   photoAlt: string;
   photoSecundaria: ImageMetadata;
   photoSecundariaAlt: string;
-  logo?: ImageMetadata;
-  logoAlt?: string;
 };
 
 /** Un proyecto que todavía no existe: solo texto. */
@@ -752,8 +750,6 @@ export const about = {
         photoAlt: 'Estudiante orando en una actividad del colegio',
         photoSecundaria: educaMontealto2,
         photoSecundariaAlt: 'Estudiantes de Educa Montealto en la sala de clases',
-        logo: logoEducaMontealto,
-        logoAlt: 'Educa Montealto',
       },
       {
         title: 'Centro Médico Viña Puerto Montt',
@@ -771,8 +767,6 @@ export const about = {
         photoAlt: 'Profesional de la salud atendiendo a un paciente',
         photoSecundaria: centroMedico2,
         photoSecundariaAlt: 'Atención odontológica a un niño en el Centro Médico',
-        logo: logoCentroMedico,
-        logoAlt: 'Centro Médico viñapm',
       },
       {
         title: 'Dadores de Amor',
@@ -792,8 +786,6 @@ export const about = {
         photoAlt: 'Canastas con mercadería preparadas para entregar a familias',
         photoSecundaria: dadoresDeAmor2,
         photoSecundariaAlt: 'Matrimonio junto a las canastas de mercadería de Dadores de Amor',
-        logo: logoDadoresDeAmor,
-        logoAlt: 'Dadores de Amor',
       },
     ] satisfies ProyectoCompasion[],
   },
