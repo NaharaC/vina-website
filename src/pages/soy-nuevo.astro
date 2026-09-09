@@ -169,8 +169,13 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
     <section id="redes" class="seccion bg-mist" aria-labelledby="redes-titulo">
       <div class="container-page">
         <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24">
-          {/* Columna quieta: el encabezado y las fotos */}
-          <div class="lg:sticky lg:top-8">
+          {/*
+            Columna quieta: el encabezado y las fotos. Tiene que caber entera
+            en la pantalla —ver el script—: si no, en un portátil la foto se
+            corta por abajo y, al estar anclada, ese trozo no se llega a ver
+            nunca por más que se baje.
+          */}
+          <div class="columna-redes lg:sticky lg:top-8">
             <SectionHeading
               id="redes-titulo"
               eyebrow={soyNuevo.redes.eyebrow}
@@ -221,25 +226,10 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
 
           {/* Columna que pasa: las pastillas y la lista */}
           <div>
-            <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar redes por etapa">
-              {
-                soyNuevo.redes.etapas.map((etapa, i) => (
-                  <button
-                    type="button"
-                    data-etapa-filtro={etapa.id}
-                    aria-pressed={i === 0 ? 'true' : 'false'}
-                    class="rounded-full border border-ink/20 px-[1.125rem] py-2.5 text-[0.9375rem] font-semibold text-muted transition-colors duration-200 hover:border-ink/40 hover:text-ink aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-white"
-                  >
-                    {etapa.label}
-                  </button>
-                ))
-              }
-            </div>
-
-            <ul class="lista-redes mt-10 border-b border-ink/15">
+            <ul class="lista-redes border-b border-ink/15">
               {
                 redes.map((red, i) => (
-                  <li class="border-t border-ink/15" data-red-etapa={red.etapa}>
+                  <li class="border-t border-ink/15">
                     <h3>
                       <button
                         type="button"
@@ -509,16 +499,21 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
     grid-template-rows: 1fr;
   }
 
-  /* Una red escondida por el filtro. */
-  .lista-redes li[hidden] {
-    display: none;
+  /*
+    El tope de alto de la foto, para que la columna quepa en la pantalla. Lo
+    calcula el script y lo deja aquí; sin él manda la proporción y ya está.
+    Al recortarse el alto, el `object-cover` de las fotos las encuadra más
+    apaisadas en vez de deformarlas.
+  */
+  .carrusel-redes {
+    max-height: var(--alto, none);
   }
 </style>
 
 <script>
   /*
-    Tres cosas, todas dentro de la sección de redes salvo el acordeón de las
-    preguntas: plegar, filtrar y pasar las fotos.
+    Dos cosas, las dos dentro de la sección de redes salvo el acordeón de las
+    preguntas: plegar y pasar las fotos.
   */
   const abrirSolo = (botones: NodeListOf<HTMLButtonElement>, elegido: HTMLButtonElement) => {
     const abierto = elegido.getAttribute('aria-expanded') === 'true';
@@ -541,9 +536,45 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
   if (seccion) {
     const fotos = seccion.querySelectorAll<HTMLImageElement>('[data-foto]');
     const puntos = seccion.querySelectorAll<HTMLButtonElement>('[data-punto]');
-    const filas = seccion.querySelectorAll<HTMLLIElement>('[data-red-etapa]');
     const botones = seccion.querySelectorAll<HTMLButtonElement>('[data-red]');
-    const filtros = seccion.querySelectorAll<HTMLButtonElement>('[data-etapa-filtro]');
+
+    /*
+      La columna de la izquierda tiene que caber entera en la pantalla. Es la
+      misma trampa que el relato de «Nuestra historia» en `nosotros`: un
+      bloque anclado más alto que la ventana se para arriba y su final no se
+      llega a ver nunca. Aquí el final es la foto, y encima es lo que más
+      ocupa, así que lo que se recorta es su alto.
+
+      La cuenta no es un número escrito: se mide lo que ocupa todo lo demás
+      —encabezado, márgenes y los puntitos— y se le da a la foto lo que
+      sobra. Así aguanta que cambie el texto, el ancho o el tamaño de letra.
+      El suelo de 220px es para que en una ventana muy baja la foto siga
+      siendo una foto y no una franja.
+    */
+    const columna = seccion.querySelector<HTMLElement>('.columna-redes');
+    const carrusel = seccion.querySelector<HTMLElement>('.carrusel-redes');
+    const anclada = matchMedia('(min-width: 64rem)');
+
+    const encajar = () => {
+      if (!columna || !carrusel) return;
+
+      /* Sin el tope puesto, para medir el alto que pide la proporción. */
+      carrusel.style.removeProperty('--alto');
+
+      const resto = columna.offsetHeight - carrusel.offsetHeight;
+      const tope = anclada.matches ? 32 : 0;
+      const libre = window.innerHeight - tope - resto - 24;
+
+      if (libre < carrusel.offsetHeight) {
+        carrusel.style.setProperty('--alto', `${Math.max(220, Math.round(libre))}px`);
+      }
+    };
+
+    encajar();
+    addEventListener('resize', encajar);
+    anclada.addEventListener('change', encajar);
+    // El alto del encabezado cambia cuando entra la tipografía de la página.
+    document.fonts?.ready.then(encajar);
 
     /*
       Las fotos no paran nunca, pero se les da un respiro cada vez que alguien
@@ -584,22 +615,6 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
           mostrar(Number(boton.dataset.red));
           arrancar();
         }
-      });
-    });
-
-    /*
-      El filtro esconde filas; la línea de abajo de la lista la pone el
-      contenedor y no la última fila, que con el filtro puesto puede estar
-      escondida y dejaría la lista sin cerrar.
-    */
-    filtros.forEach((filtro) => {
-      filtro.addEventListener('click', () => {
-        const etapa = filtro.dataset.etapaFiltro;
-
-        filtros.forEach((otro) => otro.setAttribute('aria-pressed', String(otro === filtro)));
-        filas.forEach((fila) => {
-          fila.hidden = etapa !== 'todas' && fila.dataset.redEtapa !== etapa;
-        });
       });
     });
   }

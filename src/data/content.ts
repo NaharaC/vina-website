@@ -1073,9 +1073,6 @@ export type PasoDeEntrada = {
   photoAlt: string;
 };
 
-/** Una etapa de la vida, que es como se filtran las redes. */
-export type EtapaDeRed = { id: string; label: string };
-
 /**
  * Una red de la iglesia: a quién reúne y quién la pastorea.
  *
@@ -1085,8 +1082,6 @@ export type EtapaDeRed = { id: string; label: string };
  * existe allí, la construcción falla —es un error de dedo, no un caso posible.
  */
 export type Red = {
-  /** El `id` de una de las `etapasDeRed`. */
-  etapa: string;
   name: string;
   /** A quién reúne. Es lo que se lee al abrir la fila. */
   quien: string;
@@ -1155,19 +1150,8 @@ export const soyNuevo = {
       'Cada persona de la iglesia pertenece a una red según su etapa de vida. Ahí están tus pastores y la gente con la que vas a caminar.',
     nota: '¿No sabes cuál te toca? Pregúntale a cualquiera el domingo, o escríbenos y te presentamos a tus pastores.',
     cta: 'Quiero conocer mi red',
-    /* La primera es la que no filtra nada; el resto, en el orden de la lista. */
-    etapas: [
-      { id: 'todas', label: 'Todas' },
-      { id: 'ninos', label: 'Niños' },
-      { id: 'adolescentes', label: 'Adolescentes' },
-      { id: 'jovenes', label: 'Jóvenes' },
-      { id: 'matrimonios', label: 'Matrimonios' },
-      { id: 'varones-mujeres', label: 'Varones y mujeres' },
-      { id: 'dorados', label: 'Años dorados' },
-    ] satisfies EtapaDeRed[],
     items: [
       {
-        etapa: 'ninos',
         name: 'Escuela Bíblica',
         quien:
           'Niños de 2 años a cuarto básico, repartidos en Semillitas (2 a 4 años), Valientes de David (pre-kínder y kínder), Mensajeros de Jesús (1° y 2° básico) y Héroes de la Fe (3° y 4° básico).',
@@ -1177,7 +1161,6 @@ export const soyNuevo = {
         photoAlt: 'Niñas de la Escuela Bíblica en su sala',
       },
       {
-        etapa: 'adolescentes',
         name: 'JEER',
         quien: 'Adolescentes, de quinto a octavo básico.',
         pastores: 'Rodolfo Cabezas y Natalie Alfaro',
@@ -1186,7 +1169,6 @@ export const soyNuevo = {
         photoAlt: 'Adolescentes de JEER en una actividad al aire libre',
       },
       {
-        etapa: 'jovenes',
         name: 'Red de Jóvenes',
         quien: 'Desde primero medio hasta el último año de universidad.',
         pastores: 'Roberto Quinteros y Araceli Chaparro',
@@ -1195,7 +1177,6 @@ export const soyNuevo = {
         photoAlt: 'La Red de Jóvenes reunida',
       },
       {
-        etapa: 'jovenes',
         name: 'Red de Jóvenes PRO',
         quien: 'Desde el último año de universidad hasta los 40 años, trabajando y solteros.',
         pastores: 'Danilo Vargas y Lena Miller',
@@ -1204,7 +1185,6 @@ export const soyNuevo = {
         photoAlt: 'La Red de Jóvenes PRO al aire libre',
       },
       {
-        etapa: 'matrimonios',
         name: 'Red de Matrimonios Jóvenes',
         quien:
           'Parejas o matrimonios de 25 a 35 años que convivan juntos o estén recién casados, con menos de 5 años.',
@@ -1214,7 +1194,6 @@ export const soyNuevo = {
         photoAlt: 'Matrimonios jóvenes con sus hijos',
       },
       {
-        etapa: 'matrimonios',
         name: 'Red de Matrimonios PRO',
         quien: 'Parejas o matrimonios que lleven entre 5 y 15 años juntos.',
         pastores: 'Eduardo Alister y Priscila Almonacid',
@@ -1228,7 +1207,6 @@ export const soyNuevo = {
           pastoral, «Matrimonios Senior». Se toman por la misma —la foto vino
           con ese nombre— y por eso la pastorean Hardy y Ruth.
         */
-        etapa: 'matrimonios',
         name: 'Red de Matrimonios Prime',
         quien: 'Parejas o matrimonios que lleven más de 15 años juntos.',
         pastores: 'Hardy Aqueveque y Ruth Venegas',
@@ -1239,7 +1217,6 @@ export const soyNuevo = {
       {
         /* Gerardo y María Eliana pastorean una red cada uno y posan juntos:
            las dos filas enseñan el mismo retrato y cambian el nombre. */
-        etapa: 'varones-mujeres',
         name: 'Red de Varones',
         quien: 'Desde la Red de Jóvenes PRO en adelante.',
         pastores: 'Gerardo Andrade',
@@ -1248,7 +1225,6 @@ export const soyNuevo = {
         photoAlt: 'Varones compartiendo alrededor de una mesa',
       },
       {
-        etapa: 'varones-mujeres',
         name: 'Red de Mujeres',
         quien: 'Desde la Red de Jóvenes PRO en adelante.',
         pastores: 'María Eliana Zornow',
@@ -1257,7 +1233,6 @@ export const soyNuevo = {
         photoAlt: 'Mujeres preparando una once',
       },
       {
-        etapa: 'varones-mujeres',
         name: 'Red de Mujeres de Gracia',
         quien: 'Mujeres sobre los 35 años que se encuentran solteras, divorciadas, separadas o viudas.',
         pastores: 'Nicole Bruyere y Eugenia Soto',
@@ -1266,7 +1241,6 @@ export const soyNuevo = {
         photoAlt: 'Mujeres de Gracia compartiendo la mesa',
       },
       {
-        etapa: 'dorados',
         name: 'Red de Años Dorados',
         quien: 'Desde los 65 años en adelante.',
         /* TODO: no figuran en el equipo pastoral. */

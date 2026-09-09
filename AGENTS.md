@@ -163,6 +163,12 @@ mensajes de commit van en español.
   corrido, no la bajada de un título, y en cuerpo grande medía 681px, justo lo
   que da una ventana de portátil, así que el titular asomaba cortado.
 
+  La misma trampa la tiene la columna de las redes en `soy-nuevo`, y se
+  resuelve al revés: allí lo que sobra es la foto, no el texto, así que en vez
+  de mover el anclaje se le pone tope de alto (`--alto`, calculado igual: lo
+  que queda de ventana después de medir todo lo demás). Como la foto va con
+  `object-cover`, recortarla de alto la encuadra más apaisada y no la deforma.
+
 - **El afiche de la radio tiene dos versiones.** La apaisada
   (`radio-programacion.png`) es la de escritorio. La vertical
   (`radio-programacion-vertical.jpg`, 1200x2184) no es un recorte del
