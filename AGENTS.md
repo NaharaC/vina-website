@@ -180,6 +180,13 @@ mensajes de commit van en español.
 - **Fechas sin hora.** Notion las entrega como `YYYY-MM-DD` y `new Date` las
   lee en UTC, lo que en Chile las corre al día anterior. Usar `fechaDe()` de
   `src/lib/actividades.ts`.
+- **En producción los iconos van en una lista escrita a mano.** Aquí entra la
+  colección entera de lucide y cualquier `<Icon name="lucide:…">` funciona; el
+  repositorio de producción (typeboldcl/vinapm, con el sitio en `website/`)
+  declara en su `astro.config.mjs` los veintitantos que usa, para no publicar
+  seis mil. Un icono nuevo funciona aquí y tira la construcción allí, diciendo
+  cuál falta. Al portar una página nueva, hay que añadirlos.
+
 - **Google Maps.** La dirección («La Vara Kilómetro 8») es rural y no
   geocodifica; se busca por el nombre de la ficha. El mapa incrustado sí va
   por coordenadas: por nombre, Google abre encima la ficha del negocio con su
