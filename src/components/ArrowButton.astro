@@ -4,8 +4,12 @@ import { Icon } from 'astro-icon/components';
 interface Props {
   label: string;
   href: string;
-  /** light = pastilla blanca con círculo naranja · accent = pastilla naranja con círculo blanco */
-  variant?: 'light' | 'accent';
+  /**
+   * light = pastilla blanca con círculo naranja · accent = pastilla naranja
+   * con círculo blanco · mist = la gris de las páginas claras, donde la
+   * blanca no se despegaría del fondo
+   */
+  variant?: 'light' | 'accent' | 'mist';
   size?: 'sm' | 'md' | 'lg';
   /** abre en una pestaña nueva; para WhatsApp, donación, radio, etc. */
   external?: boolean;
@@ -24,11 +28,13 @@ const {
 const shell = {
   light: 'bg-white text-carbon hover:bg-mist',
   accent: 'bg-accent text-white hover:bg-accent-strong',
+  mist: 'bg-mist text-carbon hover:bg-ink/10',
 }[variant];
 
 const circle = {
   light: 'bg-accent text-white',
   accent: 'bg-white text-accent',
+  mist: 'bg-accent text-white',
 }[variant];
 
 const sizing = {

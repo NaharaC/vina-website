@@ -1,7 +1,9 @@
 # Iglesia Viña Puerto Montt
 
-Sitio en Astro + Tailwind v4. Tres páginas: la portada (`index.astro`),
-`nosotros` y `actividades`, más el calendario suscribible `actividades.ics`.
+Sitio en Astro + Tailwind v4. Cuatro páginas: la portada (`index.astro`),
+`nosotros`, `actividades` y `soy-nuevo` —la de quien viene por primera vez,
+donde aterriza «Quiero Visitar» del hero—, más el calendario suscribible
+`actividades.ics`.
 
 El sitio está en español: nombres de componentes, variables, comentarios y
 mensajes de commit van en español.

@@ -79,6 +79,21 @@ import equipoCecilia2 from '../assets/img/equipo-cecilia-2.jpg';
 import equipoEduardoPriscila from '../assets/img/equipo-eduardo-priscila.jpg';
 import equipoJairoVeronica from '../assets/img/equipo-jairo-veronica.jpg';
 import equipoJairoVeronica2 from '../assets/img/equipo-jairo-veronica-2.jpg';
+import fachada from '../assets/img/fachada.jpg';
+import soyNuevoPortada from '../assets/img/soy-nuevo-portada.jpg';
+import soyNuevoPrimerPaso from '../assets/img/soy-nuevo-primer-paso.jpg';
+import soyNuevoSegundoPaso from '../assets/img/soy-nuevo-segundo-paso.jpg';
+import redEscuelaBiblica from '../assets/img/red-escuela-biblica.jpg';
+import redJeer from '../assets/img/red-jeer.jpg';
+import redJovenes from '../assets/img/red-jovenes.jpg';
+import redJovenesPro from '../assets/img/red-jovenes-pro.jpg';
+import redMatrimoniosJovenes from '../assets/img/red-matrimonios-jovenes.jpg';
+import redMatrimoniosPro from '../assets/img/red-matrimonios-pro.jpg';
+import redMatrimoniosPrime from '../assets/img/red-matrimonios-prime.jpg';
+import redVarones from '../assets/img/red-varones.jpg';
+import redMujeres from '../assets/img/red-mujeres.jpg';
+import redMujeresDeGracia from '../assets/img/red-mujeres-de-gracia.jpg';
+import redAnosDorados from '../assets/img/red-anos-dorados.jpg';
 import predicacion from '../assets/img/predicacion.jpg';
 import radioProgramacion from '../assets/img/radio-programacion.png';
 import radioProgramacionVertical from '../assets/img/radio-programacion-vertical.jpg';
@@ -184,7 +199,7 @@ export const heroActions: HeroAction[] = [
   {
     title: 'Quiero Visitar',
     description: 'Me gustaría asistir por primera vez',
-    href: '#reuniones',
+    href: '/soy-nuevo',
     icon: 'lucide:map-pin',
     iconClass: 'bg-accent',
   },
@@ -1038,6 +1053,286 @@ export const about = {
         ],
       },
     ] satisfies GrupoEquipo[],
+  },
+};
+
+/* --- Soy nuevo ------------------------------------------------------------- */
+
+/**
+ * Un paso del camino de entrada. Hoy son dos —Primer Paso y Segundo Paso— y
+ * se leen en orden: el número es parte del contenido, no del maquetado, para
+ * que se pueda intercalar uno sin renumerar a mano.
+ */
+export type PasoDeEntrada = {
+  numero: string;
+  title: string;
+  body: string;
+  /** Cuándo y dónde. Cada línea con su icono; sin viñetas. */
+  datos: { icon: string; texto: string }[];
+  photo: ImageMetadata;
+  photoAlt: string;
+};
+
+/** Una etapa de la vida, que es como se filtran las redes. */
+export type EtapaDeRed = { id: string; label: string };
+
+/**
+ * Una red de la iglesia: a quién reúne y quién la pastorea.
+ *
+ * `retratos` no guarda fotos sino nombres del equipo pastoral, escritos igual
+ * que en `about.equipo`: de ahí salen el retrato, su encuadre y su luz, que ya
+ * están afinados a ojo y no se quieren mantener en dos sitios. Si un nombre no
+ * existe allí, la construcción falla —es un error de dedo, no un caso posible.
+ */
+export type Red = {
+  /** El `id` de una de las `etapasDeRed`. */
+  etapa: string;
+  name: string;
+  /** A quién reúne. Es lo que se lee al abrir la fila. */
+  quien: string;
+  /** Cómo se escriben los pastores en pantalla. Vacío mientras no se sepa. */
+  pastores: string;
+  retratos: string[];
+  photo: ImageMetadata;
+  photoAlt: string;
+};
+
+export type Pregunta = { q: string; a: string };
+
+/**
+ * La página para quien viene por primera vez. Es donde aterriza «Quiero
+ * Visitar» del hero.
+ *
+ * TODO: pendientes los pastores de la Red de Años Dorados y cuánto dura la
+ * reunión del domingo. Mientras tanto van en corchetes y a la vista, que es
+ * mejor que inventarlos.
+ */
+export const soyNuevo = {
+  eyebrow: 'Soy nuevo',
+  title: '¡Bienvenido a Casa!',
+  subtitle:
+    'Si vienes por primera vez, acá está todo lo que necesitas saber: cómo es un domingo, a qué red perteneces y los pasos para empezar a ser parte de esta familia.',
+  photo: soyNuevoPortada,
+  photoAlt: 'Dos mujeres abrazándose a la entrada de la iglesia',
+
+  pasos: {
+    eyebrow: 'Primeros pasos',
+    title: 'Dos pasos para empezar a ser parte',
+    /** La excepción que comparten los dos, y por eso no vive en ninguno. */
+    nota: 'El primer domingo de cada mes no hay Primer ni Segundo Paso.',
+    items: [
+      {
+        numero: '01',
+        title: 'Primer Paso',
+        body: 'Un desayuno para conocernos. Te contamos quiénes somos, en qué creemos y cómo funciona la iglesia, y respondemos lo que quieras preguntar. Es donde empieza el camino de ser parte.',
+        datos: [
+          { icon: 'lucide:calendar-days', texto: 'Todos los domingos, menos el primero de cada mes' },
+          { icon: 'lucide:clock', texto: 'De 09:30 a 10:30, antes de la reunión' },
+          { icon: 'lucide:map-pin', texto: 'En el Centro Médico' },
+        ],
+        photo: soyNuevoPrimerPaso,
+        photoAlt: 'Presentación de las redes y las áreas de servicio durante Primer Paso',
+      },
+      {
+        numero: '02',
+        title: 'Segundo Paso',
+        body: 'Cuatro charlas para conocer más de Dios y cómo tener una relación con Él. Las enseñanzas van rotando domingo a domingo, así que puedes entrar en cualquiera: la idea es que completes las cuatro.',
+        datos: [
+          { icon: 'lucide:calendar-days', texto: 'Todos los domingos, menos el primero de cada mes' },
+          { icon: 'lucide:clock', texto: 'De 09:30 a 10:30, antes de la reunión' },
+          { icon: 'lucide:map-pin', texto: 'En el segundo piso de la iglesia' },
+        ],
+        photo: soyNuevoSegundoPaso,
+        photoAlt: 'Grupo que terminó las cuatro charlas de Segundo Paso',
+      },
+    ] satisfies PasoDeEntrada[],
+  },
+
+  redes: {
+    eyebrow: 'Redes',
+    title: '¿A qué red perteneces?',
+    subtitle:
+      'Cada persona de la iglesia pertenece a una red según su etapa de vida. Ahí están tus pastores y la gente con la que vas a caminar.',
+    nota: '¿No sabes cuál te toca? Pregúntale a cualquiera el domingo, o escríbenos y te presentamos a tus pastores.',
+    cta: 'Quiero conocer mi red',
+    /* La primera es la que no filtra nada; el resto, en el orden de la lista. */
+    etapas: [
+      { id: 'todas', label: 'Todas' },
+      { id: 'ninos', label: 'Niños' },
+      { id: 'adolescentes', label: 'Adolescentes' },
+      { id: 'jovenes', label: 'Jóvenes' },
+      { id: 'matrimonios', label: 'Matrimonios' },
+      { id: 'varones-mujeres', label: 'Varones y mujeres' },
+      { id: 'dorados', label: 'Años dorados' },
+    ] satisfies EtapaDeRed[],
+    items: [
+      {
+        etapa: 'ninos',
+        name: 'Escuela Bíblica',
+        quien:
+          'Niños de 2 años a cuarto básico, repartidos en Semillitas (2 a 4 años), Valientes de David (pre-kínder y kínder), Mensajeros de Jesús (1° y 2° básico) y Héroes de la Fe (3° y 4° básico).',
+        pastores: 'Jonathan Rogel y Carmen Mansilla',
+        retratos: ['Jonathan Rogel y Carmen Mansilla'],
+        photo: redEscuelaBiblica,
+        photoAlt: 'Niñas de la Escuela Bíblica en su sala',
+      },
+      {
+        etapa: 'adolescentes',
+        name: 'JEER',
+        quien: 'Adolescentes, de quinto a octavo básico.',
+        pastores: 'Rodolfo Cabezas y Natalie Alfaro',
+        retratos: ['Rodolfo Cabezas y Natalie Alfaro'],
+        photo: redJeer,
+        photoAlt: 'Adolescentes de JEER en una actividad al aire libre',
+      },
+      {
+        etapa: 'jovenes',
+        name: 'Red de Jóvenes',
+        quien: 'Desde primero medio hasta el último año de universidad.',
+        pastores: 'Roberto Quinteros y Araceli Chaparro',
+        retratos: ['Roberto Quinteros y Araceli Chaparro'],
+        photo: redJovenes,
+        photoAlt: 'La Red de Jóvenes reunida',
+      },
+      {
+        etapa: 'jovenes',
+        name: 'Red de Jóvenes PRO',
+        quien: 'Desde el último año de universidad hasta los 40 años, trabajando y solteros.',
+        pastores: 'Danilo Vargas y Lena Miller',
+        retratos: ['Danilo Vargas y Lena Miller'],
+        photo: redJovenesPro,
+        photoAlt: 'La Red de Jóvenes PRO al aire libre',
+      },
+      {
+        etapa: 'matrimonios',
+        name: 'Red de Matrimonios Jóvenes',
+        quien:
+          'Parejas o matrimonios de 25 a 35 años que convivan juntos o estén recién casados, con menos de 5 años.',
+        pastores: 'Daniel Quinteros y Nahara Gutiérrez',
+        retratos: ['Daniel Quinteros y Nahara Gutiérrez'],
+        photo: redMatrimoniosJovenes,
+        photoAlt: 'Matrimonios jóvenes con sus hijos',
+      },
+      {
+        etapa: 'matrimonios',
+        name: 'Red de Matrimonios PRO',
+        quien: 'Parejas o matrimonios que lleven entre 5 y 15 años juntos.',
+        pastores: 'Eduardo Alister y Priscila Almonacid',
+        retratos: ['Eduardo Alister y Priscila Almonacid'],
+        photo: redMatrimoniosPro,
+        photoAlt: 'Un matrimonio de la Red PRO durante una once',
+      },
+      {
+        /*
+          En la lista de redes esta franja se llama «Prime» y en el equipo
+          pastoral, «Matrimonios Senior». Se toman por la misma —la foto vino
+          con ese nombre— y por eso la pastorean Hardy y Ruth.
+        */
+        etapa: 'matrimonios',
+        name: 'Red de Matrimonios Prime',
+        quien: 'Parejas o matrimonios que lleven más de 15 años juntos.',
+        pastores: 'Hardy Aqueveque y Ruth Venegas',
+        retratos: ['Hardy Aqueveque y Ruth Venegas'],
+        photo: redMatrimoniosPrime,
+        photoAlt: 'Un matrimonio abrazado durante una reunión',
+      },
+      {
+        /* Gerardo y María Eliana pastorean una red cada uno y posan juntos:
+           las dos filas enseñan el mismo retrato y cambian el nombre. */
+        etapa: 'varones-mujeres',
+        name: 'Red de Varones',
+        quien: 'Desde la Red de Jóvenes PRO en adelante.',
+        pastores: 'Gerardo Andrade',
+        retratos: ['Gerardo Andrade y Maria Eliana Zornow'],
+        photo: redVarones,
+        photoAlt: 'Varones compartiendo alrededor de una mesa',
+      },
+      {
+        etapa: 'varones-mujeres',
+        name: 'Red de Mujeres',
+        quien: 'Desde la Red de Jóvenes PRO en adelante.',
+        pastores: 'María Eliana Zornow',
+        retratos: ['Gerardo Andrade y Maria Eliana Zornow'],
+        photo: redMujeres,
+        photoAlt: 'Mujeres preparando una once',
+      },
+      {
+        etapa: 'varones-mujeres',
+        name: 'Red de Mujeres de Gracia',
+        quien: 'Mujeres sobre los 35 años que se encuentran solteras, divorciadas, separadas o viudas.',
+        pastores: 'Nicole Bruyere y Eugenia Soto',
+        retratos: ['Nicole Bruyere', 'Eugenia Soto'],
+        photo: redMujeresDeGracia,
+        photoAlt: 'Mujeres de Gracia compartiendo la mesa',
+      },
+      {
+        etapa: 'dorados',
+        name: 'Red de Años Dorados',
+        quien: 'Desde los 65 años en adelante.',
+        /* TODO: no figuran en el equipo pastoral. */
+        pastores: '',
+        retratos: [],
+        photo: redAnosDorados,
+        photoAlt: 'La Red de Años Dorados en una once',
+      },
+    ] satisfies Red[],
+  },
+
+  preguntas: {
+    title: 'Preguntas frecuentes',
+    subtitle: 'Lo que más nos preguntan quienes vienen por primera vez.',
+    cta: { label: 'Tengo otra pregunta', mensaje: 'Hola, tengo una pregunta' },
+    items: [
+      {
+        q: '¿Puedo ir con niños?',
+        a: 'Sí. Todos los domingos tenemos Escuela Bíblica para niños desde los 2 años y hasta octavo básico. Mientras tú estás en la reunión, ellos tienen la suya, con su propio equipo y su propia enseñanza.',
+      },
+      {
+        q: '¿Puedo ir con bebés?',
+        a: 'Sí. Tenemos una sala de lactancia para mamás con bebés de 0 a 1 año y una sala cuna para papás con niños de 1 a 2 años. En las dos puedes ver la reunión en tiempo real.',
+      },
+      {
+        q: '¿Cómo llego en micro?',
+        a: 'Puedes tomar cualquier micro que haga el recorrido Alerce – Puerto Montt. Bájate en el paradero que está frente a Parque Fundadores: en cinco minutos caminando llegas a la puerta de la iglesia.',
+      },
+      {
+        q: '¿Hay estacionamiento?',
+        a: 'Sí. Nuestra iglesia cuenta con amplios estacionamientos dentro de la propiedad, así que puedes llegar en auto sin preocuparte por dónde dejarlo.',
+      },
+      {
+        q: '¿A qué hora es la reunión del domingo?',
+        a: 'Domingos de Gloria, nuestra reunión general, es a las 10:30. También nos reunimos los miércoles a las 20:00 —Miércoles de Palabra, en línea por Zoom— y los viernes a las 19:30, en Viernes de Avivamiento.',
+      },
+      {
+        q: '¿Cuánto dura la reunión?',
+        a: '[DURACIÓN POR CONFIRMAR.] Después de la reunión siempre queda gente conversando: si es tu primera vez, quédate un rato y te presentamos a alguien.',
+      },
+      {
+        q: '¿Cómo me visto?',
+        a: 'Como estés cómodo. Acá no hay código de vestimenta ni ropa de domingo: ven tal como eres.',
+      },
+      {
+        q: '¿Puedo ver la reunión en línea?',
+        a: 'Sí. Transmitimos en vivo por YouTube, en el canal @lavinatvpmontt, y ahí también quedan las predicaciones para verlas cuando quieras.',
+      },
+    ] satisfies Pregunta[],
+  },
+
+  /* La fachada donde va el mapa en la portada: lo que hace que alguien
+     reconozca el edificio al llegar. */
+  ubicacion: {
+    eyebrow: 'Dónde estamos',
+    title: 'Nos reunimos acá',
+    photo: fachada,
+    photoAlt: 'Fachada de la iglesia en La Vara, Puerto Montt',
+  },
+
+  cierre: {
+    eyebrow: 'Este domingo',
+    title: 'Ven como estés. Acá tienes tu lugar.',
+    subtitle:
+      'Domingos de Gloria, 10:30 h. La Vara Kilómetro 8, Parcela 154. No hace falta que avises: solo llega.',
+    mensaje: 'Hola, vengo por primera vez',
   },
 };
 

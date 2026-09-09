@@ -1,0 +1,606 @@
+---
+import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import ArrowButton from '../components/ArrowButton.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { about, mapsHref, organization, site, soyNuevo, whatsappHref } from '../data/content';
+import type { Encuadre, GrupoEquipo } from '../data/content';
+
+/*
+  Los retratos de los pastores no se guardan otra vez aquí: se buscan en el
+  equipo pastoral por su nombre. Así el encuadre y la luz —que están afinados
+  a ojo, mirando la cuadrícula entera— viven en un solo sitio y esta página
+  hereda cualquier retoque.
+
+  Si un nombre no cuadra, esto revienta la construcción a propósito: es un
+  error de dedo en `soyNuevo.redes`, no un caso que haya que contemplar en
+  pantalla.
+*/
+const equipo = new Map(
+  (about.equipo.grupos as GrupoEquipo[]).flatMap((grupo) => grupo.miembros).map((m) => [m.name, m])
+);
+
+const retratoDe = (name: string) => {
+  const miembro = equipo.get(name);
+
+  if (!miembro) {
+    throw new Error(
+      `«${name}» no está en about.equipo. Revisa los nombres de \`retratos\` en soyNuevo.redes.`
+    );
+  }
+
+  return miembro;
+};
+
+/* El mismo `encuadrar` de TarjetaEquipo: el encuadre viaja como variables CSS. */
+const encuadrar = (e?: Encuadre, luz?: number) =>
+  `--zoom:${e?.zoom ?? 1};--x:${e?.x ?? '50%'};--y:${e?.y ?? '50%'};--luz:${luz ?? 1}`;
+
+/*
+  El número de cada red sale de su posición, no del contenido: así intercalar
+  una no obliga a renumerar las demás a mano.
+*/
+const redes = soyNuevo.redes.items.map((red, i) => ({
+  ...red,
+  indice: i,
+  numero: String(i + 1).padStart(2, '0'),
+  retratos: red.retratos.map(retratoDe).filter((m) => m.photo),
+  href: whatsappHref(`Hola, quiero conocer la ${red.name}`),
+}));
+
+const contactoHref = whatsappHref(soyNuevo.cierre.mensaje) || '/#contacto';
+const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto';
+---
+
+{/*
+  Sin `heroFoto`: la página abre sobre blanco, así que la barra va en tinta.
+
+  `voz-fina` envuelve la página entera, como en `nosotros`: los titulares en
+  peso normal, que es la voz de las páginas de dentro.
+*/}
+<BaseLayout
+  title={`${soyNuevo.title} — ${site.name}`}
+  description="Todo lo que necesitas saber si vienes por primera vez a Iglesia Viña Puerto Montt: cómo es un domingo, a qué red perteneces y los primeros pasos."
+>
+  <div class="voz-fina">
+    {/* Portada: tipografía y aire, y debajo la foto a sangre */}
+    <section class="pt-36 pb-16 lg:pt-44 lg:pb-24" aria-labelledby="soy-nuevo-titulo">
+      <div class="container-page">
+        <p class="eyebrow">{soyNuevo.eyebrow}</p>
+
+        <h1 id="soy-nuevo-titulo" class="portada mt-6 max-w-4xl text-balance text-ink">
+          {soyNuevo.title}
+        </h1>
+
+        <p class="subtitle-lg mt-7 max-w-xl text-pretty">{soyNuevo.subtitle}</p>
+
+        <div class="mt-10 flex flex-wrap gap-3">
+          <ArrowButton label="Cómo llegar" href="#donde-estamos" variant="accent" size="md" />
+          <ArrowButton
+            label="Escríbenos por WhatsApp"
+            href={contactoHref}
+            external={contactoHref.startsWith('http')}
+            variant="mist"
+            size="md"
+          />
+        </div>
+
+        <Image
+          src={soyNuevo.photo}
+          alt={soyNuevo.photoAlt}
+          widths={[640, 1024, 1600]}
+          sizes="(min-width: 64rem) 78rem, 92vw"
+          class="mt-16 aspect-[4/3] w-full rounded-[2rem] object-cover object-[center_40%] sm:aspect-[16/9] lg:mt-20 lg:aspect-[7/3] lg:rounded-[2.75rem]"
+          loading="eager"
+        />
+      </div>
+    </section>
+
+    {/* Primeros pasos: una fila por paso, separadas por la línea fina */}
+    <section class="pb-28 lg:pb-36" aria-labelledby="pasos-titulo">
+      <div class="container-page">
+        <SectionHeading
+          id="pasos-titulo"
+          eyebrow={soyNuevo.pasos.eyebrow}
+          title={soyNuevo.pasos.title}
+        />
+
+        <div class="mt-6">
+          {
+            soyNuevo.pasos.items.map((paso) => (
+              <div class="grid items-center gap-10 border-t border-ink/15 py-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] lg:gap-20 lg:py-14">
+                <div>
+                  <p class="cifra text-accent">{paso.numero}</p>
+
+                  <h3 class="heading-lg mt-5 text-balance text-ink">{paso.title}</h3>
+
+                  <p class="subtitle mt-4 max-w-lg text-pretty">{paso.body}</p>
+
+                  {/*
+                    Cuándo y dónde, una línea por dato y con su icono. Sin
+                    viñetas: se leen de un vistazo, como las listas de los
+                    proyectos de compasión.
+                  */}
+                  <ul class="mt-8 max-w-lg">
+                    {paso.datos.map((dato) => (
+                      <li class="flex items-center gap-3 border-t border-ink/10 py-3 last:border-b">
+                        <Icon
+                          name={dato.icon}
+                          width={18}
+                          height={18}
+                          class="shrink-0 text-accent"
+                          aria-hidden="true"
+                        />
+                        <span class="nota text-ink">{dato.texto}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <Image
+                  src={paso.photo}
+                  alt={paso.photoAlt}
+                  widths={[480, 768, 1088]}
+                  sizes="(min-width: 64rem) 34rem, 92vw"
+                  class="aspect-video w-full rounded-[2rem] object-cover"
+                  loading="lazy"
+                />
+              </div>
+            ))
+          }
+        </div>
+
+        <p class="nota mt-8 border-t border-ink/15 pt-8">{soyNuevo.pasos.nota}</p>
+      </div>
+    </section>
+
+    {/*
+      Redes.
+
+      A un lado las fotos, que van pasando solas, y al otro la lista: cada red
+      se abre con el «+» y enseña a quién reúne, quiénes la pastorean y por
+      dónde escribir. Al abrir una red, la foto de al lado salta a la suya.
+
+      El tramo entero está en el marcado desde el principio —así lo lee el
+      buscador y así funciona sin JavaScript—: lo que hace el script es plegar,
+      filtrar y pasar las fotos.
+    */}
+    <section id="redes" class="seccion bg-mist" aria-labelledby="redes-titulo">
+      <div class="container-page">
+        <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24">
+          {/* Columna quieta: el encabezado y las fotos */}
+          <div class="lg:sticky lg:top-8">
+            <SectionHeading
+              id="redes-titulo"
+              eyebrow={soyNuevo.redes.eyebrow}
+              title={soyNuevo.redes.title}
+              subtitle={soyNuevo.redes.subtitle}
+              estrecho
+            />
+
+            {/*
+              Las fotos van apiladas y se turnan por opacidad: así el bloque no
+              se mueve de sitio y no hay salto de una a otra.
+            */}
+            <div class="carrusel-redes relative mt-10 aspect-[4/3] w-full overflow-hidden rounded-[2rem] lg:aspect-[8/7]">
+              {
+                redes.map((red) => (
+                  <Image
+                    src={red.photo}
+                    alt={red.photoAlt}
+                    widths={[480, 768, 960]}
+                    sizes="(min-width: 64rem) 30rem, 92vw"
+                    data-foto={red.indice}
+                    data-activa={red.indice === 0 ? '' : undefined}
+                    class="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-700"
+                    loading="lazy"
+                  />
+                ))
+              }
+            </div>
+
+            <ul class="mt-5 flex flex-wrap items-center gap-2.5" aria-hidden="true">
+              {
+                redes.map((red) => (
+                  <li>
+                    <button
+                      type="button"
+                      data-punto={red.indice}
+                      tabindex="-1"
+                      class="size-2.5 rounded-full border border-muted transition-colors duration-300 aria-pressed:border-ink aria-pressed:bg-ink"
+                      aria-pressed="false"
+                    >
+                      <span class="sr-only">{red.name}</span>
+                    </button>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          {/* Columna que pasa: las pastillas y la lista */}
+          <div>
+            <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar redes por etapa">
+              {
+                soyNuevo.redes.etapas.map((etapa, i) => (
+                  <button
+                    type="button"
+                    data-etapa-filtro={etapa.id}
+                    aria-pressed={i === 0 ? 'true' : 'false'}
+                    class="rounded-full border border-ink/20 px-[1.125rem] py-2.5 text-[0.9375rem] font-semibold text-muted transition-colors duration-200 hover:border-ink/40 hover:text-ink aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-white"
+                  >
+                    {etapa.label}
+                  </button>
+                ))
+              }
+            </div>
+
+            <ul class="lista-redes mt-10 border-b border-ink/15">
+              {
+                redes.map((red, i) => (
+                  <li class="border-t border-ink/15" data-red-etapa={red.etapa}>
+                    <h3>
+                      <button
+                        type="button"
+                        data-red={red.indice}
+                        aria-expanded={i === 0 ? 'true' : 'false'}
+                        aria-controls={`red-${i}`}
+                        class="group flex w-full items-start justify-between gap-6 py-6 text-left lg:py-7"
+                      >
+                        <span class="flex items-baseline gap-4">
+                          <span class="nota tabular-nums transition-colors duration-200 group-hover:text-ink group-aria-expanded:text-ink">
+                            {red.numero}
+                          </span>
+                          <span class="heading-md text-balance text-muted transition-colors duration-200 group-hover:text-ink group-aria-expanded:text-ink">
+                            {red.name}
+                          </span>
+                        </span>
+
+                        <span
+                          class="mt-1 grid size-6 shrink-0 place-items-center text-muted transition-[transform,color] duration-300 group-hover:text-ink group-aria-expanded:rotate-45 group-aria-expanded:text-ink"
+                          aria-hidden="true"
+                        >
+                          <Icon name="lucide:plus" width={22} height={22} />
+                        </span>
+                      </button>
+                    </h3>
+
+                    <div id={`red-${i}`} class="detalle-red">
+                      <div class="overflow-hidden">
+                        <div class="pb-9 sm:pl-11">
+                          <p class="subtitle max-w-xl text-pretty">{red.quien}</p>
+
+                          {red.pastores && (
+                            <div class="mt-7 flex items-center gap-4">
+                              {/*
+                                Los retratos se solapan cuando son dos, con un
+                                anillo del color del tramo para que se despeguen.
+                              */}
+                              <div class="flex shrink-0">
+                                {red.retratos.map((miembro, j) => (
+                                  <div
+                                    class:list={[
+                                      'size-16 overflow-hidden rounded-[1.125rem] shadow-[0_0_0_3px_var(--color-mist)]',
+                                      j > 0 && '-ml-4',
+                                    ]}
+                                  >
+                                    <Image
+                                      src={miembro.photo!}
+                                      alt=""
+                                      widths={[128, 256]}
+                                      sizes="4rem"
+                                      style={encuadrar(miembro.encuadre, miembro.luz)}
+                                      class="retrato-red size-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div>
+                                <p class="eyebrow">Pastores de la red</p>
+                                <p class="heading-sm mt-1.5 text-ink">{red.pastores}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          <div class="mt-7">
+                            <ArrowButton
+                              label={soyNuevo.redes.cta}
+                              href={red.href}
+                              external={red.href.startsWith('http')}
+                              variant="accent"
+                              size="sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))
+              }
+            </ul>
+
+            <p class="nota mt-8 max-w-xl text-pretty">{soyNuevo.redes.nota}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Preguntas frecuentes: el encabezado quieto y el acordeón al lado */}
+    <section class="seccion" aria-labelledby="preguntas-titulo">
+      <div class="container-page">
+        <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24">
+          <div class="lg:sticky lg:top-8">
+            <h2 id="preguntas-titulo" class="heading-lg text-balance text-ink">
+              {soyNuevo.preguntas.title}
+            </h2>
+            <p class="subtitle-lg mt-5 text-pretty">{soyNuevo.preguntas.subtitle}</p>
+
+            <div class="mt-8">
+              <ArrowButton
+                label={soyNuevo.preguntas.cta.label}
+                href={preguntaHref}
+                external={preguntaHref.startsWith('http')}
+                variant="mist"
+                size="md"
+              />
+            </div>
+          </div>
+
+          <ul class="lista-preguntas">
+            {
+              soyNuevo.preguntas.items.map((pregunta, i) => (
+                <li class="border-t border-ink/15 last:border-b">
+                  <h3>
+                    <button
+                      type="button"
+                      data-pregunta
+                      aria-expanded={i === 0 ? 'true' : 'false'}
+                      aria-controls={`pregunta-${i}`}
+                      class="group flex w-full items-start justify-between gap-6 py-6 text-left lg:py-7"
+                    >
+                      <span class="heading-md text-balance text-muted transition-colors duration-200 group-hover:text-ink group-aria-expanded:text-ink">
+                        {pregunta.q}
+                      </span>
+
+                      <span
+                        class="mt-1 grid size-6 shrink-0 place-items-center text-muted transition-[transform,color] duration-300 group-hover:text-ink group-aria-expanded:rotate-45 group-aria-expanded:text-ink"
+                        aria-hidden="true"
+                      >
+                        <Icon name="lucide:plus" width={22} height={22} />
+                      </span>
+                    </button>
+                  </h3>
+
+                  <div id={`pregunta-${i}`} class="detalle-pregunta">
+                    <div class="overflow-hidden">
+                      <p class="subtitle max-w-2xl pb-8 text-pretty lg:pb-9">{pregunta.a}</p>
+                    </div>
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    {/*
+      Dónde estamos. El mismo bloque que la sección de ubicación de la portada
+      —foto grande y la tarjeta blanca flotando en una esquina—, pero con la
+      fachada en lugar del mapa: es lo que hace que alguien reconozca el
+      edificio cuando llegue.
+    */}
+    <section id="donde-estamos" class="pb-28 lg:pb-36" aria-labelledby="ubicacion-titulo">
+      <div class="container-page">
+        <SectionHeading id="ubicacion-titulo" eyebrow={soyNuevo.ubicacion.eyebrow} />
+
+        <div class="relative mt-10 overflow-hidden rounded-[1.5rem] lg:mt-14">
+          <Image
+            src={soyNuevo.ubicacion.photo}
+            alt={soyNuevo.ubicacion.photoAlt}
+            widths={[640, 1024, 1600]}
+            sizes="(min-width: 64rem) 78rem, 92vw"
+            class="h-[24rem] w-full object-cover object-[center_45%] sm:h-[28rem] lg:h-[32rem]"
+            loading="lazy"
+          />
+
+          <div class="absolute inset-x-4 bottom-4 sm:inset-x-8 sm:bottom-8">
+            <div class="max-w-md rounded-[1.25rem] bg-white px-6 py-6 sm:px-8 sm:py-7">
+              <p class="heading-md text-ink">{soyNuevo.ubicacion.title}</p>
+              <p class="subtitle mt-3">
+                {organization.streetAddress}, {organization.addressLocality}
+              </p>
+
+              <div class="mt-5">
+                <ArrowButton label="Cómo llegar" href={mapsHref} variant="accent" size="sm" external />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Cierre */}
+    <section class="pb-20 lg:pb-32" aria-label="Ven este domingo">
+      <div class="container-page">
+        <div class="rounded-[2rem] bg-carbon px-8 py-14 text-center lg:rounded-[2.75rem] lg:px-16 lg:py-20">
+          <p class="eyebrow text-white/70">{soyNuevo.cierre.eyebrow}</p>
+
+          <h2 class="heading-lg mx-auto mt-6 max-w-2xl text-balance text-white">
+            {soyNuevo.cierre.title}
+          </h2>
+
+          <p class="subtitle-lg mx-auto mt-5 max-w-md !text-white/75 text-pretty">
+            {soyNuevo.cierre.subtitle}
+          </p>
+
+          <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+            <ArrowButton label="Cómo llegar" href={mapsHref} variant="accent" size="md" external />
+            <ArrowButton
+              label="Escríbenos"
+              href={contactoHref}
+              external={contactoHref.startsWith('http')}
+              variant="light"
+              size="md"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+{/*
+  Los estilos con ámbito de Astro no alcanzan a `<Image>` —lo pinta el
+  componente, no la plantilla—, así que el encuadre y la foto activa del
+  carrusel van en un bloque global acotado por la clase del contenedor.
+*/}
+<style is:global>
+  /*
+    El retrato de un pastor dentro de la red desplegada. Es el mismo
+    tratamiento que la cuadrícula del equipo, menos el blanco y negro: aquí la
+    foto es un dato —quién te va a recibir— y no una lámina, así que va a
+    color desde el principio.
+  */
+  .retrato-red {
+    object-position: var(--x, 50%) var(--y, 50%);
+    transform: scale(var(--zoom, 1));
+    /* El origen del zoom es el mismo punto que elige `object-position`. */
+    transform-origin: var(--x, 50%) var(--y, 50%);
+    filter: brightness(var(--luz, 1)) contrast(1.06);
+  }
+
+  /*
+    La foto que toca. El atributo lo trae ya la primera desde el marcado, así
+    que sin JavaScript se ve esa y no un hueco.
+  */
+  .carrusel-redes img[data-activa] {
+    opacity: 1;
+  }
+</style>
+
+<style>
+  /*
+    El pliegue de una red y el de una pregunta. La rejilla pasa de 0fr a 1fr:
+    así el detalle se abre hasta el alto que pida su contenido, sin un número
+    escrito a mano que se quede corto en cuanto el texto cambie. El `overflow`
+    lo pone el hijo, que es quien tiene que recortarse mientras la fila crece.
+
+    Lo abre el atributo del botón, no una clase: el estado ya vive en
+    `aria-expanded` —que es el que oyen los lectores de pantalla— y no hace
+    falta guardarlo dos veces.
+  */
+  .detalle-red,
+  .detalle-pregunta {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  /*
+    El botón vive dentro de un <h3>, así que el pliegue no es hermano suyo
+    sino de su titular: se pregunta por la fila entera, igual que en la lista
+    de valores de `nosotros`.
+  */
+  :is(.lista-redes, .lista-preguntas) li:has(> h3 > button[aria-expanded='true']) > div {
+    grid-template-rows: 1fr;
+  }
+
+  /* Una red escondida por el filtro. */
+  .lista-redes li[hidden] {
+    display: none;
+  }
+</style>
+
+<script>
+  /*
+    Tres cosas, todas dentro de la sección de redes salvo el acordeón de las
+    preguntas: plegar, filtrar y pasar las fotos.
+  */
+  const abrirSolo = (botones: NodeListOf<HTMLButtonElement>, elegido: HTMLButtonElement) => {
+    const abierto = elegido.getAttribute('aria-expanded') === 'true';
+
+    botones.forEach((otro) => otro.setAttribute('aria-expanded', 'false'));
+    elegido.setAttribute('aria-expanded', String(!abierto));
+
+    return !abierto;
+  };
+
+  /* --- Preguntas frecuentes ------------------------------------------------ */
+  const preguntas = document.querySelectorAll<HTMLButtonElement>('[data-pregunta]');
+  preguntas.forEach((boton) => {
+    boton.addEventListener('click', () => abrirSolo(preguntas, boton));
+  });
+
+  /* --- Redes --------------------------------------------------------------- */
+  const seccion = document.getElementById('redes');
+
+  if (seccion) {
+    const fotos = seccion.querySelectorAll<HTMLImageElement>('[data-foto]');
+    const puntos = seccion.querySelectorAll<HTMLButtonElement>('[data-punto]');
+    const filas = seccion.querySelectorAll<HTMLLIElement>('[data-red-etapa]');
+    const botones = seccion.querySelectorAll<HTMLButtonElement>('[data-red]');
+    const filtros = seccion.querySelectorAll<HTMLButtonElement>('[data-etapa-filtro]');
+
+    /*
+      Las fotos no paran nunca, pero se les da un respiro cada vez que alguien
+      abre una red: la rueda salta a la suya y vuelve a contar desde cero, para
+      que no se le cambie la foto en la cara al segundo de abrirla.
+    */
+    const quieto = matchMedia('(prefers-reduced-motion: reduce)');
+    let actual = 0;
+    let reloj: ReturnType<typeof setInterval> | undefined;
+
+    const mostrar = (i: number) => {
+      actual = (i + fotos.length) % fotos.length;
+
+      fotos.forEach((foto, j) => foto.toggleAttribute('data-activa', j === actual));
+      puntos.forEach((punto, j) => punto.setAttribute('aria-pressed', String(j === actual)));
+    };
+
+    const arrancar = () => {
+      clearInterval(reloj);
+      if (!quieto.matches) reloj = setInterval(() => mostrar(actual + 1), 4000);
+    };
+
+    mostrar(0);
+    arrancar();
+    quieto.addEventListener('change', arrancar);
+
+    puntos.forEach((punto, i) => {
+      punto.addEventListener('click', () => {
+        mostrar(i);
+        arrancar();
+      });
+    });
+
+    botones.forEach((boton) => {
+      boton.addEventListener('click', () => {
+        /* Solo al abrir: al cerrar, la foto que se está mirando se queda. */
+        if (abrirSolo(botones, boton)) {
+          mostrar(Number(boton.dataset.red));
+          arrancar();
+        }
+      });
+    });
+
+    /*
+      El filtro esconde filas; la línea de abajo de la lista la pone el
+      contenedor y no la última fila, que con el filtro puesto puede estar
+      escondida y dejaría la lista sin cerrar.
+    */
+    filtros.forEach((filtro) => {
+      filtro.addEventListener('click', () => {
+        const etapa = filtro.dataset.etapaFiltro;
+
+        filtros.forEach((otro) => otro.setAttribute('aria-pressed', String(otro === filtro)));
+        filas.forEach((fila) => {
+          fila.hidden = etapa !== 'todas' && fila.dataset.redEtapa !== etapa;
+        });
+      });
+    });
+  }
+</script>
