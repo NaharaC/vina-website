@@ -154,5 +154,44 @@ import { hero, heroActions } from "../data/content";
     video.pause();
     video.removeAttribute("autoplay");
     video.currentTime = 0;
+  } else if (video) {
+    /*
+      En el teléfono el arranque automático se cae a veces aunque el marcado
+      esté bien: con el modo de bajo consumo puesto, iOS lo bloquea sin más y
+      no hay atributo que lo salte. Entonces Safari planta su botón de play en
+      medio de la portada, encima del titular.
+
+      Así que se le pide arrancar a mano y, si dice que no, se esconde ese
+      botón —queda el póster, que es el primer fotograma— y se vuelve a
+      intentar en cuanto la persona toca la pantalla: ahí ya hay gesto de
+      usuario y el navegador deja. Lo mismo al volver a la pestaña, porque el
+      teléfono para el video al irse a otra parte.
+    */
+    const arrancar = () =>
+      video.play().then(
+        () => video.classList.remove("sin-arranque"),
+        () => video.classList.add("sin-arranque"),
+      );
+
+    arrancar();
+
+    for (const gesto of ["touchend", "click"]) {
+      document.addEventListener(gesto, () => arrancar(), { once: true });
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && video.paused) arrancar();
+    });
   }
 </script>
+
+<style>
+  /*
+    El botón de play que planta Safari cuando no puede arrancar solo. Se
+    esconde únicamente si el arranque falló (`.sin-arranque`), para no dejar
+    sin play un video que de verdad haga falta tocar.
+  */
+  #hero-video.sin-arranque::-webkit-media-controls-start-playback-button {
+    display: none;
+  }
+</style>
