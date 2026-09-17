@@ -74,6 +74,7 @@ import equipoHardyRuth2 from '../assets/img/equipo-hardy-ruth-2.jpg';
 import equipoEugenia from '../assets/img/equipo-eugenia.jpg';
 import equipoEugenia2 from '../assets/img/equipo-eugenia-2.jpg';
 import equipoGerardoMariaEliana from '../assets/img/equipo-gerardo-maria-eliana.jpg';
+import equipoGerardoMariaEliana2 from '../assets/img/equipo-gerardo-maria-eliana-2.jpg';
 import equipoCecilia from '../assets/img/equipo-cecilia.jpg';
 import equipoCecilia2 from '../assets/img/equipo-cecilia-2.jpg';
 import equipoEduardoPriscila from '../assets/img/equipo-eduardo-priscila.jpg';
@@ -1026,11 +1027,18 @@ export const about = {
             photoHover: equipoEugenia2,
           },
           {
+            /* Sin cargo a propósito: van solo como pastores asociados. */
             name: 'Gerardo Andrade y Maria Eliana Zornow',
-            role: 'Pastor de Hombres y Pastora de Mujeres',
             photo: equipoGerardoMariaEliana,
             luz: 0.762,
             encuadre: { zoom: 1.48, x: '44%', y: '33%' },
+            photoHover: equipoGerardoMariaEliana2,
+            /*
+              Apaisada y con ellos a la derecha del cuadro. El origen abajo
+              (`y: '100%'`) hace que el zoom se coma la montaña que sobra por
+              arriba en vez de cortarlos por los pies; el 63% los centra.
+            */
+            encuadreHover: { zoom: 1.45, x: '63%', y: '100%' },
           },
           {
             name: 'Cecilia Alvarado',
@@ -1215,20 +1223,20 @@ export const soyNuevo = {
         photoAlt: 'Un matrimonio abrazado durante una reunión',
       },
       {
-        /* Gerardo y María Eliana pastorean una red cada uno y posan juntos:
-           las dos filas enseñan el mismo retrato y cambian el nombre. */
         name: 'Red de Varones',
         quien: 'Desde la Red de Jóvenes PRO en adelante.',
-        pastores: 'Gerardo Andrade',
-        retratos: ['Gerardo Andrade y Maria Eliana Zornow'],
+        /* TODO: pendiente quién la pastorea. */
+        pastores: '',
+        retratos: [],
         photo: redVarones,
         photoAlt: 'Varones compartiendo alrededor de una mesa',
       },
       {
         name: 'Red de Mujeres',
         quien: 'Desde la Red de Jóvenes PRO en adelante.',
-        pastores: 'María Eliana Zornow',
-        retratos: ['Gerardo Andrade y Maria Eliana Zornow'],
+        /* TODO: pendiente quién la pastorea. */
+        pastores: '',
+        retratos: [],
         photo: redMujeres,
         photoAlt: 'Mujeres preparando una once',
       },
