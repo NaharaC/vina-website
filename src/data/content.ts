@@ -265,9 +265,12 @@ export const mapsHref = `https://www.google.com/maps/search/?api=1&query=${mapsQ
  * Aquí sí van las coordenadas y no el nombre: buscando por nombre, el mapa
  * abre encima la ficha del negocio con la puntuación en estrellas, que no
  * pinta nada en la página. Con el punto sale solo el marcador.
+ *
+ * Va la dirección final y no la corta (`maps.google.com/maps?q=…&output=embed`):
+ * aquella redirige a esta, y el salto costaba una vuelta más antes de empezar.
  */
 export const mapsEmbedHref =
-  'https://maps.google.com/maps?q=-41.4223822,-72.9157593&z=15&output=embed';
+  'https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1s-41.4223822,-72.9157593!6i15';
 
 export const ubicacion = {
   eyebrow: 'Dónde estamos',

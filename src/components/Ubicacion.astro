@@ -14,13 +14,30 @@ import { mapsEmbedHref, mapsHref, ubicacion } from '../data/content';
   <div class="container-page">
     <SectionHeading eyebrow={ubicacion.eyebrow} id="ubicacion-titulo" />
 
-    <div class="relative mt-10 overflow-hidden rounded-[1.5rem] lg:mt-14">
+    {/*
+      El fondo `mist` es casi el gris del terreno de Google: mientras llegan
+      las teselas se ve un mapa por pintar, no un hueco blanco.
+    */}
+    <div class="relative mt-10 overflow-hidden rounded-[1.5rem] bg-mist lg:mt-14">
+      {/*
+        Sin `src`: lo pone el script de abajo. El mapa es Google Maps entero
+        —su JavaScript, sus fuentes, unas cuarenta y cinco peticiones— y tarda
+        unos tres segundos en pintar. Con `loading="lazy"` no arrancaba hasta
+        que la persona se acercaba, así que lo encontraba vacío.
+      */}
       <iframe
-        src={mapsEmbedHref}
+        data-mapa={mapsEmbedHref}
         title={`Mapa con la ubicación de la iglesia: ${ubicacion.address}`}
         class="pointer-events-none block h-[24rem] w-full border-0 sm:h-[28rem] lg:h-[32rem]"
-        loading="lazy"
         referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <noscript>
+        <iframe
+          src={mapsEmbedHref}
+          title={`Mapa con la ubicación de la iglesia: ${ubicacion.address}`}
+          class="pointer-events-none absolute inset-0 block h-full w-full border-0"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </noscript>
 
       {/*
         Capa que hace clicable el mapa entero. Va fuera del orden de
@@ -49,3 +66,35 @@ import { mapsEmbedHref, mapsHref, ubicacion } from '../data/content';
     </div>
   </div>
 </section>
+
+<script>
+  /*
+    El mapa se pide cuando la página ya terminó de cargar y el navegador está
+    libre, para no quitarle ancho de banda a la portada; así, cuando alguien
+    baja hasta aquí, ya está pintado. Si llega antes —un salto con el ancla
+    #ubicacion, un scroll muy rápido—, se pide en cuanto se acerca.
+  */
+  const mapa = document.querySelector<HTMLIFrameElement>('iframe[data-mapa]');
+  if (mapa) {
+    let pedido = false;
+    const pedir = () => {
+      if (pedido) return;
+      pedido = true;
+      observador.disconnect();
+      mapa.src = mapa.dataset.mapa!;
+    };
+
+    const observador = new IntersectionObserver(
+      (entradas) => entradas.some((e) => e.isIntersecting) && pedir(),
+      { rootMargin: '100% 0px' },
+    );
+    observador.observe(mapa);
+
+    const cuandoLibre = () =>
+      'requestIdleCallback' in window
+        ? requestIdleCallback(pedir, { timeout: 2000 })
+        : setTimeout(pedir, 200);
+    if (document.readyState === 'complete') cuandoLibre();
+    else addEventListener('load', cuandoLibre, { once: true });
+  }
+</script>
