@@ -295,9 +295,9 @@ export type MeetingWay = {
 };
 
 /**
- * Un horario de la reunión, en su caja. La etiqueta va siempre, aunque la
- * reunión tenga uno solo: así las cajas de las tres columnas miden lo mismo y
- * quedan en la misma línea.
+ * Un horario de la reunión: la hora y, debajo, qué es. La etiqueta va
+ * siempre, aunque la reunión tenga uno solo: así las tres columnas bajan lo
+ * mismo y «Cómo participar» queda en la misma línea.
  */
 export type Horario = { hora: string; etiqueta: string };
 
@@ -305,8 +305,6 @@ export type Meeting = {
   title: string;
   subtitle: string;
   horarios: Horario[];
-  /** letra chica al pie de la columna, cuando hace falta */
-  nota?: string;
   image: ImageMetadata;
   alt: string;
   ways: MeetingWay[];
@@ -316,7 +314,7 @@ export const meetings: Meeting[] = [
   {
     title: 'Miércoles de palabra',
     subtitle: 'Desde casa y sin excusa',
-    horarios: [{ hora: '20:00', etiqueta: 'Cada miércoles' }],
+    horarios: [{ hora: '20:00 hrs', etiqueta: 'Cada miércoles' }],
     image: reunionMiercolesPalabra,
     alt: 'Biblia abierta durante el estudio de la palabra',
     ways: [
@@ -334,7 +332,7 @@ export const meetings: Meeting[] = [
   {
     title: 'Viernes de Avivamiento',
     subtitle: '',
-    horarios: [{ hora: '19:30', etiqueta: 'Cada viernes' }],
+    horarios: [{ hora: '19:30 hrs', etiqueta: 'Cada viernes' }],
     image: reunionViernesAvivamiento,
     alt: 'Persona adorando con un lienzo durante la reunión de avivamiento',
     ways: [
@@ -350,24 +348,23 @@ export const meetings: Meeting[] = [
   },
   {
     title: 'Domingos de Gloria',
-    subtitle: 'Elige tu horario: es la misma reunión',
+    subtitle: 'Elige tu horario',
     horarios: [
-      { hora: '09:00', etiqueta: '1.ª reunión' },
-      { hora: '11:15', etiqueta: '2.ª reunión' },
+      { hora: '09:00 hrs', etiqueta: 'Primera reunión' },
+      { hora: '11:15 hrs', etiqueta: 'Segunda reunión' },
     ],
     image: reunionDomingosGloria,
     alt: 'Manos levantadas en adoración durante la reunión general',
     ways: [
       {
         icon: 'lucide:map-pin',
-        label: 'Presencial',
+        label: 'Presencial, en los dos horarios',
         href: mapsHref,
         external: true,
         note: organization.streetAddress,
       },
-      { icon: 'lucide:youtube', label: 'En vivo por YouTube', href: youtubeChannel, external: true },
+      { icon: 'lucide:youtube', label: 'En vivo por YouTube, las dos', href: youtubeChannel, external: true },
     ],
-    nota: '¿Primera vez? A las 10:30 hay Primer Paso, antes de la segunda reunión (menos el primer domingo del mes).',
   },
 ];
 
