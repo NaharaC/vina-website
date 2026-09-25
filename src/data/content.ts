@@ -735,8 +735,16 @@ export const about = {
       lado se queda quieto. Cada foto conserva su proporción: las hay
       verticales y apaisadas, y recortarlas todas al mismo marco obligaba a
       cortar justo lo que se quiere ver.
+
+      El relato lo cuentan los fundadores, así que la pila empieza por ellos,
+      hoy, y sigue con su matrimonio: primero quién habla y luego desde dónde
+      empezó. Es el mismo retrato de su tarjeta en el equipo pastoral.
     */
     fotos: [
+      {
+        caption: 'Jairo Quinteros y Verónica Mayne, nuestros pastores fundadores, hoy.',
+        image: equipoJairoVeronica,
+      },
       {
         caption: 'Matrimonio de nuestros pastores fundadores. Valparaíso, año 1981.',
         image: historiaMatrimonioPastores,
