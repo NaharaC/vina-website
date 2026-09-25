@@ -35,14 +35,17 @@ const retratoDe = (name: string) => {
 };
 
 /*
-  Aquí los retratos van a color. Los que ya llegan editados en blanco y negro
-  (`enGris`) prestan su segunda foto, que es la de color; el resto usa la
+  Aquí los retratos van a color. Quien trae `aColor` usa ese, su retrato de
+  antes con su tono igualado. Si no, los que llegan en blanco y negro
+  (`enGris`) prestan su segunda foto, que es la de color, y el resto usa la
   primera con su tono igualado.
 */
 const aColor = (m: MiembroEquipo) =>
-  m.enGris && m.photoHover
-    ? { photo: m.photoHover, estilo: estiloRetrato(m.encuadreHover) }
-    : { photo: m.photo, estilo: estiloRetrato(m.encuadre, m.niveles) };
+  m.aColor
+    ? { photo: m.aColor.photo, estilo: estiloRetrato(m.aColor.encuadre, m.aColor.niveles) }
+    : m.enGris && m.photoHover
+      ? { photo: m.photoHover, estilo: estiloRetrato(m.encuadreHover) }
+      : { photo: m.photo, estilo: estiloRetrato(m.encuadre, m.niveles) };
 
 
 /*

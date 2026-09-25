@@ -16,7 +16,8 @@
   - `blanco` — el percentil 98: las altas luces, para no quemarlas.
 
   Los retratos con `enGris` no se miden: ya vienen editados y son la
-  referencia, no algo que igualar.
+  referencia, no algo que igualar. Si además traen `aColor` —el retrato a
+  color que usa `soy-nuevo`—, se mide ese.
 
   Uso:
 
@@ -45,11 +46,17 @@ const porcentaje = (texto, clave) =>
 
 for (const bloque of miembros) {
   const nombre = bloque.match(/^'([^']+)'/)?.[1];
-  const foto = bloque.match(/\bphoto: (equipo\w+)/)?.[1];
+  /*
+    Con `aColor` lo que se mide es ese retrato —el de `soy-nuevo`—, con su
+    propio encuadre: el de la cuadrícula ya viene en blanco y negro.
+  */
+  const color = bloque.match(/\baColor: \{([\s\S]*?)\n\s*\},?\n|\baColor: (\{[^\n]*\})/);
+  const fuente = color ? (color[1] ?? color[2]) : bloque;
+  const foto = fuente.match(/\bphoto: (equipo\w+)/)?.[1];
 
-  if (!nombre || !foto || /enGris: true/.test(bloque)) continue;
+  if (!nombre || !foto || (!color && /enGris: true/.test(bloque))) continue;
 
-  const e = bloque.match(/\bencuadre: \{([^}]*)\}/)?.[1] ?? '';
+  const e = fuente.match(/\bencuadre: \{([^}]*)\}/)?.[1] ?? '';
   const zoom = parseFloat(e.match(/zoom: ([\d.]+)/)?.[1] ?? 1);
   const x = porcentaje(e, 'x');
   const y = porcentaje(e, 'y');

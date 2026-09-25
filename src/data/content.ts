@@ -52,25 +52,33 @@ import iconoVinapm from '../assets/img/icono-vinapm-blanco.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
 import darManos from '../assets/img/dar-manos.jpg';
 import equipoDanielNahara from '../assets/img/equipo-daniel-nahara.jpg';
+import equipoDanielNaharaColor from '../assets/img/equipo-daniel-nahara-color.jpg';
 import equipoCarlosThiare from '../assets/img/equipo-carlos-thiare.jpg';
 import fintocLogo from '../assets/img/fintoc-logo.svg';
 import equipoCarlosThiare2 from '../assets/img/equipo-carlos-thiare-2.jpg';
 import equipoRobertoAraceli from '../assets/img/equipo-roberto-araceli.jpg';
+import equipoRobertoAraceliColor from '../assets/img/equipo-roberto-araceli-color.jpg';
 import equipoRobertoAraceli2 from '../assets/img/equipo-roberto-araceli-2.jpg';
 import equipoDanielNahara2 from '../assets/img/equipo-daniel-nahara-2.jpg';
 import equipoDaniloLena from '../assets/img/equipo-danilo-lena.jpg';
+import equipoDaniloLenaColor from '../assets/img/equipo-danilo-lena-color.jpg';
 import equipoDaniloLena2 from '../assets/img/equipo-danilo-lena-2.jpg';
 import equipoRodolfoNatalie from '../assets/img/equipo-rodolfo-natalie.jpg';
+import equipoRodolfoNatalieColor from '../assets/img/equipo-rodolfo-natalie-color.jpg';
 import equipoRodolfoNatalie2 from '../assets/img/equipo-rodolfo-natalie-2.jpg';
 import equipoNicole from '../assets/img/equipo-nicole.jpg';
+import equipoNicoleColor from '../assets/img/equipo-nicole-color.jpg';
 import equipoNicole2 from '../assets/img/equipo-nicole-2.jpg';
 import equipoJonathanCarmen from '../assets/img/equipo-jonathan-carmen.jpg';
+import equipoJonathanCarmenColor from '../assets/img/equipo-jonathan-carmen-color.jpg';
 import equipoJonathanCarmen2 from '../assets/img/equipo-jonathan-carmen-2.jpg';
 import equipoDavidCamila from '../assets/img/equipo-david-camila.jpg';
 import equipoDavidCamila2 from '../assets/img/equipo-david-camila-2.jpg';
 import equipoHardyRuth from '../assets/img/equipo-hardy-ruth.jpg';
+import equipoHardyRuthColor from '../assets/img/equipo-hardy-ruth-color.jpg';
 import equipoHardyRuth2 from '../assets/img/equipo-hardy-ruth-2.jpg';
 import equipoEugenia from '../assets/img/equipo-eugenia.jpg';
+import equipoEugeniaColor from '../assets/img/equipo-eugenia-color.jpg';
 import equipoEugenia2 from '../assets/img/equipo-eugenia-2.jpg';
 import equipoGerardoMariaEliana from '../assets/img/equipo-gerardo-maria-eliana.jpg';
 import equipoGerardoMariaEliana2 from '../assets/img/equipo-gerardo-maria-eliana-2.jpg';
@@ -78,6 +86,7 @@ import equipoCecilia from '../assets/img/equipo-cecilia.jpg';
 import equipoCecilia2 from '../assets/img/equipo-cecilia-2.jpg';
 import equipoEduardoPriscila from '../assets/img/equipo-eduardo-priscila.jpg';
 import equipoEduardoPriscila2 from '../assets/img/equipo-eduardo-priscila-2.jpg';
+import equipoJuanLina from '../assets/img/equipo-juan-lina.jpg';
 import equipoJairoVeronica from '../assets/img/equipo-jairo-veronica.jpg';
 import equipoJairoVeronica2 from '../assets/img/equipo-jairo-veronica-2.jpg';
 import historiaPastoresFundadores from '../assets/img/historia-pastores-fundadores.jpg';
@@ -648,6 +657,13 @@ export type MiembroEquipo = {
    */
   enGris?: boolean;
   /**
+   * El retrato a color para `soy-nuevo`, donde las fotos van a color. Lo
+   * llevan quienes pastorean una red y cuyo retrato de la cuadrícula ya viene
+   * en blanco y negro: es el retrato de antes, con su encuadre y sus
+   * `niveles`, para que esa página no cambie.
+   */
+  aColor?: { photo: ImageMetadata; encuadre?: Encuadre; niveles?: Niveles };
+  /**
    * La línea que acompaña al nombre. Solo la enseña el tramo en `retrato`
    * —ahí hay sitio al lado de la foto grande—; en la cuadrícula, donde debajo
    * del nombre solo cabe el cargo, no se pinta.
@@ -975,55 +991,71 @@ export const about = {
             name: 'Roberto Quinteros y Araceli Chaparro',
             role: 'Pastores de Jóvenes',
             photo: equipoRobertoAraceli,
-            niveles: { negro: 5, fondo: 250, blanco: 251 },
+            enGris: true,
+            encuadre: { zoom: 1.02, x: '53%', y: '36%' },
+            aColor: { photo: equipoRobertoAraceliColor, niveles: { negro: 5, fondo: 250, blanco: 251 } },
             photoHover: equipoRobertoAraceli2,
           },
           {
             name: 'Daniel Quinteros y Nahara Gutiérrez',
             role: 'Pastores de Matrimonios Jóvenes',
             photo: equipoDanielNahara,
-            niveles: { negro: 9, fondo: 227, blanco: 248 },
+            enGris: true,
+            encuadre: { zoom: 1.16, x: '50%', y: '40%' },
+            aColor: { photo: equipoDanielNaharaColor, niveles: { negro: 9, fondo: 227, blanco: 248 } },
             photoHover: equipoDanielNahara2,
           },
           {
             name: 'Carlos Moya y Thiare Pivet',
             role: 'Pastores de Matrimonios',
             photo: equipoCarlosThiare,
-            niveles: { negro: 9, fondo: 249, blanco: 250 },
-            encuadre: { zoom: 1.56, x: '50%', y: '32%' },
+            enGris: true,
+            encuadre: { zoom: 1.57, x: '50%', y: '31%' },
             photoHover: equipoCarlosThiare2,
           },
           {
             name: 'Danilo Vargas y Lena Miller',
             role: 'Pastores de Jóvenes Pro',
             photo: equipoDaniloLena,
-            niveles: { negro: 0, fondo: 210, blanco: 236 },
+            enGris: true,
+            encuadre: { zoom: 1.2, x: '50%', y: '50%' },
+            aColor: { photo: equipoDaniloLenaColor, niveles: { negro: 0, fondo: 210, blanco: 236 } },
             photoHover: equipoDaniloLena2,
           },
           {
             name: 'Rodolfo Cabezas y Natalie Alfaro',
             role: 'Pastores de Adolescentes Jeer',
             photo: equipoRodolfoNatalie,
-            niveles: { negro: 1, fondo: 230, blanco: 246 },
-            encuadre: { zoom: 1.36, x: '50%', y: '27%' },
+            enGris: true,
+            /*
+              Para que las caras midieran lo mismo que antes habría que abrir
+              hasta 0.96, y por debajo de 1 no se puede: salen un 4% más
+              grandes. Es lo más abierto que da esta toma.
+            */
+            encuadre: { zoom: 1, x: '48%' },
+            aColor: {
+              photo: equipoRodolfoNatalieColor,
+              encuadre: { zoom: 1.36, x: '50%', y: '27%' },
+              niveles: { negro: 1, fondo: 230, blanco: 246 },
+            },
             photoHover: equipoRodolfoNatalie2,
           },
           {
             name: 'Nicole Bruyere',
             role: 'Pastora de Mujeres de Gracia',
             photo: equipoNicole,
-            niveles: { negro: 10, fondo: 172, blanco: 226 },
+            enGris: true,
             /*
-              La única foto vertical del grupo, y por eso la más apretada: al
-              cubrir el cuadrado se escala por el ancho, así que sobra alto y hay
-              que elegir qué franja se ve. `y: '0%'` enseña el filo de arriba de la
-              foto, que es donde está el aire sobre el pelo; con más, la coronilla
-              se iba fuera. `zoom: 1` es lo más abierto posible —por debajo
-              quedarían franjas a los lados—, así que aquí no hay margen para
-              alejarse más: se ve algo más grande que el resto y es lo que da la
-              foto.
+              La única vertical del grupo: al cubrir el cuadrado se escala por
+              el ancho y sobra alto, así que se elige la franja. `y: '0%'`
+              enseña el filo de arriba, donde está el aire sobre el pelo.
             */
-            encuadre: { zoom: 1, x: '50%', y: '0%' },
+            encuadre: { zoom: 1.08, x: '100%', y: '0%' },
+            aColor: {
+              photo: equipoNicoleColor,
+              encuadre: { zoom: 1, x: '50%', y: '0%' },
+              niveles: { negro: 10, fondo: 172, blanco: 226 },
+            },
             photoHover: equipoNicole2,
             /*
               Apaisada, y con las dos abrazadas a la izquierda del encuadre: el
@@ -1036,8 +1068,13 @@ export const about = {
             name: 'Jonathan Rogel y Carmen Mansilla',
             role: 'Pastora de Escuela Bíblica y Pastor de Adoración',
             photo: equipoJonathanCarmen,
-            niveles: { negro: 7, fondo: 234, blanco: 246 },
-            encuadre: { zoom: 1.28, x: '49%', y: '32%' },
+            enGris: true,
+            encuadre: { zoom: 1.3, x: '47%', y: '0%' },
+            aColor: {
+              photo: equipoJonathanCarmenColor,
+              encuadre: { zoom: 1.28, x: '49%', y: '32%' },
+              niveles: { negro: 7, fondo: 234, blanco: 246 },
+            },
             photoHover: equipoJonathanCarmen2,
             /*
               Apaisada y con los cuatro repartidos de lado a lado: el cuadrado
@@ -1058,18 +1095,17 @@ export const about = {
             name: 'Hardy Aqueveque y Ruth Venegas',
             role: 'Pastores de Matrimonios Senior',
             photo: equipoHardyRuth,
-            niveles: { negro: 1, fondo: 224, blanco: 245 },
+            enGris: true,
             /*
-              Posan más cerca de la cámara que el resto, así que van sin zoom:
-              con `1.2` las cabezas salían mucho más grandes que en las demás
-              tarjetas y Hardy se quedaba sin aire por arriba. `zoom: 1` es lo
-              más abierto que se puede —la foto entera de alto—, y aun así se
-              ven algo más grandes que en el resto: eso ya es de la toma.
-
-              `x: '52%'` los centra en el cuadrado; a la izquierda sobraba
-              pared y a Hardy le rozaba el filo derecho.
+              Esta toma es más abierta que la anterior, así que aquí sí lleva
+              zoom; la de color, que posaba más cerca, va sin él.
             */
-            encuadre: { zoom: 1, x: '52%' },
+            encuadre: { zoom: 1.53, x: '51%', y: '9%' },
+            aColor: {
+              photo: equipoHardyRuthColor,
+              encuadre: { zoom: 1, x: '52%' },
+              niveles: { negro: 1, fondo: 224, blanco: 245 },
+            },
             photoHover: equipoHardyRuth2,
           },
           {
@@ -1096,16 +1132,21 @@ export const about = {
             name: 'Eugenia Soto',
             role: 'Pastora de Mujeres de Gracia',
             photo: equipoEugenia,
-            niveles: { negro: 35, fondo: 221, blanco: 233 },
-            encuadre: { zoom: 1.44, x: '48%', y: '24%' },
+            enGris: true,
+            encuadre: { zoom: 1.41, x: '40%', y: '18%' },
+            aColor: {
+              photo: equipoEugeniaColor,
+              encuadre: { zoom: 1.44, x: '48%', y: '24%' },
+              niveles: { negro: 35, fondo: 221, blanco: 233 },
+            },
             photoHover: equipoEugenia2,
           },
           {
             /* Sin cargo a propósito: van solo como pastores asociados. */
             name: 'Gerardo Andrade y Maria Eliana Zornow',
             photo: equipoGerardoMariaEliana,
-            niveles: { negro: 4, fondo: 240, blanco: 246 },
-            encuadre: { zoom: 1.48, x: '44%', y: '33%' },
+            enGris: true,
+            encuadre: { zoom: 1.49, x: '44%', y: '33%' },
             photoHover: equipoGerardoMariaEliana2,
             /*
               Apaisada y con ellos a la derecha del cuadro. El origen abajo
@@ -1118,7 +1159,7 @@ export const about = {
             name: 'Cecilia Alvarado',
             role: 'Pastora de Arte Profético',
             photo: equipoCecilia,
-            niveles: { negro: 15, fondo: 237, blanco: 245 },
+            enGris: true,
             encuadre: { zoom: 1.6, x: '52%', y: '22%' },
             photoHover: equipoCecilia2,
             /*
@@ -1130,7 +1171,15 @@ export const about = {
           },
           {
             name: 'Juan Ojeda y Lina Almonacid',
-            photo: null,
+            /*
+              Sin foto anterior con que compararla, y él mucho más alto que
+              ella: con las caras al tamaño del resto a Lina se le iba la
+              barbilla por abajo. Van algo más pequeñas para que quepan los
+              dos. Sin segunda foto, así que al pasar el ratón no cambia.
+            */
+            photo: equipoJuanLina,
+            enGris: true,
+            encuadre: { zoom: 1.56, x: '49%', y: '8%' },
           },
         ],
       },
