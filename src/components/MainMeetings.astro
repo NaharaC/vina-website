@@ -133,8 +133,20 @@ const label = 'Nuestras Reuniones';
               */}
               <p class="subtitle mt-2 lg:min-h-7">{meeting.subtitle}</p>
 
-              {/* la hora manda: es el dato que se busca primero */}
-              <p class="heading-md mt-5 text-ink">{meeting.time}</p>
+              {/*
+                La hora manda: es el dato que se busca primero. Va en cajas
+                de media columna, también cuando hay una sola, para que las
+                tres columnas pongan la hora en la misma línea y del mismo
+                tamaño; el domingo, con dos, se lee como «elige una».
+              */}
+              <ul class="mt-5 grid grid-cols-2 gap-3">
+                {meeting.horarios.map((horario) => (
+                  <li class="flex flex-col gap-1 rounded-[1.25rem] border border-ink/15 px-5 py-4">
+                    <span class="nota text-muted">{horario.etiqueta}</span>
+                    <span class="heading-md text-ink">{horario.hora}</span>
+                  </li>
+                ))}
+              </ul>
 
               <p class="eyebrow mt-7">Cómo participar</p>
 
@@ -175,6 +187,8 @@ const label = 'Nuestras Reuniones';
                   );
                 })}
               </ul>
+
+              {meeting.nota && <p class="nota mt-5 text-muted">{meeting.nota}</p>}
             </div>
           </div>
         ))

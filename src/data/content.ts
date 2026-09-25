@@ -294,10 +294,19 @@ export type MeetingWay = {
   note?: string;
 };
 
+/**
+ * Un horario de la reunión, en su caja. La etiqueta va siempre, aunque la
+ * reunión tenga uno solo: así las cajas de las tres columnas miden lo mismo y
+ * quedan en la misma línea.
+ */
+export type Horario = { hora: string; etiqueta: string };
+
 export type Meeting = {
   title: string;
   subtitle: string;
-  time: string;
+  horarios: Horario[];
+  /** letra chica al pie de la columna, cuando hace falta */
+  nota?: string;
   image: ImageMetadata;
   alt: string;
   ways: MeetingWay[];
@@ -307,7 +316,7 @@ export const meetings: Meeting[] = [
   {
     title: 'Miércoles de palabra',
     subtitle: 'Desde casa y sin excusa',
-    time: '20:00 hrs',
+    horarios: [{ hora: '20:00', etiqueta: 'Cada miércoles' }],
     image: reunionMiercolesPalabra,
     alt: 'Biblia abierta durante el estudio de la palabra',
     ways: [
@@ -325,7 +334,7 @@ export const meetings: Meeting[] = [
   {
     title: 'Viernes de Avivamiento',
     subtitle: '',
-    time: '19:30 hrs',
+    horarios: [{ hora: '19:30', etiqueta: 'Cada viernes' }],
     image: reunionViernesAvivamiento,
     alt: 'Persona adorando con un lienzo durante la reunión de avivamiento',
     ways: [
@@ -341,8 +350,11 @@ export const meetings: Meeting[] = [
   },
   {
     title: 'Domingos de Gloria',
-    subtitle: 'Dos reuniones generales',
-    time: '09:00 y 11:15 hrs',
+    subtitle: 'Elige tu horario: es la misma reunión',
+    horarios: [
+      { hora: '09:00', etiqueta: '1.ª reunión' },
+      { hora: '11:15', etiqueta: '2.ª reunión' },
+    ],
     image: reunionDomingosGloria,
     alt: 'Manos levantadas en adoración durante la reunión general',
     ways: [
@@ -355,6 +367,7 @@ export const meetings: Meeting[] = [
       },
       { icon: 'lucide:youtube', label: 'En vivo por YouTube', href: youtubeChannel, external: true },
     ],
+    nota: '¿Primera vez? A las 10:30 hay Primer Paso, antes de la segunda reunión (menos el primer domingo del mes).',
   },
 ];
 
