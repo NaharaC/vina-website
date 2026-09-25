@@ -50,7 +50,6 @@ import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
 import iconoVinapm from '../assets/img/icono-vinapm-blanco.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
-import nosotros from '../assets/img/nosotros.jpg';
 import darManos from '../assets/img/dar-manos.jpg';
 import equipoDanielNahara from '../assets/img/equipo-daniel-nahara.jpg';
 import equipoCarlosThiare from '../assets/img/equipo-carlos-thiare.jpg';
@@ -81,6 +80,7 @@ import equipoEduardoPriscila from '../assets/img/equipo-eduardo-priscila.jpg';
 import equipoEduardoPriscila2 from '../assets/img/equipo-eduardo-priscila-2.jpg';
 import equipoJairoVeronica from '../assets/img/equipo-jairo-veronica.jpg';
 import equipoJairoVeronica2 from '../assets/img/equipo-jairo-veronica-2.jpg';
+import historiaPastoresFundadores from '../assets/img/historia-pastores-fundadores.jpg';
 import fachada from '../assets/img/fachada.jpg';
 import soyNuevoPortada from '../assets/img/soy-nuevo-portada.jpg';
 import soyNuevoPrimerPaso from '../assets/img/soy-nuevo-primer-paso.jpg';
@@ -425,6 +425,11 @@ export type CompassionCard = {
   description: string;
   image: ImageMetadata;
   alt: string;
+  /**
+   * `object-position` de la foto, cuando el centro no es lo que se quiere
+   * ver: el marco la recorta, y más o menos según el alto de la ventana.
+   */
+  imagePosition?: string;
   /** logo blanco superpuesto sobre la foto */
   overlayLogo?: ImageMetadata;
   overlayLogoAlt?: string;
@@ -437,10 +442,15 @@ export const compassionFeature: CompassionCard = {
   tag: 'La iglesia',
   ctaLabel: 'Conócenos',
   description: 'Todo comenzó en el living de una casa y en el corazón de Dios',
-  image: nosotros,
-  alt: 'Congregación con las manos levantadas en adoración',
-  overlayLogo: logoVinapm,
-  overlayLogoAlt: 'Iglesia viñapm',
+  /*
+    El matrimonio de los fundadores, donde empieza todo. Va sin el logotipo
+    encima, que les caía en la cara. La foto es vertical y el marco la corta
+    de alto; con el centro se perdían las caras, que están en el cuarto de
+    arriba, así que se ancla más arriba.
+  */
+  image: historiaMatrimonioPastores,
+  imagePosition: '50% 25%',
+  alt: 'Jairo Quinteros y Verónica Mayne el día de su matrimonio, Valparaíso, 1981',
   href: '/nosotros',
 };
 
@@ -746,8 +756,17 @@ export const about = {
       lado se queda quieto. Cada foto conserva su proporción: las hay
       verticales y apaisadas, y recortarlas todas al mismo marco obligaba a
       cortar justo lo que se quiere ver.
+
+      El relato lo cuentan los fundadores, así que la pila empieza por ellos,
+      hoy, y sigue con su matrimonio: primero quién habla y luego desde dónde
+      empezó. La foto es de pie bajo el letrero de la visión, recortada a la
+      cadera para que no salgan de cuerpo entero.
     */
     fotos: [
+      {
+        caption: 'Jairo Quinteros y Verónica Mayne, nuestros pastores fundadores, hoy.',
+        image: historiaPastoresFundadores,
+      },
       {
         caption: 'Matrimonio de nuestros pastores fundadores. Valparaíso, año 1981.',
         image: historiaMatrimonioPastores,
