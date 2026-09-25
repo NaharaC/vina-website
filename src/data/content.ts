@@ -50,7 +50,6 @@ import logoDadoresDeAmor from '../assets/img/logo-dadores-de-amor.png';
 import logoEducaMontealto from '../assets/img/logo-educa-montealto.png';
 import iconoVinapm from '../assets/img/icono-vinapm-blanco.png';
 import logoVinapm from '../assets/img/logo-vinapm.png';
-import nosotros from '../assets/img/nosotros.jpg';
 import darManos from '../assets/img/dar-manos.jpg';
 import equipoDanielNahara from '../assets/img/equipo-daniel-nahara.jpg';
 import equipoCarlosThiare from '../assets/img/equipo-carlos-thiare.jpg';
@@ -427,10 +426,13 @@ export const compassionFeature: CompassionCard = {
   tag: 'La iglesia',
   ctaLabel: 'Conócenos',
   description: 'Todo comenzó en el living de una casa y en el corazón de Dios',
-  image: nosotros,
-  alt: 'Congregación con las manos levantadas en adoración',
-  overlayLogo: logoVinapm,
-  overlayLogoAlt: 'Iglesia viñapm',
+  /*
+    Los fundadores, la misma foto que abre «Nuestra historia». Va sin el
+    logotipo encima: el letrero de detrás ya lo trae, y el blanco superpuesto
+    les caía en la cara.
+  */
+  image: historiaPastoresFundadores,
+  alt: 'Jairo Quinteros y Verónica Mayne, pastores fundadores, bajo el letrero de la visión de la iglesia',
   href: '/nosotros',
 };
 
