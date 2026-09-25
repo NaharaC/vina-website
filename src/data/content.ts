@@ -1196,7 +1196,7 @@ export const soyNuevo = {
         body: 'Cuatro charlas para conocer más de Dios y cómo tener una relación con Él. Las enseñanzas van rotando domingo a domingo, así que puedes entrar en cualquiera: la idea es que completes las cuatro.',
         datos: [
           { icon: 'lucide:calendar-days', texto: 'Todos los domingos, menos el primero de cada mes' },
-          { icon: 'lucide:clock', texto: 'De 09:30 a 10:30, antes de la reunión' },
+          { icon: 'lucide:clock', texto: 'De 10:30 a 11:15, antes de la segunda reunión' },
           { icon: 'lucide:map-pin', texto: 'En el segundo piso de la iglesia' },
         ],
         photo: soyNuevoSegundoPaso,
