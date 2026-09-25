@@ -142,7 +142,8 @@ export const organization = {
   openingHours: [
     { day: 'Wednesday', opens: '20:00' },
     { day: 'Friday', opens: '19:30' },
-    { day: 'Sunday', opens: '10:30' },
+    { day: 'Sunday', opens: '09:00' },
+    { day: 'Sunday', opens: '11:15' },
   ],
 };
 
@@ -340,8 +341,8 @@ export const meetings: Meeting[] = [
   },
   {
     title: 'Domingos de Gloria',
-    subtitle: 'Reunión general',
-    time: '10:30 hrs',
+    subtitle: 'Dos reuniones generales',
+    time: '09:00 y 11:15 hrs',
     image: reunionDomingosGloria,
     alt: 'Manos levantadas en adoración durante la reunión general',
     ways: [
@@ -1173,7 +1174,7 @@ export const soyNuevo = {
         body: 'Un desayuno para conocernos. Te contamos quiénes somos, en qué creemos y cómo funciona la iglesia, y respondemos lo que quieras preguntar. Es donde empieza el camino de ser parte.',
         datos: [
           { icon: 'lucide:calendar-days', texto: 'Todos los domingos, menos el primero de cada mes' },
-          { icon: 'lucide:clock', texto: 'De 09:30 a 10:30, antes de la reunión' },
+          { icon: 'lucide:clock', texto: 'De 10:30 a 11:15, antes de la segunda reunión' },
           { icon: 'lucide:map-pin', texto: 'En el Centro Médico' },
         ],
         photo: soyNuevoPrimerPaso,
@@ -1326,7 +1327,7 @@ export const soyNuevo = {
       },
       {
         q: '¿A qué hora es la reunión del domingo?',
-        a: 'Domingos de Gloria, nuestra reunión general, es a las 10:30. También nos reunimos los miércoles a las 20:00 —Miércoles de Palabra, en línea por Zoom— y los viernes a las 19:30, en Viernes de Avivamiento.',
+        a: 'Domingos de Gloria, nuestra reunión general, tiene dos horarios: a las 09:00 y a las 11:15. También nos reunimos los miércoles a las 20:00 —Miércoles de Palabra, en línea por Zoom— y los viernes a las 19:30, en Viernes de Avivamiento.',
       },
       {
         q: '¿Cuánto dura la reunión?',
@@ -1356,7 +1357,7 @@ export const soyNuevo = {
     eyebrow: 'Este domingo',
     title: 'Ven como estés. Acá tienes tu lugar.',
     subtitle:
-      'Domingos de Gloria, 10:30 h. La Vara Kilómetro 8, Parcela 154. No hace falta que avises: solo llega.',
+      'Domingos de Gloria, 09:00 y 11:15 h. La Vara Kilómetro 8, Parcela 154. No hace falta que avises: solo llega.',
     mensaje: 'Hola, vengo por primera vez',
   },
 };
