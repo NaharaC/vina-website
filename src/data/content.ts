@@ -414,6 +414,11 @@ export type CompassionCard = {
   description: string;
   image: ImageMetadata;
   alt: string;
+  /**
+   * `object-position` de la foto, cuando el centro no es lo que se quiere
+   * ver: el marco la recorta, y más o menos según el alto de la ventana.
+   */
+  imagePosition?: string;
   /** logo blanco superpuesto sobre la foto */
   overlayLogo?: ImageMetadata;
   overlayLogoAlt?: string;
@@ -427,12 +432,14 @@ export const compassionFeature: CompassionCard = {
   ctaLabel: 'Conócenos',
   description: 'Todo comenzó en el living de una casa y en el corazón de Dios',
   /*
-    Los fundadores, la misma foto que abre «Nuestra historia». Va sin el
-    logotipo encima: el letrero de detrás ya lo trae, y el blanco superpuesto
-    les caía en la cara.
+    El matrimonio de los fundadores, donde empieza todo. Va sin el logotipo
+    encima, que les caía en la cara. La foto es vertical y el marco la corta
+    de alto; con el centro se perdían las caras, que están en el cuarto de
+    arriba, así que se ancla más arriba.
   */
-  image: historiaPastoresFundadores,
-  alt: 'Jairo Quinteros y Verónica Mayne, pastores fundadores, bajo el letrero de la visión de la iglesia',
+  image: historiaMatrimonioPastores,
+  imagePosition: '50% 25%',
+  alt: 'Jairo Quinteros y Verónica Mayne el día de su matrimonio, Valparaíso, 1981',
   href: '/nosotros',
 };
 

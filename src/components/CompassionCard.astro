@@ -51,6 +51,7 @@ const { card, feature = false } = Astro.props;
       widths={[480, 720, 1080]}
       sizes="(min-width: 64rem) 620px, 90vw"
       class="size-full object-cover"
+      style={card.imagePosition && `object-position: ${card.imagePosition}`}
       loading="lazy"
       decoding="async"
     />
