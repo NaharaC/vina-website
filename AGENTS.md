@@ -1,9 +1,10 @@
 # Iglesia Viña Puerto Montt
 
-Sitio en Astro + Tailwind v4. Cuatro páginas: la portada (`index.astro`),
-`nosotros`, `actividades` y `soy-nuevo` —la de quien viene por primera vez,
-donde aterriza «Quiero Visitar» del hero—, más el calendario suscribible
-`actividades.ics`.
+Sitio en Astro + Tailwind v4. Cuatro páginas a la vista: la portada
+(`index.astro`), `nosotros`, `actividades` y `soy-nuevo` —la de quien viene por
+primera vez, donde aterriza «Quiero Visitar» del hero—, más `/centinela`, que
+no se publica, el calendario suscribible `actividades.ics` y su gemelo de dentro,
+`/interno/<clave>.ics`, con lo que no sale a la web.
 
 El sitio está en español: nombres de componentes, variables, comentarios y
 mensajes de commit van en español.
@@ -100,12 +101,12 @@ mensajes de commit van en español.
   hombro oscuro contra el blanco añadido se ve como una línea recta. Se
   arregla con el archivo completo de la sesión, no con CSS.
 
-  Fuera de la sesión de estudio quedan otras dos, y las dos van sin `luz`,
-  que es un ajuste pensado para el fondo blanco: los fundadores posan sobre
-  fondo negro, y Eduardo y Priscila llevan de momento una foto suya de
-  familia —caras más pequeñas que en el resto, y no se arregla acercándose
-  porque el zoom les corta la cabeza a los hijos— hasta que llegue su
-  retrato.
+  Los fundadores y Eduardo y Priscila llegan ya en blanco y negro, retocados
+  en su sesión, y van con `enGris: true` en `content.ts`: sin ningún filtro
+  —ni el gris ni el ajuste de `niveles`—. Su segunda foto sí sale a
+  color como las demás; la de Eduardo y Priscila es la foto de familia que
+  hizo de retrato provisional. En `soy-nuevo`, donde los retratos van a
+  color, estos dos prestan su segunda foto en vez de la primera.
 
   La cuadrícula se afinó en dos tandas y cada una tiene su referencia: la
   primera mitad se ajustó contra Daniel y Nahara, y la segunda —Jonathan,
@@ -113,23 +114,33 @@ mensajes de commit van en español.
   que salían bien sin tocarlas.
 
   Un truco que hace falta cuando alguien llega muy arriba en su foto: poner el
-  origen del zoom en el filo de arriba (`y: '0%'`, como en Hardy). Así el aire
+  origen del zoom en el filo de arriba (`y: '0%'`, como en Nicole). Así el aire
   sobre la cabeza crece con la escala en vez de comérsela; con el origen a
   media altura, ampliar le cortaba la coronilla.
 
-  **El blanco y negro también se iguala desde el CSS.** Las fotos de estudio
-  están expuestas para que el fondo salga blanco del todo: medido en el trozo
-  que se ve de cada tarjeta, el fondo iba de 201 a 247 sobre 255 —altas luces
-  quemadas y un gris que se confundía con el blanco de la página—. La de
-  Nicole es la excepción, con el fondo en gris medio (166) y nada reventado, y
-  por eso se veía más limpia que las demás. Cada retrato lleva ahora un `luz`
-  en `content.ts`: el `brightness()` que lleva su fondo al gris común. El
-  contraste (1.06) es el mismo para todas y vive en el CSS de `nosotros.astro`.
+  Y al revés: quien posa más cerca de la cámara va sin zoom. Hardy y Ruth
+  llevaban `1.2` y salían con las cabezas mucho más grandes que el resto de su
+  fila; con `zoom: 1` —lo más abierto que se puede— cuadran. Que una foto pida
+  zoom o no depende de la toma, no de la tarjeta.
 
-  El objetivo común es 182, no el 166 exacto de Nicole: bajando hasta su valor
-  las caras del resto quedaban apagadas, porque esas fotos se expusieron para
-  el fondo y no para la piel. En 182 el fondo deja de estar quemado, las caras
-  aguantan y a Nicole apenas se la toca.
+  **El blanco y negro también se iguala desde el CSS**, y la referencia es el
+  retrato de Eduardo y Priscila, que llega ya editado desde la sesión: pared
+  en 220 sobre 255, negros apenas levantados (16) y altas luces sin quemar.
+  Las demás fotos de estudio se expusieron para que la pared saliera blanca
+  del todo —entre 210 y 250 en el trozo visible— y con los negros a cero.
+
+  Cada retrato lleva en `content.ts` sus `niveles`: el negro, la pared y las
+  altas luces, medidos sobre el trozo que enseña la tarjeta. No se escriben a
+  mano: salen de `node scripts/niveles-retratos.mjs`, que hay que volver a
+  pasar si cambia una foto o su `encuadre`. Con eso `src/lib/retratos.ts`
+  calcula el `brightness()` y el `contrast()` que llevan el negro a 16 y la
+  pared a 220 —una recta; una curva pediría un filtro SVG por foto, y no hace
+  falta porque lo que cambiaba era la exposición—. Cambiar esos dos números
+  ahí cambia el tono de toda la cuadrícula, y también el de `soy-nuevo`.
+
+  Nicole es la excepción: su pared está en gris medio y lleva blusa clara, así
+  que llevar la pared a 220 le quemaba la blusa. Hay un techo (245) para lo
+  más claro, y por eso su pared se queda en ~193.
 
   Todo esto es `filter` de CSS, así que no toca los archivos: se puede quitar
   o recalibrar en cualquier momento y las fotos vuelven a estar como salieron
@@ -138,7 +149,12 @@ mensajes de commit van en español.
   En la web las tarjetas van en blanco y negro por CSS y el color llega al
   pasar el ratón: con segunda foto, cambiando la de arriba por la de abajo; sin
   ella, quitándole el gris a la misma foto. Las segundas fotos —las del
-  hover— ya vienen cuadradas y no llevan `encuadre`.
+  hover— casi siempre vienen cuadradas; si no, llevan `encuadreHover`.
+
+  En el teléfono no hay hover: ahí el script de `nosotros.astro` le pone la
+  clase `encendida` —que hace lo mismo— al retrato que cruza el tercio
+  central de la pantalla, y un toque la enciende o la apaga. Solo corre con
+  `(hover: none)`; en escritorio sigue siendo el ratón.
 
   **Ojo al comprobarlo en el navegador:** en desarrollo la URL de la imagen
   optimizada no lleva huella del contenido, así que al cambiar un retrato el
@@ -192,6 +208,27 @@ mensajes de commit van en español.
   por coordenadas: por nombre, Google abre encima la ficha del negocio con su
   puntuación en estrellas.
 
+## La dirección de los centinelas
+
+`/centinela` son los bloques de oración de la Casa de Oración, que son un PDF.
+La dirección corta es lo que se reparte al equipo, y es la que se queda en la
+barra: la página (`src/pages/centinela.astro`) no lleva barra, ni pie, ni
+tipografía nuestra —es el PDF a pantalla completa, en un `<object>`—.
+
+**El mes que viene se reemplaza `public/centinela/bloques.pdf` y ya está**: la
+dirección no cambia, así que el enlace repartido sigue sirviendo. Si algún día
+hace falta guardar los meses pasados, habrá que darle nombre con fecha a cada
+PDF y hacer una página con la lista.
+
+En el teléfono no se puede enseñar dentro: unos navegadores dejan el recuadro
+en blanco y otros pintan solo la primera página y no dejan pasarla. Por eso un
+script lleva el teléfono al archivo —ahí la dirección sí cambia, y se abre
+entero en su lector—. En escritorio no se toca nada.
+
+No se publica: no lo enlaza nadie, queda fuera del mapa del sitio (el filtro
+del sitemap en `astro.config.mjs`), `robots.txt` lo prohíbe y la página lleva
+su `noindex`.
+
 ## Notion
 
 El calendario de actividades se lee al construir el sitio con `NOTION_TOKEN`
@@ -199,17 +236,59 @@ El calendario de actividades se lee al construir el sitio con `NOTION_TOKEN`
 con la lista de respaldo y avisa en pantalla. Solo se publican las filas con
 `Status = Web`.
 
+**Ojo a dónde vive ese filtro.** `desdeNotion()` lee la base entera y solo
+*anota* si la fila es publicable, en `actividad.publica`. Quien filtra es
+`obtenerActividades()`, que es la puerta por la que entran la página y los dos
+`.ics` públicos. La puerta de atrás es `obtenerTodas()`, que devuelve también
+lo interno, y la usa un solo archivo: `src/pages/interno/[clave].ics.ts`. Si
+algún día se añade una página que enseñe actividades, tiene que pedirlas por
+`obtenerActividades()`; llamar a `obtenerTodas()` saca al aire los borradores
+y las reuniones de dentro. Están puestas así —el filtro en la puerta de
+delante, no en la lectura— justamente para que lo seguro sea lo que sale por
+defecto.
+
 **La descripción de una actividad no es una propiedad**: es lo que se escribe
 en el cuerpo de su página de Notion. Eso obliga a una petición por actividad
 —`/v1/blocks/{id}/children`— además de la consulta a la base, así que se piden
 de tres en tres y solo para las actividades futuras, que son las únicas que se
-publican. `obtenerActividades()` guarda la lectura y la reparte: la piden la
-página y el `.ics`, y sin eso cada construcción pagaría dos veces esas
-peticiones. En una construcción la lectura no caduca —el build dura lo que
+publican. `obtenerTodas()` guarda la lectura y la reparte: la piden la página,
+los dos `.ics` públicos y el interno, y sin eso cada construcción pagaría
+cuatro veces esas peticiones. Son unas ciento cuarenta —las futuras de la
+base entera, no solo las «Web»—, alrededor de tres cuartos de minuto.
+En una construcción la lectura no caduca —el build dura lo que
 dura—; en desarrollo caduca a los 30 s, para que editar el calendario y
 recargar enseñe el cambio. El token es otra cosa: un servidor levantado antes
 de tocar `.env` sigue sirviendo la lista de respaldo aunque el token ya esté
 puesto, y ahí sí hay que reiniciar (`astro dev stop` y volver a levantarlo).
+
+### El calendario interno del equipo
+
+Además del `actividades.ics` público hay un segundo calendario, en
+`/interno/<clave>.ics`, con **lo que no sale a la web**: las filas cuyo
+`Status` no es «Web». Los dos se suscriben a la vez, no uno en lugar del otro,
+y esa es toda la gracia: Google Calendar pinta de un color cada calendario
+suscrito, y así lo interno y lo público se distinguen de un vistazo. Ninguna
+actividad está en los dos, así que no hay nada duplicado.
+
+**No se intentó el color por evento porque no existe con un `.ics`.** Google
+ignora la propiedad `COLOR` de iCalendar; el color por evento solo lo da la
+API de Google Calendar, y encima solo lo ven quienes tengan permiso de edición
+sobre ese calendario. Dos suscripciones lo resuelven sin cuenta de servicio ni
+nada que sincronizar.
+
+La dirección lleva una clave impredecible (`CALENDARIO_INTERNO`, ver
+`.env.example`) porque Google Calendar no manda cabeceras ni contraseñas al
+suscribirse por URL: quien tiene el enlace, entra. De ahí que la clave venga
+de una variable de entorno y no del código, que `robots.txt` prohíba
+`/interno/` y que el enlace no aparezca en ninguna página. **Sin la variable
+el archivo no se genera** —`getStaticPaths` devuelve la lista vacía—, que es
+lo que queremos en un pull request o en el portátil de alguien. En producción
+hay que darle el secreto al paso «Construir» del workflow, junto a
+`NOTION_TOKEN`; si se olvida, el calendario deja de publicarse sin avisar,
+pero por el lado seguro.
+
+Cambiar la clave revoca el acceso a todo el mundo a la vez, y hay que volver a
+repartir el enlace.
 
 **El enlace a la ficha de Notion no se publica**, ni en la web ni en el `.ics`:
 la base es una herramienta de dentro. Si vuelve a hacer falta, es `fila.url` en
