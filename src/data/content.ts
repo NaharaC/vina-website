@@ -81,6 +81,7 @@ import equipoEduardoPriscila from '../assets/img/equipo-eduardo-priscila.jpg';
 import equipoEduardoPriscila2 from '../assets/img/equipo-eduardo-priscila-2.jpg';
 import equipoJairoVeronica from '../assets/img/equipo-jairo-veronica.jpg';
 import equipoJairoVeronica2 from '../assets/img/equipo-jairo-veronica-2.jpg';
+import historiaPastoresFundadores from '../assets/img/historia-pastores-fundadores.jpg';
 import fachada from '../assets/img/fachada.jpg';
 import soyNuevoPortada from '../assets/img/soy-nuevo-portada.jpg';
 import soyNuevoPrimerPaso from '../assets/img/soy-nuevo-primer-paso.jpg';
@@ -738,12 +739,13 @@ export const about = {
 
       El relato lo cuentan los fundadores, así que la pila empieza por ellos,
       hoy, y sigue con su matrimonio: primero quién habla y luego desde dónde
-      empezó. Es el mismo retrato de su tarjeta en el equipo pastoral.
+      empezó. La foto es de pie bajo el letrero de la visión, recortada a la
+      cadera para que no salgan de cuerpo entero.
     */
     fotos: [
       {
         caption: 'Jairo Quinteros y Verónica Mayne, nuestros pastores fundadores, hoy.',
-        image: equipoJairoVeronica,
+        image: historiaPastoresFundadores,
       },
       {
         caption: 'Matrimonio de nuestros pastores fundadores. Valparaíso, año 1981.',
