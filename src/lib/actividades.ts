@@ -23,6 +23,13 @@ export type Actividad = {
   ubicacion?: string;
   red?: string;
   /**
+   * true cuando la fila trae `Status = Web`, que es el interruptor de la
+   * publicación. Quien pide actividades por la puerta de siempre
+   * —`obtenerActividades()`— solo recibe estas; las demás son de dentro y
+   * salen únicamente por el calendario interno.
+   */
+  publica: boolean;
+  /**
    * Lo escrito en el cuerpo de la página de Notion, en texto plano. No es una
    * propiedad de la base: es lo que se teclea debajo de la ficha, que es donde
    * apetece escribir un par de líneas sobre la reunión.
@@ -48,6 +55,10 @@ const NOTION_VERSION = '2022-06-28';
 /**
  * Respaldo mientras no haya token. Son actividades reales de la base, para
  * que la maqueta se vea con contenido verdadero.
+ *
+ * Las dos últimas van con `publica: false` a propósito: son las que alimentan
+ * el calendario interno cuando se revisa sin credenciales. Sin ellas ese feed
+ * saldría vacío y no habría forma de mirarlo en local.
  */
 const RESPALDO: Actividad[] = [
   {
@@ -55,6 +66,7 @@ const RESPALDO: Actividad[] = [
     inicio: '2026-12-12T17:30:00',
     fin: '2026-12-12T19:30:00',
     todoElDia: false,
+    publica: true,
     ubicacion: 'Patio de Comunión',
   },
   {
@@ -62,6 +74,7 @@ const RESPALDO: Actividad[] = [
     inicio: '2026-12-19T10:00:00',
     fin: '2026-12-19T12:30:00',
     todoElDia: false,
+    publica: true,
     ubicacion: 'Patio de Comunión',
   },
   {
@@ -69,6 +82,7 @@ const RESPALDO: Actividad[] = [
     inicio: '2026-12-19T15:00:00',
     fin: '2026-12-19T19:00:00',
     todoElDia: false,
+    publica: true,
     ubicacion: 'Centinela - Casa de Oración',
     red: 'Jóvenes',
   },
@@ -77,6 +91,7 @@ const RESPALDO: Actividad[] = [
     inicio: '2026-12-20T19:00:00',
     fin: '2026-12-20T21:00:00',
     todoElDia: false,
+    publica: true,
     ubicacion: 'Salon Principal',
   },
   {
@@ -84,6 +99,7 @@ const RESPALDO: Actividad[] = [
     inicio: '2026-12-23T15:30:00',
     fin: '2026-12-23T18:30:00',
     todoElDia: false,
+    publica: true,
     ubicacion: 'Patio de Comunión',
     red: 'Años Dorados',
   },
@@ -92,6 +108,7 @@ const RESPALDO: Actividad[] = [
     inicio: '2026-12-26T14:00:00',
     fin: '2026-12-26T17:00:00',
     todoElDia: false,
+    publica: true,
     ubicacion: 'Acoge',
     red: 'Jeer',
   },
@@ -100,6 +117,23 @@ const RESPALDO: Actividad[] = [
     inicio: '2027-01-23T16:00:00',
     fin: '2027-01-23T18:00:00',
     todoElDia: false,
+    publica: true,
+    ubicacion: 'Salon Principal',
+  },
+  {
+    nombre: 'Reunión de líderes de red',
+    inicio: '2026-12-16T19:00:00',
+    fin: '2026-12-16T21:00:00',
+    todoElDia: false,
+    publica: false,
+    ubicacion: 'Acoge',
+  },
+  {
+    nombre: 'Montaje del escenario de Navidad',
+    inicio: '2026-12-20T09:00:00',
+    fin: '2026-12-20T13:00:00',
+    todoElDia: false,
+    publica: false,
     ubicacion: 'Salon Principal',
   },
 ];
@@ -174,12 +208,15 @@ async function desdeNotion(): Promise<Actividad[]> {
       /*
         La web publica solo lo marcado como «Web» en la propiedad Status: ese
         es el interruptor que se maneja desde Notion. Hay que exigirlo de
-        forma explícita — dejar pasar las filas sin valor sacaría al aire
-        borradores. Ojo: «Status» no es «Estado», la base usa las dos y
+        forma explícita — dar por publicable una fila sin valor sacaría al
+        aire borradores. Ojo: «Status» no es «Estado», la base usa las dos y
         significan cosas distintas (Estado es la aprobación interna).
+
+        Aquí solo se anota; quien filtra es `obtenerActividades()`. Las que no
+        son «Web» se leen porque las necesita el calendario interno, el que
+        usa el equipo, y ese sí las quiere todas.
       */
       const publicar = textoDe(propiedad(props, 'Status'));
-      if (publicar?.toLowerCase() !== 'web') continue;
 
       // la foto puede estar subida a Notion (`file`) o ser un enlace (`external`)
       const archivos = propiedad(props, 'Foto', 'Imagen')?.files ?? [];
@@ -199,6 +236,7 @@ async function desdeNotion(): Promise<Actividad[]> {
         todoElDia: !fecha.start.includes('T'),
         ubicacion: textoDe(propiedad(props, 'Ubicación', 'Ubicacion', 'Lugar')),
         red: textoDe(propiedad(props, 'Red a cargo', 'Red')),
+        publica: publicar?.toLowerCase() === 'web',
         foto,
       });
     }
@@ -302,8 +340,9 @@ export function fechaDe(iso: string) {
 type Lectura = { actividades: Actividad[]; desdeRespaldo: boolean };
 
 /*
-  La lectura se hace una vez y se reparte. El calendario lo piden dos sitios
-  —la página y el `.ics`—, y cada lectura son sesenta y pico peticiones a
+  La lectura se hace una vez y se reparte. El calendario lo piden cuatro
+  sitios —la página, el `.ics` completo, el de una sola actividad y el
+  interno—, y cada lectura son ciento y pico peticiones a
   Notion por las descripciones: sin esto, el doble de espera en cada
   construcción.
 
@@ -318,13 +357,35 @@ const VIGENCIA = import.meta.env.DEV ? 30_000 : Infinity;
 let lectura: Promise<Lectura> | undefined;
 let leidaEn = 0;
 
-/** Actividades futuras, de la más próxima a la más lejana. */
-export function obtenerActividades(): Promise<Lectura> {
+/**
+ * Todas las actividades futuras, salgan o no a la web, de la más próxima a la
+ * más lejana.
+ *
+ * Es la puerta de atrás, y la usa un solo sitio: el calendario interno del
+ * equipo (`src/pages/interno/[clave].ics.ts`). Lo que se publique de aquí no
+ * ha pasado por el interruptor de Notion, así que no vale para nada que se vea
+ * desde fuera.
+ */
+export function obtenerTodas(): Promise<Lectura> {
   if (!lectura || Date.now() - leidaEn > VIGENCIA) {
     leidaEn = Date.now();
     lectura = leerActividades();
   }
   return lectura;
+}
+
+/**
+ * Las actividades que la web publica: las marcadas `Status = Web` en Notion.
+ *
+ * Es la puerta de siempre y la que usa todo el sitio —la página, el `.ics`
+ * completo y el de una sola actividad—. El filtro vive aquí, y no en
+ * `desdeNotion()`, para que el calendario interno pueda leer la base entera;
+ * ponerlo en esta puerta y no en la de atrás es lo que hace que lo seguro sea
+ * lo que sale por defecto.
+ */
+export async function obtenerActividades(): Promise<Lectura> {
+  const { actividades, desdeRespaldo } = await obtenerTodas();
+  return { actividades: actividades.filter((a) => a.publica), desdeRespaldo };
 }
 
 async function leerActividades(): Promise<Lectura> {

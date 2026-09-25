@@ -11,8 +11,8 @@ import { familyLife } from '../data/content';
   en tinta plena con su pastilla de horarios, el resto atenuado — y a la
   derecha una columna angosta donde van pasando las fotos de cada actividad
   (varias por actividad). La actividad activa es la dueña de las fotos que
-  cruzan el centro del viewport. En móvil no hay lista fija: cada grupo de
-  fotos lleva su encabezado.
+  cruzan el centro del viewport. En móvil no hay lista fija: cada grupo lleva
+  su encabezado y sus fotos pasan de lado, en una tira que se arrastra.
 */}
 <section id="vida-en-familia" class="seccion" aria-labelledby="familia-titulo">
   <div class="container-page">
@@ -35,7 +35,12 @@ import { familyLife } from '../data/content';
           {familyLife.description}
         </p>
 
-        <ul class="mt-12 hidden lg:mt-14 lg:flex lg:flex-col lg:gap-4">
+        {/*
+          Con la pastilla cerrada los títulos quedan pegados uno a otro —son
+          de cuerpo grande y sin nada en medio—, así que la separación de la
+          lista la pone entera el `gap`.
+        */}
+        <ul class="mt-12 hidden lg:mt-14 lg:flex lg:flex-col lg:gap-9">
         {
           familyLife.activities.map((activity) => (
             <li class="vida-tab">
@@ -72,14 +77,8 @@ import { familyLife } from '../data/content';
         }
         </ul>
 
-        {/*
-          Pegado a la lista: bajo la última actividad ya cuelgan los 48px que
-          cada fila reserva para su pastilla de horarios —invisible salvo en
-          la activa, para que la lista no dé saltos al pasar—, así que el
-          margen del botón se suma a ese hueco. Con `mt-12` el botón se iba
-          casi cien píxeles más abajo del último título.
-        */}
-        <div class="mt-4 hidden lg:block">
+        {/* el botón guarda con la lista la misma distancia que hay entre actividades */}
+        <div class="mt-9 hidden lg:block">
           <ArrowButton label={familyLife.cta.label} href={familyLife.cta.href} variant="accent" size="md" />
         </div>
       </div>
@@ -108,17 +107,30 @@ import { familyLife } from '../data/content';
                 </p>
               </div>
 
-              {activity.images.map((image, index) => (
-                <Image
-                  src={image}
-                  alt={index === 0 ? activity.alt : ''}
-                  widths={[420, 640, 900]}
-                  sizes="(min-width: 64rem) 416px, 90vw"
-                  class="w-full rounded-[1.25rem] object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-              ))}
+              {/*
+                En móvil las fotos de cada actividad pasan de lado, en una
+                tira que se arrastra con el dedo y se detiene en cada una: en
+                columna, tres o cuatro fotos por actividad dejaban la sección
+                larguísima. La tira sale hasta el filo de la ventana —los
+                márgenes negativos deshacen el `container-page` y se vuelven a
+                poner por dentro— para que se vea que hay más a la derecha. En
+                escritorio vuelve a ser una columna y las fotos van enteras.
+              */}
+              <div
+                class="vida-tira -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 sm:-mx-8 sm:scroll-px-8 sm:px-8 lg:mx-0 lg:flex-col lg:gap-6 lg:overflow-visible lg:px-0"
+              >
+                {activity.images.map((image, index) => (
+                  <Image
+                    src={image}
+                    alt={index === 0 ? activity.alt : ''}
+                    widths={[420, 640, 900]}
+                    sizes="(min-width: 64rem) 416px, 80vw"
+                    class="aspect-4/3 w-[80%] shrink-0 snap-start rounded-[1.25rem] object-cover lg:aspect-auto lg:w-full"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ))}
+              </div>
             </div>
           ))
         }
@@ -133,6 +145,16 @@ import { familyLife } from '../data/content';
 </section>
 
 <style>
+  /* la tira del móvil se arrastra: la barra de desplazamiento sobra */
+  .vida-tira {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vida-tira::-webkit-scrollbar {
+    display: none;
+  }
+
   /* sólo en escritorio: la lista atenúa todo menos la actividad activa */
   @media (min-width: 64rem) {
     .vida-tab-title {

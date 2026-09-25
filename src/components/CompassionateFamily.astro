@@ -1,4 +1,5 @@
 ---
+import ArrowButton from './ArrowButton.astro';
 import CompassionCard from './CompassionCard.astro';
 import SectionHeading from './SectionHeading.astro';
 import { compassionCards, compassionFeature } from '../data/content';
@@ -10,89 +11,114 @@ const heading = {
 };
 ---
 
+{/*
+  El encabezado cruza la sección entera y debajo van las tarjetas en dos
+  columnas de distinto largo: la de la iglesia se queda quieta mientras por la
+  derecha pasan las tres de los proyectos. El botón que lleva a los proyectos
+  contados largo cierra la sección, debajo de todas ellas.
+
+  Antes el encabezado vivía dentro de la columna izquierda, pegado arriba
+  junto a la tarjeta, y eso obligaba a dos clones invisibles —uno del propio
+  encabezado y otro de la tarjeta— para que las dos columnas arrancaran y
+  terminaran a la misma altura. Con el encabezado fuera, las dos columnas
+  empiezan solas donde tienen que empezar.
+*/}
 <section id="compasion" class="seccion" aria-labelledby="compasion-titulo">
   <div class="container-page">
+    <SectionHeading
+      id="compasion-titulo"
+      eyebrow={heading.eyebrow}
+      title={heading.title}
+      subtitle={heading.subtitle}
+    />
+
     {/*
-      En escritorio se fija la columna de la izquierda entera —encabezado y
-      tarjeta de "Nosotros", como un solo bloque— mientras la columna de la
-      derecha sigue pasando. Antes iban fijos por separado y la tarjeta
-      acababa metiéndose detrás del título.
+      Dos columnas solo cuando la de la izquierda puede quedarse quieta. En
+      tablet la grande es apaisada y las tres de al lado suman el triple de
+      alto: al costado dejaba media columna vacía, así que ahí van una debajo
+      de otra.
 
-      El `items-start` del grid es lo que le da recorrido: sin él la celda se
-      estiraría a todo el alto y no habría nada que fijar. Se para a 2rem del
-      filo: la columna mide 643px y así cabe entera —bajada y botón incluidos—
-      en ventanas de unos 675px de alto, que es lo que deja un portátil. Más
-      abajo no cabía; más arriba se cruzaría con la píldora de navegación, que
-      va centrada y baja hasta los 69px. En móvil, con una sola columna, no
-      aplica: el encabezado abre la sección y ya está.
+      El `items-start` es lo que le da recorrido a la columna fija: sin él la
+      celda se estira a todo el alto y no hay nada que fijar. Se para a 3rem
+      del filo de arriba, la misma distancia que `container-page` deja por los
+      lados en escritorio. La píldora de navegación llega algo más abajo, pero
+      va centrada y solo se cruza con el filo derecho de la foto, y solo
+      mientras se sube: sobre la foto no tapa nada que haya que leer.
+
+      Y no pasa del alto de la ventana menos lo que ocupa arriba y un respiro
+      abajo: un bloque pegajoso más alto que la ventana se ancla arriba y su
+      final —aquí el título, la bajada y el botón— no llega a verse nunca. El
+      tope va aquí, en la columna; quien lo reparte es la tarjeta.
     */}
-    <div class="grid items-start gap-10 md:grid-cols-2 md:gap-8 lg:gap-14">
-      <div class="lg:sticky lg:top-8 lg:self-start">
-        {/*
-          En la columna la bajada ya no cabe al costado del título: se apila
-          debajo, que es lo que hace `estrecho`.
-        */}
-        <SectionHeading
-          id="compasion-titulo"
-          eyebrow={heading.eyebrow}
-          title={heading.title}
-          subtitle={heading.subtitle}
-          estrecho
-          class="mb-12 lg:mb-4"
-        />
-
+    <div class="mt-14 grid items-start gap-12 lg:mt-20 lg:grid-cols-2 lg:gap-x-14 lg:gap-y-16">
+      <div class="columna-iglesia lg:sticky lg:top-12 lg:flex lg:max-h-[calc(100svh-4.5rem)] lg:flex-col lg:self-start">
         <CompassionCard card={compassionFeature} feature />
       </div>
 
-      <div>
-        {/*
-          Copia invisible del encabezado: con dos columnas, la de la derecha
-          arranca a la altura de la foto de la izquierda y no del rótulo. Es
-          la misma pieza y el mismo margen, así que mide exactamente lo que
-          mide el encabezado de al lado, en cualquier ancho. En móvil, con
-          una sola columna, no hay nada que emparejar.
-        */}
-        <div class="invisible hidden md:block" aria-hidden="true">
-          <SectionHeading
-            eyebrow={heading.eyebrow}
-            title={heading.title}
-            subtitle={heading.subtitle}
-            as="p"
-            estrecho
-            class="mb-12 lg:mb-4"
-          />
-        </div>
+      <div class="columna-proyectos flex flex-col gap-12 lg:gap-16">
+        {compassionCards.map((card) => <CompassionCard card={card} />)}
+      </div>
+    </div>
 
-        <div class="flex flex-col gap-10 md:gap-8 lg:gap-12">
-          {
-            compassionCards.map((card, index) =>
-              index < compassionCards.length - 1 ? (
-                <CompassionCard card={card} />
-              ) : (
-                <div class="lg:grid lg:items-start">
-                  {/*
-                    La última tarjeta comparte celda con un clon invisible de
-                    la tarjeta "Nosotros" en su variante normal: imagen 16/9
-                    (la misma de esta tarjeta) + su texto. Con esa altura, la
-                    columna sigue subiendo hasta que el BORDE INFERIOR de la
-                    imagen de "Nosotros" coincide con el de esta imagen, en
-                    cualquier ancho. Mismo truco que la copia del título.
-                  */}
-                  <div class="lg:col-start-1 lg:row-start-1">
-                    <CompassionCard card={card} />
-                  </div>
-                  <div
-                    class="invisible hidden lg:col-start-1 lg:row-start-1 lg:block"
-                    aria-hidden="true"
-                  >
-                    <CompassionCard card={compassionFeature} />
-                  </div>
-                </div>
-              )
-            )
-          }
-        </div>
+    {/*
+      El cierre de la sección: naranja y de cuerpo mayor que los de las
+      tarjetas, porque es el que sigue el hilo —de estos cuatro a todos los
+      demás— y no el destino de una tarjeta suelta.
+
+      Cuelga de la columna de los proyectos, no del margen de la página: a la
+      izquierda quedaba justo debajo del «Conócenos» de la iglesia, que
+      también es naranja, y los dos juntos se leían como un par de botones sin
+      relación entre ellos. La rejilla es la misma de arriba, para que
+      arranque exactamente donde arrancan las tarjetas de al lado.
+    */}
+    <div class="mt-16 lg:mt-20 lg:grid lg:grid-cols-2 lg:gap-x-14">
+      <div class="lg:col-start-2">
+        <ArrowButton
+          label="Ver todos los proyectos"
+          href="/nosotros#proyectos"
+          variant="accent"
+          size="md"
+        />
       </div>
     </div>
   </div>
 </section>
+
+<style>
+  /*
+    Lo que hace que las dos columnas terminen a la par POR LA FOTO y no por
+    el pie: la columna fija se despega cuando su parte de abajo alcanza el
+    final de la fila, y su pie —título, bajada y botón— es más alto que el de
+    la última tarjeta, así que sin esto se soltaba antes y la foto de la
+    iglesia quedaba por encima de la última de los proyectos. El margen
+    negativo le devuelve justo esa diferencia de recorrido. Lo mide el script,
+    porque depende de lo que digan los textos.
+  */
+  @media (width >= 64rem) {
+    .columna-iglesia {
+      margin-bottom: var(--desfase, 0px);
+    }
+  }
+</style>
+
+<script>
+  const seccion = document.getElementById('compasion');
+  const columna = seccion?.querySelector<HTMLElement>('.columna-iglesia');
+  const pieIglesia = columna?.querySelector<HTMLElement>('.tarjeta-pie');
+  const piesProyectos = seccion?.querySelectorAll<HTMLElement>('.columna-proyectos .tarjeta-pie');
+  const pieUltimo = piesProyectos?.[piesProyectos.length - 1];
+
+  if (columna && pieIglesia && pieUltimo) {
+    // nunca positivo: si algún día el pie de la última tarjeta crece más que
+    // el de la iglesia, no hay nada que recuperar
+    const ajustar = () => {
+      const desfase = Math.min(pieUltimo.offsetHeight - pieIglesia.offsetHeight, 0);
+      columna.style.setProperty('--desfase', `${desfase}px`);
+    };
+
+    ajustar();
+    window.addEventListener('resize', ajustar);
+    // la tipografía cambia el alto de los pies al terminar de cargar
+    document.fonts?.ready.then(ajustar);
+  }
+</script>

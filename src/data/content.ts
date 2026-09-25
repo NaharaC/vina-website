@@ -370,8 +370,8 @@ export type Stat = { caption: string; value: string; description?: string };
 export const stats: Stat[] = [
   { caption: 'Años de iglesia', value: '25+' },
   {
-    caption: 'Atenciones médicas',
-    value: '12.000+',
+    caption: 'Prestaciones médicas',
+    value: '25.000+',
     description: 'A la fecha. A todos se les ha predicado de Jesús',
   },
   {
@@ -402,9 +402,14 @@ export const partners: Partner[] = [
 /* --- Una familia compasiva -------------------------------------------------- */
 
 export type CompassionCard = {
-  /** Texto del botón. Por defecto, «Ver más». */
+  /**
+   * Lo que dice la pastilla que sigue al ratón por encima de la foto. Por
+   * defecto, «Ver más».
+   */
   ctaLabel?: string;
   title: string;
+  /** Va en versalitas al otro extremo de la fila del título: de qué es esto. */
+  tag?: string;
   description: string;
   image: ImageMetadata;
   alt: string;
@@ -417,6 +422,7 @@ export type CompassionCard = {
 
 export const compassionFeature: CompassionCard = {
   title: 'Nosotros',
+  tag: 'La iglesia',
   ctaLabel: 'Conócenos',
   description: 'Todo comenzó en el living de una casa y en el corazón de Dios',
   image: nosotros,
@@ -429,6 +435,8 @@ export const compassionFeature: CompassionCard = {
 export const compassionCards: CompassionCard[] = [
   {
     title: 'Centro Médico Viña Puerto Montt',
+    tag: 'Salud',
+    ctaLabel: 'Visitar el sitio',
     /** TODO: descripción real (una línea). */
     description: '',
     image: centroMedico,
@@ -440,6 +448,8 @@ export const compassionCards: CompassionCard[] = [
   },
   {
     title: 'Proyecto Educativo Educa Montealto',
+    tag: 'Educación',
+    ctaLabel: 'Ver en Instagram',
     /** TODO: descripción real (una línea). */
     description: '',
     image: educaMontealto,
@@ -451,6 +461,7 @@ export const compassionCards: CompassionCard[] = [
   },
   {
     title: 'Dadores de Amor',
+    tag: 'Ayuda social',
     /** TODO: descripción real (una línea). */
     description: '',
     image: dadoresDeAmor,
@@ -684,13 +695,31 @@ export const about = {
 
   historia: {
     title: 'Nuestra historia',
+    /*
+      La línea que abre el relato, debajo del título. Va en el mismo cuerpo y
+      con la misma línea fina que la firma del final: son las dos apostillas
+      del relato —de quién es y quién lo firma—, y enmarcan el texto por
+      arriba y por abajo.
+    */
+    bajada: 'La Viña de Puerto Montt en el relato de nuestros Pastores Fundadores',
     /** Un párrafo por entrada. */
     body: [
-      'Nuestra historia comenzó en el living de la casa de nuestros pastores, donde durante tres meses nos reuníamos siete familias con el anhelo de buscar a Dios y crecer en Su presencia.',
-      'A medida que la iglesia creció, las reuniones pasaron al Jardín Infantil Lunita y luego a una casona en Egaña 2070, que fue remodelada para recibir a la congregación. Más tarde, fue necesario trasladarse al galpón de la misma propiedad, llegando a reunir cerca de 130 personas.',
-      'Después de una temporada difícil, la iglesia quedó conformada por 28 personas y comenzó una nueva etapa en un quincho de la población Kennedy. En 2005, Dios llamó a nuestro pastor Jairo a dedicar tres meses a sumergirse profundamente en Su presencia, con la promesa de que él lo llevaría más alto y más profundo, como nunca antes.',
-      'Al finalizar ese tiempo, Dios abrió la puerta para adquirir la propiedad donde hoy se encuentra nuestra iglesia, la cual ha sido ampliada y transformada a lo largo de los años.',
-      'Miramos hacia atrás reconociendo la fidelidad de Dios en cada etapa, y creemos que nuestra historia aún se está escribiendo.',
+      'Nuestra historia comienza cuando nos conocimos en Valparaíso, en aquel verano de 1982, donde solo compartir nuestros sueños y anhelos con Dios fue suficiente para caminar juntos durante estos sobrenaturales 44 años, con una intensa vida en el Espíritu y atreviéndonos a hacer las obras del Reino de Dios, en el hoy de su favor.',
+      'Han pasado los años sorprendentemente. La evangelización en nuestra vida de universitarios, los años de nuestra empresa en Caldera y la atribulada llegada a Puerto Montt dieron inicio a una impresionante vida de fe y esperanza, donde, abrazados a cada promesa del Padre, comenzamos a peregrinar en la plantación de esta Viña…',
+      'Primero en un jardín infantil, luego con el arriendo de una casona y un galpón, llegando a ser 150 personas. Entonces vivimos el duro trato de las decepciones del ministerio, donde solo nuestra dependencia de Dios nos permitió sostenernos por fe, confiados en una promesa personal que Él nos dio: “Denme una oportunidad para demostrarles que yo soy Dios”.',
+      'Entonces llegaron los vertiginosos últimos 20 años, con un crecimiento sobrenatural como iglesia. Compramos nuestra tierra de bendición y no hemos parado de ampliar y ampliar nuestros edificios. Junto con ello, hemos ensanchado el espacio de nuestra carpa y no nos hemos limitado.',
+      'Iniciamos nuestro Centro Médico y nuestro Colegio; plantamos otras Viñas; tenemos tres Fundaciones y Ministerios; invertimos en innovaciones tecnológicas e investigación, emprendimientos, política y compasión social. Y ahora, una nueva tierra de ocho hectáreas para nuestra Academia de Oficios, Centro de Formación Técnica, Universidad Velos, Colegio Educa Montealto y Hospital Clínico La Viña de Puerto Montt.',
+      'Resumir la intensidad del llamado de Dios sobre nuestras vidas es literalmente imposible, porque lo que hemos vivido desde que nos conocimos ha sido vertiginoso, sobrenatural y transformador. Ha sido una vivencia del poder del Reino de Dios que nos deja en silencio, impactados por su presencia y renovados por su visión: “Ser una Familia Compasiva que Imita a Jesús”.',
+      'Hoy, junto a nuestros cuatro hijos —tres de ellos casados— y nuestros siete nietos, podemos decir, llenos de expectativa, que esto… recién ha comenzado.',
+    ],
+    /*
+      Quién firma el relato, una línea por entrada. Va al pie, en cuerpo de
+      nota: no es el texto, es de quién viene.
+    */
+    firma: [
+      'Palabras de nuestros Pastores Fundadores',
+      'Jairo Quinteros y Verónica Mayne',
+      'Puerto Montt, 9 de septiembre de 2026',
     ],
     /*
       Van una debajo de otra, cada una con su pie, mientras el texto de al
@@ -1422,9 +1451,10 @@ export const testimonials: Testimonial[] = [
 /* --- Dar ------------------------------------------------------------------- */
 
 /*
-  Las tres formas de dar. La de transferencia lleva las tres cuentas, una por
-  destino: lo que se ofrenda a la iglesia, a educación y a salud va a
-  personas jurídicas distintas y no se pueden mezclar.
+  Las tres formas de dar. La de transferencia lleva las cuatro cuentas, una
+  por destino: lo que se ofrenda a la iglesia, a educación, a salud y a
+  tecnología e investigación va a personas jurídicas distintas y no se pueden
+  mezclar.
 */
 export type CuentaBancaria = {
   destino: string;
@@ -1488,6 +1518,14 @@ export const formasDeDar: FormaDeDar[] = [
         rut: '65.065.856-6',
         banco: 'Scotiabank',
         cuenta: 'Cuenta corriente 97-20396-75',
+        correo: 'finanzasvinapm@gmail.com',
+      },
+      {
+        destino: 'Proyectos de tecnología e investigación',
+        titular: 'Fundación Velos',
+        rut: '65.214.492-6',
+        banco: 'Scotiabank',
+        cuenta: 'Cuenta corriente 99-32574-00',
         correo: 'finanzasvinapm@gmail.com',
       },
     ],

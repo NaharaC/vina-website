@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+# El calendario del equipo. La clave de la URL es lo que lo guarda; esto solo
+# evita que un buscador que dé con el enlace lo acabe indexando.
+Disallow: /interno/
 
 Sitemap: https://iglesiavinapm.cl/sitemap-index.xml

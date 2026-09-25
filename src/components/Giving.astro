@@ -11,6 +11,11 @@ import { formasDeDar, giving } from '../data/content';
   formas de dar como fichas de alto fijo. Ese alto es el que necesita la de
   transferencia, que es la que más contenido tiene, así que abrir una u otra
   ya no mueve nada.
+
+  Las fichas se ponen en fila desde 84rem y no desde `lg`: las cuatro cuentas
+  van en cuatro columnas y, por debajo de ese ancho, el correo no cabe en la
+  suya y se pisa con la de al lado. Más estrecho, las fichas se apilan como en
+  el móvil y las cuentas van de dos en dos.
 */}
 <section id="dar" class="seccion" aria-labelledby="dar-titulo">
   <div class="container-page">
@@ -23,13 +28,13 @@ import { formasDeDar, giving } from '../data/content';
       />
 
       <div
-        class="formas mt-8 flex flex-col gap-3 lg:mt-10 lg:h-[27.5rem] lg:flex-row lg:gap-4"
+        class="formas mt-8 flex flex-col gap-3 lg:mt-10 min-[84rem]:h-[31rem] min-[84rem]:flex-row min-[84rem]:gap-4"
         data-hay-abierta="false"
       >
         {
           formasDeDar.map((forma) => (
             <article
-              class="forma flex flex-col overflow-hidden rounded-[1.5rem] bg-[#e4e3de] p-5 transition-[flex-grow] duration-500 ease-out lg:h-full lg:p-7"
+              class="forma flex flex-col overflow-hidden rounded-[1.5rem] bg-[#e4e3de] p-5 transition-[flex-grow] duration-500 ease-out min-[84rem]:h-full min-[84rem]:p-7"
               data-forma={forma.id}
               data-abierta="false"
             >
@@ -68,7 +73,7 @@ import { formasDeDar, giving } from '../data/content';
               */}
               <div
                 id={`dar-${forma.id}`}
-                class="forma-cuerpo mt-6 flex min-h-0 flex-1 flex-col justify-end lg:mt-4"
+                class="forma-cuerpo mt-6 flex min-h-0 flex-1 flex-col justify-end min-[84rem]:mt-4"
               >
                 {/*
                   Todo el contenido cuelga de un solo hijo: al colapsar por
@@ -77,7 +82,7 @@ import { formasDeDar, giving } from '../data/content';
                 */}
                 <div class="forma-cuerpo-interior">
                 {forma.cuentas && (
-                  <ul class="grid gap-x-6 gap-y-7 sm:grid-cols-2 sm:grid-rows-[auto_auto_1fr_auto] lg:grid-cols-3">
+                  <ul class="grid gap-x-6 gap-y-7 sm:grid-cols-2 min-[84rem]:gap-x-5 sm:grid-rows-[auto_auto_1fr_auto] min-[84rem]:grid-cols-4">
                     {forma.cuentas.map((cuenta) => (
                       <li class="flex flex-col items-start sm:grid sm:row-span-4 sm:grid-rows-subgrid sm:gap-0">
                         <p class="eyebrow">{cuenta.destino}</p>
@@ -153,7 +158,7 @@ import { formasDeDar, giving } from '../data/content';
                 </div>
               </div>
 
-              <div class="mt-6 lg:mt-7">
+              <div class="mt-6 min-[84rem]:mt-7">
                 <h3 class="forma-nombre heading-sm text-ink">{forma.title}</h3>
                 <p class="forma-resumen subtitle mt-3">{forma.summary}</p>
               </div>
@@ -185,7 +190,7 @@ import { formasDeDar, giving } from '../data/content';
     En móvil no hay hueco que reservar, así que ahí la ficha sí crece y
     encoge: se anima por filas de rejilla, para no medir el contenido.
   */
-  @media (width < 64rem) {
+  @media (width < 84rem) {
     .forma-cuerpo {
       display: grid;
       /*
@@ -211,7 +216,7 @@ import { formasDeDar, giving } from '../data/content';
     }
   }
 
-  @media (width >= 64rem) {
+  @media (width >= 84rem) {
     /*
       `flex-basis: 0` y `min-width: 0` son lo que hace que el reparto sea el
       de los números y no el del contenido: con base automática, el ancho del
@@ -222,9 +227,9 @@ import { formasDeDar, giving } from '../data/content';
       min-width: 0;
     }
 
-    /* la abierta se lleva casi todo: las tres cuentas necesitan sitio */
+    /* la abierta se lleva casi todo: las cuatro cuentas necesitan sitio */
     .forma[data-abierta='true'] {
-      flex-grow: 6;
+      flex-grow: 7;
     }
 
     /*
