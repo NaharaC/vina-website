@@ -9,7 +9,8 @@ import SuenosTerreno from '../components/SuenosTerreno.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import TarjetaEquipo from '../components/TarjetaEquipo.astro';
 import { about, site, whatsappHref } from '../data/content';
-import type { Encuadre, GrupoEquipo } from '../data/content';
+import type { GrupoEquipo } from '../data/content';
+import { estiloRetrato } from '../lib/retratos';
 
 const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') || '/#contacto';
 
@@ -22,18 +23,13 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
 */
 /* El tipo declarado y no el que infiere el literal: dentro del literal, el
    miembro de los fundadores solo tiene los campos que trae escritos, y el
-   marcado usa el resto (`encuadre`, `luz`) para todos por igual. */
+   marcado usa el resto (`encuadre`, `niveles`) para todos por igual. */
 const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
   ...grupo,
   id: `equipo-lista-${i}`,
   hayResto: grupo.visibles !== undefined && grupo.miembros.length > grupo.visibles,
 }));
 
-/* El tratamiento de las fotos —blanco y negro y encuadre— es el mismo en los
-   dos formatos, así que las variables viajan igual (ver `Encuadre` en
-   `content.ts`). */
-const encuadrar = (e?: Encuadre, luz?: number) =>
-  `--zoom:${e?.zoom ?? 1};--x:${e?.x ?? '50%'};--y:${e?.y ?? '50%'};--luz:${luz ?? 1}`;
 ---
 
 {/*
@@ -95,13 +91,23 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
         <div class="relato-historia mt-12 lg:mt-0">
           <h2 class="heading-lg text-ink">{about.historia.title}</h2>
 
+          {/* De quién es el relato, en el mismo cuerpo que la firma del final. */}
+          <p class="nota mt-5 max-w-xl border-b border-ink/15 pb-6 text-pretty">
+            {about.historia.bajada}
+          </p>
+
           {/*
-            El relato va en `subtitle`, no en `subtitle-lg`: son cinco párrafos
-            de texto corrido, no la bajada de un título, y en cuerpo grande no
+            El relato va en `subtitle`, no en `subtitle-lg`: son párrafos de
+            texto corrido, no la bajada de un título, y en cuerpo grande no
             cabía entero en una ventana de portátil.
           */}
-          <div class="mt-5 flex flex-col gap-4">
+          <div class="mt-8 flex flex-col gap-4">
             {about.historia.body.map((parrafo) => <p class="subtitle max-w-xl">{parrafo}</p>)}
+          </div>
+
+          {/* Quién lo firma: cuerpo de nota, para que no compita con el relato. */}
+          <div class="mt-8 flex max-w-xl flex-col border-t border-ink/15 pt-6">
+            {about.historia.firma.map((linea) => <p class="nota">{linea}</p>)}
           </div>
         </div>
       </div>
@@ -221,16 +227,19 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
               grupo.miembros.map((miembro) => (
                 <div class="grid gap-8 lg:grid-cols-[minmax(0,41.25rem)_minmax(0,1fr)] lg:items-center lg:gap-14">
                   {miembro.photo ? (
-                    <div class="group relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] sm:aspect-[3/2] lg:rounded-[1.75rem]">
+                    <div data-retrato class="group relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] sm:aspect-[3/2] lg:rounded-[1.75rem]">
                       <Image
                         src={miembro.photo}
                         alt={miembro.name}
                         widths={[480, 720, 900]}
                         sizes="(min-width: 64rem) 41.25rem, 92vw"
-                        style={encuadrar(miembro.encuadre, miembro.luz)}
+                        style={estiloRetrato(miembro.encuadre, miembro.niveles)}
                         class:list={[
-                          'retrato encuadrada absolute inset-0 size-full object-cover transition duration-500',
-                          miembro.photoHover ? 'group-hover:opacity-0' : 'se-enciende',
+                          'encuadrada absolute inset-0 size-full object-cover transition duration-500',
+                          !miembro.enGris && 'retrato',
+                          miembro.photoHover
+                            ? 'group-hover:opacity-0 group-[.encendida]:opacity-0'
+                            : 'se-enciende',
                         ]}
                       />
 
@@ -240,8 +249,8 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
                           alt=""
                           widths={[480, 720, 1200]}
                           sizes="(min-width: 64rem) 41.25rem, 92vw"
-                          style={encuadrar(miembro.encuadreHover)}
-                          class="encuadrada absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                          style={estiloRetrato(miembro.encuadreHover)}
+                          class="encuadrada absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-[.encendida]:opacity-100"
                         />
                       )}
                     </div>
@@ -340,17 +349,7 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
   /*
     Acotado a la sección entera y no a la cuadrícula: el tramo de los
     fundadores va fuera de la lista y lleva el mismo tratamiento.
-  */
-  .equipo-retratos {
-    /*
-      El contraste es el mismo para todas: lo que cambia de una foto a otra es
-      el brillo (`--luz`, en `content.ts`), porque cada una venía expuesta de
-      su manera. Subirlo aquí sube el de la sección entera.
-    */
-    --contraste-retrato: 1.06;
-  }
 
-  /*
     El encuadre va aparte del tratamiento: las segundas fotos —las del hover—
     también se encuadran, pero salen a color y sin tocar.
   */
@@ -371,8 +370,12 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
       —encadenar dos reglas de filtro no se suma, la última gana— y viven en
       CSS, no en el archivo: se puede quitar todo esto y las fotos vuelven a
       estar como salieron de la cámara.
+
+      Brillo y contraste son de cada foto: los calcula `src/lib/retratos.ts`
+      a partir de sus `niveles`, para llevarla al tono del retrato de Eduardo
+      y Priscila, que llega ya editado.
     */
-    filter: grayscale(1) brightness(var(--luz, 1)) contrast(var(--contraste-retrato));
+    filter: grayscale(1) brightness(var(--brillo, 1)) contrast(var(--contraste, 1));
   }
 
   /*
@@ -380,7 +383,8 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
     paso sueltan el ajuste de tono: lo que se ve es la foto tal cual, igual que
     las segundas fotos, que tampoco van tratadas.
   */
-  .equipo-retratos .group:hover .retrato.se-enciende {
+  .equipo-retratos .group:hover .retrato.se-enciende,
+  .equipo-retratos .group.encendida .retrato.se-enciende {
     filter: none;
   }
 </style>
@@ -700,4 +704,32 @@ const encuadrar = (e?: Encuadre, luz?: number) =>
       }
     });
   });
+
+  /*
+    En el teléfono no hay ratón que pase por encima, así que la segunda foto
+    no llegaba a verse nunca. Ahí el retrato se enciende solo al cruzar la
+    franja central de la pantalla —la clase `encendida` hace lo mismo que el
+    `:hover`— y se apaga al seguir bajando: al recorrer la lista, cada pareja
+    cambia a su foto de color cuando le toca. Un toque también la enciende o
+    la apaga, para quien se quede quieto mirando una.
+
+    Solo donde no hay hover de verdad: en escritorio el gesto sigue siendo
+    pasar el ratón.
+  */
+  if (seccion && matchMedia('(hover: none)').matches) {
+    const retratos = seccion.querySelectorAll<HTMLElement>('[data-retrato]');
+
+    const franja = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) e.target.classList.toggle('encendida', e.isIntersecting);
+      },
+      // La franja: el tercio central de la ventana.
+      { rootMargin: '-35% 0px -35% 0px' },
+    );
+
+    retratos.forEach((retrato) => {
+      franja.observe(retrato);
+      retrato.addEventListener('click', () => retrato.classList.toggle('encendida'));
+    });
+  }
 </script>

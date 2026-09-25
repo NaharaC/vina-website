@@ -5,11 +5,12 @@ import ArrowButton from '../components/ArrowButton.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import { about, mapsHref, organization, site, soyNuevo, whatsappHref } from '../data/content';
-import type { Encuadre, GrupoEquipo } from '../data/content';
+import type { GrupoEquipo, MiembroEquipo } from '../data/content';
+import { estiloRetrato } from '../lib/retratos';
 
 /*
   Los retratos de los pastores no se guardan otra vez aquí: se buscan en el
-  equipo pastoral por su nombre. Así el encuadre y la luz —que están afinados
+  equipo pastoral por su nombre. Así el encuadre y los niveles —que están afinados
   a ojo, mirando la cuadrícula entera— viven en un solo sitio y esta página
   hereda cualquier retoque.
 
@@ -33,9 +34,16 @@ const retratoDe = (name: string) => {
   return miembro;
 };
 
-/* El mismo `encuadrar` de TarjetaEquipo: el encuadre viaja como variables CSS. */
-const encuadrar = (e?: Encuadre, luz?: number) =>
-  `--zoom:${e?.zoom ?? 1};--x:${e?.x ?? '50%'};--y:${e?.y ?? '50%'};--luz:${luz ?? 1}`;
+/*
+  Aquí los retratos van a color. Los que ya llegan editados en blanco y negro
+  (`enGris`) prestan su segunda foto, que es la de color; el resto usa la
+  primera con su tono igualado.
+*/
+const aColor = (m: MiembroEquipo) =>
+  m.enGris && m.photoHover
+    ? { photo: m.photoHover, estilo: estiloRetrato(m.encuadreHover) }
+    : { photo: m.photo, estilo: estiloRetrato(m.encuadre, m.niveles) };
+
 
 /*
   El número de cada red sale de su posición, no del contenido: así intercalar
@@ -45,7 +53,10 @@ const redes = soyNuevo.redes.items.map((red, i) => ({
   ...red,
   indice: i,
   numero: String(i + 1).padStart(2, '0'),
-  retratos: red.retratos.map(retratoDe).filter((m) => m.photo),
+  retratos: red.retratos
+    .map(retratoDe)
+    .filter((m) => m.photo)
+    .map(aColor),
   href: whatsappHref(`Hola, quiero conocer la ${red.name}`),
 }));
 
@@ -268,7 +279,7 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
                                 anillo del color del tramo para que se despeguen.
                               */}
                               <div class="flex shrink-0">
-                                {red.retratos.map((miembro, j) => (
+                                {red.retratos.map((retrato, j) => (
                                   <div
                                     class:list={[
                                       'size-16 overflow-hidden rounded-[1.125rem] shadow-[0_0_0_3px_var(--color-mist)]',
@@ -276,11 +287,11 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
                                     ]}
                                   >
                                     <Image
-                                      src={miembro.photo!}
+                                      src={retrato.photo!}
                                       alt=""
                                       widths={[128, 256]}
                                       sizes="4rem"
-                                      style={encuadrar(miembro.encuadre, miembro.luz)}
+                                      style={retrato.estilo}
                                       class="retrato-red size-full object-cover"
                                       loading="lazy"
                                     />
@@ -451,7 +462,8 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
 <style is:global>
   /*
     El retrato de un pastor dentro de la red desplegada. Es el mismo
-    tratamiento que la cuadrícula del equipo, menos el blanco y negro: aquí la
+    tratamiento que la cuadrícula del equipo —encuadre y tono de `niveles`—,
+    menos el blanco y negro: aquí la
     foto es un dato —quién te va a recibir— y no una lámina, así que va a
     color desde el principio.
   */
@@ -460,7 +472,7 @@ const preguntaHref = whatsappHref(soyNuevo.preguntas.cta.mensaje) || '/#contacto
     transform: scale(var(--zoom, 1));
     /* El origen del zoom es el mismo punto que elige `object-position`. */
     transform-origin: var(--x, 50%) var(--y, 50%);
-    filter: brightness(var(--luz, 1)) contrast(1.06);
+    filter: brightness(var(--brillo, 1)) contrast(var(--contraste, 1));
   }
 
   /*

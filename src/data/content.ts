@@ -78,6 +78,7 @@ import equipoGerardoMariaEliana2 from '../assets/img/equipo-gerardo-maria-eliana
 import equipoCecilia from '../assets/img/equipo-cecilia.jpg';
 import equipoCecilia2 from '../assets/img/equipo-cecilia-2.jpg';
 import equipoEduardoPriscila from '../assets/img/equipo-eduardo-priscila.jpg';
+import equipoEduardoPriscila2 from '../assets/img/equipo-eduardo-priscila-2.jpg';
 import equipoJairoVeronica from '../assets/img/equipo-jairo-veronica.jpg';
 import equipoJairoVeronica2 from '../assets/img/equipo-jairo-veronica-2.jpg';
 import fachada from '../assets/img/fachada.jpg';
@@ -589,6 +590,9 @@ export const avisos: Aviso[] = [
  */
 export type Encuadre = { zoom?: number; x?: string; y?: string };
 
+/** El negro, la pared del fondo y las altas luces de una foto, sobre 255. */
+export type Niveles = { negro: number; fondo: number; blanco: number };
+
 export type MiembroEquipo = {
   name: string;
   /** Opcional: sin cargo la tarjeta se queda solo con el nombre. */
@@ -597,26 +601,31 @@ export type MiembroEquipo = {
   photo: ImageMetadata | null;
   encuadre?: Encuadre;
   /**
-   * Cuánto se sube o se baja el brillo de esta foto, para que el gris del
-   * fondo salga igual en toda la cuadrícula.
+   * Cómo está expuesta esta foto, medido sobre el trozo que enseña la
+   * tarjeta: el negro, la pared del fondo y las altas luces, sobre 255. Con
+   * eso `src/lib/retratos.ts` calcula el brillo y el contraste que la llevan
+   * al tono común, que es el del retrato de Eduardo y Priscila —ya editado en
+   * blanco y negro desde la sesión—.
    *
-   * Las fotos de la sesión de estudio están expuestas para que el fondo salga
-   * blanco del todo: medido en el trozo que se ve de cada tarjeta, iba de 201
-   * a 247 sobre 255, o sea altas luces quemadas y un fondo que se confunde con
-   * el blanco de la página. La de Nicole es la excepción —fondo en gris medio
-   * (166), sin nada reventado— y es la que se ve limpia y de estudio.
+   * No se escriben a mano: salen de `node scripts/niveles-retratos.mjs`, que
+   * hay que volver a pasar si cambia la foto o su `encuadre`.
    *
-   * El objetivo común es 182, no el 166 de Nicole: bajando hasta su valor
-   * exacto las caras del resto quedaban apagadas, porque esas fotos se
-   * expusieron para el fondo y no para la piel. En 182 el fondo deja de estar
-   * quemado, las caras aguantan, y a Nicole apenas se la toca.
+   * Hacía falta medir y no solo subir o bajar el brillo: las fotos de estudio
+   * se expusieron para que la pared saliera blanca del todo —entre 210 y 250
+   * en el trozo visible—, con los negros a cero, y el retrato editado tiene
+   * la pared en 220 y los negros apenas levantados. Con solo brillo se
+   * igualaba la pared pero no los negros.
    *
-   * El número es el `brightness()` de CSS que lleva el fondo de esa foto al
-   * gris común. El contraste, en cambio, es el mismo para todas y vive en el
-   * CSS: aquí solo cambia el brillo. Como es CSS, no toca el archivo y se
-   * puede quitar o cambiar en cualquier momento.
+   * Todo es CSS: no toca los archivos, y quitándolo las fotos vuelven a estar
+   * como salieron de la cámara.
    */
-  luz?: number;
+  niveles?: Niveles;
+  /**
+   * La foto ya llega en blanco y negro de la sesión, retocada: no se le pone
+   * ningún filtro —ni el gris ni el ajuste de `niveles`—. Solo cambia
+   * lo que se ve de entrada; la segunda foto sigue saliendo a color.
+   */
+  enGris?: boolean;
   /**
    * La línea que acompaña al nombre. Solo la enseña el tramo en `retrato`
    * —ahí hay sitio al lado de la foto grande—; en la cuadrícula, donde debajo
@@ -905,9 +914,7 @@ export const about = {
      * lista es el orden en que aparecen, así que para adelantar a alguien se
      * sube aquí.
      *
-     * TODO: pendientes el cargo de Juan y Lina, su retrato y el retrato de
-     * estudio de Eduardo y Priscila, que de momento llevan una foto suya de
-     * familia.
+     * TODO: pendientes el cargo de Juan y Lina y su retrato.
      */
     grupos: [
       {
@@ -919,13 +926,13 @@ export const about = {
             bajada:
               'Fundadores y pastores de nuestra Iglesia Cristiana Viña Puerto Montt, quienes desde sus inicios hasta hoy han guiado y acompañado esta familia.',
             /*
-              La única sobre fondo oscuro, así que aquí no hay `luz` que
-              igualar: el `luz` de las demás lleva su fondo blanco al gris
-              común, y este fondo ya es negro. Las dos son apaisadas y las dos
-              traen a los protagonistas centrados, así que el marco 3:2 del
-              tramo en retrato las coge tal cual, sin encuadre.
+              El retrato llega ya en blanco y negro, retocado en la sesión, y
+              por eso va con `enGris`: sin filtro ni `niveles`. Las dos fotos son
+              apaisadas y traen a los protagonistas centrados, así que el marco
+              3:2 del tramo en retrato las coge tal cual, sin encuadre.
             */
             photo: equipoJairoVeronica,
+            enGris: true,
             photoHover: equipoJairoVeronica2,
           },
         ],
@@ -938,21 +945,21 @@ export const about = {
             name: 'Roberto Quinteros y Araceli Chaparro',
             role: 'Pastores de Jóvenes',
             photo: equipoRobertoAraceli,
-            luz: 0.73,
+            niveles: { negro: 5, fondo: 250, blanco: 251 },
             photoHover: equipoRobertoAraceli2,
           },
           {
             name: 'Daniel Quinteros y Nahara Gutiérrez',
             role: 'Pastores de Matrimonios Jóvenes',
             photo: equipoDanielNahara,
-            luz: 0.825,
+            niveles: { negro: 9, fondo: 227, blanco: 248 },
             photoHover: equipoDanielNahara2,
           },
           {
             name: 'Carlos Moya y Thiare Pivet',
             role: 'Pastores de Matrimonios',
             photo: equipoCarlosThiare,
-            luz: 0.725,
+            niveles: { negro: 9, fondo: 249, blanco: 250 },
             encuadre: { zoom: 1.56, x: '50%', y: '32%' },
             photoHover: equipoCarlosThiare2,
           },
@@ -960,14 +967,14 @@ export const about = {
             name: 'Danilo Vargas y Lena Miller',
             role: 'Pastores de Jóvenes Pro',
             photo: equipoDaniloLena,
-            luz: 0.888,
+            niveles: { negro: 0, fondo: 210, blanco: 236 },
             photoHover: equipoDaniloLena2,
           },
           {
             name: 'Rodolfo Cabezas y Natalie Alfaro',
             role: 'Pastores de Adolescentes Jeer',
             photo: equipoRodolfoNatalie,
-            luz: 0.804,
+            niveles: { negro: 1, fondo: 230, blanco: 246 },
             encuadre: { zoom: 1.36, x: '50%', y: '27%' },
             photoHover: equipoRodolfoNatalie2,
           },
@@ -975,7 +982,7 @@ export const about = {
             name: 'Nicole Bruyere',
             role: 'Pastora de Mujeres de Gracia',
             photo: equipoNicole,
-            luz: 1.081,
+            niveles: { negro: 10, fondo: 172, blanco: 226 },
             /*
               La única foto vertical del grupo, y por eso la más apretada: al
               cubrir el cuadrado se escala por el ancho, así que sobra alto y hay
@@ -999,7 +1006,7 @@ export const about = {
             name: 'Jonathan Rogel y Carmen Mansilla',
             role: 'Pastora de Escuela Bíblica y Pastor de Adoración',
             photo: equipoJonathanCarmen,
-            luz: 0.784,
+            niveles: { negro: 7, fondo: 234, blanco: 246 },
             encuadre: { zoom: 1.28, x: '49%', y: '32%' },
             photoHover: equipoJonathanCarmen2,
             /*
@@ -1013,7 +1020,7 @@ export const about = {
             name: 'David Balbontín y Camila Gallardo',
             role: 'Pastores de Presentaciones de Niños',
             photo: equipoDavidCamila,
-            luz: 0.735,
+            niveles: { negro: 8, fondo: 245, blanco: 250 },
             encuadre: { zoom: 1.18, x: '50%', y: '34%' },
             photoHover: equipoDavidCamila2,
           },
@@ -1021,40 +1028,45 @@ export const about = {
             name: 'Hardy Aqueveque y Ruth Venegas',
             role: 'Pastores de Matrimonios Senior',
             photo: equipoHardyRuth,
-            luz: 0.811,
+            niveles: { negro: 1, fondo: 224, blanco: 245 },
             /*
-              Hardy llega muy arriba en su foto, así que el zoom se toma desde el
-              filo de arriba (`y: '0%'`): el aire sobre su cabeza crece con la
-              escala en vez de comérsela. Con el origen a media altura, ampliar le
-              cortaba la coronilla.
+              Posan más cerca de la cámara que el resto, así que van sin zoom:
+              con `1.2` las cabezas salían mucho más grandes que en las demás
+              tarjetas y Hardy se quedaba sin aire por arriba. `zoom: 1` es lo
+              más abierto que se puede —la foto entera de alto—, y aun así se
+              ven algo más grandes que en el resto: eso ya es de la toma.
+
+              `x: '52%'` los centra en el cuadrado; a la izquierda sobraba
+              pared y a Hardy le rozaba el filo derecho.
             */
-            encuadre: { zoom: 1.2, x: '48%', y: '0%' },
+            encuadre: { zoom: 1, x: '52%' },
             photoHover: equipoHardyRuth2,
           },
           {
             name: 'Eduardo Alister y Priscila Almonacid',
             role: 'Pastores de Matrimonios Pro',
             /*
-              Provisional, mientras no llegue el retrato de estudio: es una
-              foto suya de familia y va con el mismo tratamiento que las
-              demás —blanco y negro, y a color al pasar por encima—, así que
-              la tarjeta no se sale de la cuadrícula aunque la foto sea de
-              otro sitio. Las caras salen más pequeñas que en el resto y no
-              hay forma de arreglarlo acercándose: con más zoom se les corta
-              la cabeza a los hijos.
+              El retrato llega ya en blanco y negro, retocado en la sesión:
+              va con `enGris`, sin filtro ni `niveles`.
+              Es además la referencia: su tono es al que se lleva al resto
+              (ver `src/lib/retratos.ts`).
 
-              `x: '40%'` corre el cuadrado hacia la izquierda; centrado, a
-              Priscila le cortaba media cara. Sin `luz`, que es cosa del
-              fondo de estudio.
+              La segunda es la foto de familia que hizo de retrato mientras
+              este no llegaba. Es apaisada, así que lleva su encuadre: `x:
+              '40%'` corre el cuadrado hacia la izquierda; centrado, a
+              Priscila le cortaba media cara.
             */
             photo: equipoEduardoPriscila,
-            encuadre: { x: '40%' },
+            enGris: true,
+            encuadre: { zoom: 1.3, x: '43%', y: '22%' },
+            photoHover: equipoEduardoPriscila2,
+            encuadreHover: { x: '40%' },
           },
           {
             name: 'Eugenia Soto',
             role: 'Pastora de Mujeres de Gracia',
             photo: equipoEugenia,
-            luz: 0.791,
+            niveles: { negro: 35, fondo: 221, blanco: 233 },
             encuadre: { zoom: 1.44, x: '48%', y: '24%' },
             photoHover: equipoEugenia2,
           },
@@ -1062,7 +1074,7 @@ export const about = {
             /* Sin cargo a propósito: van solo como pastores asociados. */
             name: 'Gerardo Andrade y Maria Eliana Zornow',
             photo: equipoGerardoMariaEliana,
-            luz: 0.762,
+            niveles: { negro: 4, fondo: 240, blanco: 246 },
             encuadre: { zoom: 1.48, x: '44%', y: '33%' },
             photoHover: equipoGerardoMariaEliana2,
             /*
@@ -1076,7 +1088,7 @@ export const about = {
             name: 'Cecilia Alvarado',
             role: 'Pastora de Arte Profético',
             photo: equipoCecilia,
-            luz: 0.774,
+            niveles: { negro: 15, fondo: 237, blanco: 245 },
             encuadre: { zoom: 1.6, x: '52%', y: '22%' },
             photoHover: equipoCecilia2,
             /*
@@ -1117,7 +1129,7 @@ export type PasoDeEntrada = {
  * Una red de la iglesia: a quién reúne y quién la pastorea.
  *
  * `retratos` no guarda fotos sino nombres del equipo pastoral, escritos igual
- * que en `about.equipo`: de ahí salen el retrato, su encuadre y su luz, que ya
+ * que en `about.equipo`: de ahí salen el retrato, su encuadre y sus niveles, que ya
  * están afinados a ojo y no se quieren mantener en dos sitios. Si un nombre no
  * existe allí, la construcción falla —es un error de dedo, no un caso posible.
  */
