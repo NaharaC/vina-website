@@ -1099,7 +1099,7 @@ export const about = {
             encuadreHover: { y: '28%' },
           },
           {
-            name: 'Juan y Lina',
+            name: 'Juan Ojeda y Lina Almonacid',
             photo: null,
           },
         ],
@@ -1150,9 +1150,8 @@ export type Pregunta = { q: string; a: string };
  * La página para quien viene por primera vez. Es donde aterriza «Quiero
  * Visitar» del hero.
  *
- * TODO: pendientes los pastores de la Red de Años Dorados y cuánto dura la
- * reunión del domingo. Mientras tanto van en corchetes y a la vista, que es
- * mejor que inventarlos.
+ * TODO: pendientes los pastores de la Red de Años Dorados. Mientras tanto van
+ * en corchetes y a la vista, que es mejor que inventarlos.
  */
 export const soyNuevo = {
   eyebrow: 'Soy nuevo',
@@ -1331,7 +1330,7 @@ export const soyNuevo = {
       },
       {
         q: '¿Cuánto dura la reunión?',
-        a: '[DURACIÓN POR CONFIRMAR.] Después de la reunión siempre queda gente conversando: si es tu primera vez, quédate un rato y te presentamos a alguien.',
+        a: 'Alrededor de una hora y media. Después siempre queda gente conversando: si es tu primera vez, quédate un rato y te presentamos a alguien.',
       },
       {
         q: '¿Cómo me visto?',
