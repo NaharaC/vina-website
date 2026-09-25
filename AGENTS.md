@@ -108,6 +108,20 @@ mensajes de commit van en español.
   hizo de retrato provisional. En `soy-nuevo`, donde los retratos van a
   color, estos dos prestan su segunda foto en vez de la primera.
 
+  **Desde el 25 de septiembre de 2026 la cuadrícula lleva los retratos
+  editados en blanco y negro de la sesión**, todos con `enGris`. Son otras
+  tomas, no las mismas fotos, así que cada `encuadre` se recalculó para que las
+  caras quedaran del mismo tamaño y a la misma altura que en la tarjeta
+  anterior —caras medidas con Vision en la foto vieja y en la nueva— y después
+  se revisó a ojo en la grilla. Aquí la cuenta sí sirvió, porque cada foto
+  tenía una tarjeta ya afinada con que compararse. Rodolfo y Natalie salen un
+  4% más grandes (pedían `zoom` 0.96), y Juan y Lina, que no tenían foto, van
+  a ojo: él es mucho más alto y con las caras al tamaño del resto a ella se le
+  iba la barbilla. Quienes pastorean una red guardan el retrato de antes en
+  `aColor` —el archivo `-color.jpg`, con su encuadre y sus `niveles`— para
+  `soy-nuevo`, que así no cambió. David y Camila siguen con la foto a color
+  y el filtro: su versión nueva no llegó.
+
   La cuadrícula se afinó en dos tandas y cada una tiene su referencia: la
   primera mitad se ajustó contra Daniel y Nahara, y la segunda —Jonathan,
   Hardy, Eugenia, Gerardo y Cecilia— contra David y Camila. Son las dos fotos
