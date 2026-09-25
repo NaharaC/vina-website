@@ -1,0 +1,82 @@
+---
+/*
+  `/centinela` son los bloques de oración de la Casa de Oración.
+
+  No es una página del sitio —no lleva barra, ni pie, ni tipografía nuestra—:
+  es el PDF a pantalla completa, y la dirección corta es lo que se reparte al
+  equipo. El mes que viene se reemplaza `public/centinela/bloques.pdf` y la
+  dirección sigue siendo esta.
+
+  En el teléfono no se puede enseñar dentro: unos navegadores dejan el recuadro
+  en blanco y otros pintan solo la primera página, sin poder pasarla. Por eso
+  el script de abajo lleva el teléfono al archivo, que ahí sí se abre entero en
+  su lector. En escritorio no se toca: el PDF se ve en esta misma dirección.
+*/
+const pdf = '/centinela/bloques.pdf';
+const titulo = 'Centinela · Bloques de la Casa de Oración';
+---
+
+<!doctype html>
+<html lang="es-CL">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    {/* No se publica: se reparte por enlace. */}
+    <meta name="robots" content="noindex, nofollow" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #232323;
+      }
+
+      object {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+
+      /*
+        Lo que se ve si el navegador no sabe enseñar el PDF dentro. No es
+        decorado: es la única salida en ese caso.
+      */
+      .salida {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+
+      .salida a {
+        color: #ffffff;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <object data={pdf} type="application/pdf" title={titulo}>
+      <div class="salida">
+        <a href={pdf}>Abrir los bloques de oración</a>
+      </div>
+    </object>
+
+    <script is:inline define:vars={{ pdf }}>
+      /*
+        Solo el teléfono, donde el PDF no se puede enseñar dentro de la página.
+        `replace` y no `href`: así volver atrás no rebota entre las dos.
+      */
+      if (window.matchMedia('(hover: none)').matches) {
+        window.location.replace(pdf);
+      }
+    </script>
+  </body>
+</html>

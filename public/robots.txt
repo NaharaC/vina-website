@@ -3,5 +3,8 @@ Allow: /
 # El calendario del equipo. La clave de la URL es lo que lo guarda; esto solo
 # evita que un buscador que dé con el enlace lo acabe indexando.
 Disallow: /interno/
+# Los bloques de la Casa de Oración. Igual que el calendario: se reparte por
+# enlace y no se quiere en un buscador.
+Disallow: /centinela
 
 Sitemap: https://iglesiavinapm.cl/sitemap-index.xml
