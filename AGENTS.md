@@ -166,12 +166,13 @@ mensajes de commit van en español.
   hover— casi siempre vienen cuadradas; si no, llevan `encuadreHover`.
 
   En el teléfono no hay hover: ahí el script de `nosotros.astro` le pone la
-  clase `encendida` —que hace lo mismo— al tocar el retrato, y otro toque lo
-  devuelve a la primera foto; al salir de la ventana también vuelve a ella.
-  Antes cambiaba solo (primero al cruzar el tercio central, después cada
-  3,5 s mientras estaba a la vista), y se prefirió que cambie solo cuando lo
-  pide quien mira. Solo corre con `(hover: none)`; en escritorio sigue siendo
-  el ratón.
+  clase `encendida` —que hace lo mismo— mientras se mantiene el dedo sobre el
+  retrato, y al soltar vuelve la primera foto. Si el dedo arrastra para bajar
+  la página, el navegador cancela el toque y la foto vuelve sola. Antes
+  cambiaba solo (primero al cruzar el tercio central, después cada 3,5 s) y
+  luego con un toque y otro para volver; se prefirió que la segunda dure lo
+  que dura el dedo encima. Solo corre con `(hover: none)`; en escritorio
+  sigue siendo el ratón.
 
   **Ojo al comprobarlo en el navegador:** en desarrollo la URL de la imagen
   optimizada no lleva huella del contenido, así que al cambiar un retrato el

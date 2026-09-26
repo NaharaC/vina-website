@@ -387,6 +387,17 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
   .equipo-retratos .group.encendida .retrato.se-enciende {
     filter: none;
   }
+
+  /*
+    En el teléfono la segunda foto sale mientras se mantiene el dedo encima
+    (ver el script del final), y en iOS apretar una foto abre su menú o
+    selecciona: aquí no hace falta ninguno de los dos.
+  */
+  .equipo-retratos [data-retrato] {
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
 </style>
 
 <style>
@@ -707,15 +718,19 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
 
   /*
     En el teléfono no hay ratón que pase por encima, así que la segunda foto
-    no llegaba a verse nunca. Ahí un toque sobre el retrato hace de `:hover`
-    —la clase `encendida` hace lo mismo—: cambia a la segunda foto y otro
-    toque devuelve la primera. Al salir de la ventana vuelve a la primera,
-    para que la próxima vez empiece por ella.
+    no llegaba a verse nunca. Ahí mantener el dedo sobre el retrato hace de
+    `:hover` —la clase `encendida` hace lo mismo—: mientras se aprieta se ve
+    la segunda foto y al soltar vuelve la primera.
 
-    Hubo dos versiones antes: encenderse al cruzar el tercio central de la
-    ventana (duraba un segundo y la primera foto no se alcanzaba a ver) y
-    alternar sola cada 3,5 s mientras estuviera a la vista. Se prefirió que
-    cambie solo cuando lo pide quien mira.
+    Si el dedo empieza a arrastrar para bajar la página, el navegador cancela
+    el toque (`pointercancel`) y la foto vuelve sola: al desplazarse por
+    encima de la cuadrícula no se encienden las tarjetas.
+
+    Hubo tres versiones antes: encenderse al cruzar el tercio central de la
+    ventana (duraba un segundo y la primera foto no se alcanzaba a ver),
+    alternar sola cada 3,5 s mientras estuviera a la vista, y cambiar con un
+    toque y volver con otro. Se prefirió que la segunda foto dure lo que dura
+    el dedo encima.
 
     Solo donde no hay hover de verdad: en escritorio el gesto sigue siendo
     pasar el ratón.
@@ -723,19 +738,14 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
   if (seccion && matchMedia('(hover: none)').matches) {
     const retratos = seccion.querySelectorAll<HTMLElement>('[data-retrato]');
 
-    // Fuera de la ventana es con menos de la mitad dentro.
-    const vista = new IntersectionObserver(
-      (entradas) => {
-        for (const e of entradas) {
-          if (!e.isIntersecting) e.target.classList.remove('encendida');
-        }
-      },
-      { threshold: 0.5 },
-    );
-
     retratos.forEach((retrato) => {
-      vista.observe(retrato);
-      retrato.addEventListener('click', () => retrato.classList.toggle('encendida'));
+      const apagar = () => retrato.classList.remove('encendida');
+      retrato.addEventListener('pointerdown', () => retrato.classList.add('encendida'));
+      retrato.addEventListener('pointerup', apagar);
+      retrato.addEventListener('pointercancel', apagar);
+      retrato.addEventListener('pointerleave', apagar);
+      // Mantener apretado una foto abre el menú de «Guardar imagen».
+      retrato.addEventListener('contextmenu', (e) => e.preventDefault());
     });
   }
 </script>
