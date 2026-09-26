@@ -713,6 +713,12 @@ export type FotoHistorica = {
   caption: string;
   /** `null` mientras no llegue. Cada una se muestra con su proporción. */
   image: ImageMetadata | null;
+  /**
+   * El año en cuerpo grande, para la línea de tiempo del teléfono. Repite el
+   * del pie a propósito: allí las fotos pasan de lado y el año es lo que se
+   * lee de un vistazo.
+   */
+  anio: string;
 };
 
 /**
@@ -724,6 +730,13 @@ export type ProyectoCompasion = {
   body: string;
   /** Las líneas sueltas que se leen de un vistazo. Sin viñetas. */
   lista: string[];
+  /**
+   * Lo que dice la tarjeta del teléfono en lugar de `body` y `lista`: una
+   * frase y tres datos. Allí los proyectos pasan de lado en tarjetas, y el
+   * párrafo entero las volvía más largas que la pantalla.
+   */
+  resumen: string;
+  destacados: [string, string, string];
   action: NavLink;
   photo: ImageMetadata;
   photoAlt: string;
@@ -735,6 +748,8 @@ export type ProyectoCompasion = {
 export type Sueno = {
   title: string;
   body: string;
+  /** La línea que lo acompaña en la lista del teléfono, en vez de `body`. */
+  resumen: string;
   lista?: string[];
 };
 
@@ -743,6 +758,12 @@ export const about = {
   title: 'Somos una familia compasiva imitando a Jesús',
 
   historia: {
+    /*
+      El rótulo solo sale en el teléfono, donde cada sección abre con su
+      número y su rótulo: allí la página se lee de corrido y hacía falta saber
+      en qué parte se está. En escritorio la historia abre con el título.
+    */
+    rotulo: 'De dónde venimos',
     title: 'Nuestra historia',
     /*
       La línea que abre el relato, debajo del título. Va en el mismo cuerpo y
@@ -765,6 +786,15 @@ export const about = {
       Quién firma el relato, una línea por entrada. Va al pie, en cuerpo de
       nota: no es el texto, es de quién viene.
     */
+    /*
+      La promesa del tercer párrafo, sacada aparte en el teléfono. Allí el
+      relato empieza plegado —el primer párrafo, esta cita y «Leer el relato
+      completo»—, y la cita es lo que se queda de lo que no se ve.
+    */
+    cita: {
+      texto: '“Denme una oportunidad para demostrarles que yo soy Dios”.',
+      pie: 'La promesa que sostuvo a la iglesia en sus años difíciles.',
+    },
     firma: [
       'Palabras de nuestros Pastores Fundadores',
       'Jairo Quinteros y Verónica Mayne',
@@ -785,23 +815,43 @@ export const about = {
       {
         caption: 'Jairo Quinteros y Verónica Mayne, nuestros pastores fundadores, hoy.',
         image: historiaPastoresFundadores,
+        anio: 'Hoy',
       },
       {
         caption: 'Matrimonio de nuestros pastores fundadores. Valparaíso, año 1981.',
         image: historiaMatrimonioPastores,
+        anio: '1981',
       },
       {
         caption: 'Nuestras primeras reuniones, en calle Egaña. Año 2001.',
         image: historiaEquipoAdoracion,
+        anio: '2001',
       },
-      { caption: 'Nuestras primeras reuniones, en calle Egaña. Año 2001.', image: historiaSalon },
+      {
+        caption: 'Nuestras primeras reuniones, en calle Egaña. Año 2001.',
+        image: historiaSalon,
+        anio: '2001',
+      },
       {
         caption: 'Uno de los primeros bautizos. Chamiza, año 2002.',
         image: historiaBautizosChamiza,
+        anio: '2002',
       },
-      { caption: 'Campamento de niños, Chamiza, año 2003.', image: historiaCampamentoNinos },
-      { caption: 'Ampliación Edificio antiguo, La Vara. Año 2011.', image: historiaEdificioBlanco },
-      { caption: 'Ampliación Edificio antiguo, La Vara. Año 2011.', image: historiaConstruccion },
+      {
+        caption: 'Campamento de niños, Chamiza, año 2003.',
+        image: historiaCampamentoNinos,
+        anio: '2003',
+      },
+      {
+        caption: 'Ampliación Edificio antiguo, La Vara. Año 2011.',
+        image: historiaEdificioBlanco,
+        anio: '2011',
+      },
+      {
+        caption: 'Ampliación Edificio antiguo, La Vara. Año 2011.',
+        image: historiaConstruccion,
+        anio: '2011',
+      },
     ] satisfies FotoHistorica[],
   },
 
@@ -869,6 +919,9 @@ export const about = {
           'Postulaciones: educamontealto@gmail.com',
           '+56 9 4408 7458',
         ],
+        resumen:
+          'Educación de excelencia académica con una sólida formación en valores cristianos, desde los 2 años hasta 8° básico.',
+        destacados: ['Más de 120 estudiantes', 'Exámenes libres', 'En las instalaciones de la iglesia'],
         action: {
           label: 'Ver en Instagram',
           href: 'https://www.instagram.com/educamontealto/',
@@ -890,6 +943,13 @@ export const about = {
           'En las instalaciones de la iglesia',
           '+56 9 6618 2335',
         ],
+        resumen:
+          'Más de 12 mil atenciones de alta calidad y bajo costo, sobre todo en odontología.',
+        destacados: [
+          'Medicina general, odontología, psicología',
+          'Jueves y viernes, presencial',
+          'En las instalaciones de la iglesia',
+        ],
         action: { label: 'Visitar página web', href: 'https://cm.vinapm.cl/', external: true },
         photo: centroMedico,
         photoAlt: 'Profesional de la salud atendiendo a un paciente',
@@ -905,6 +965,8 @@ export const about = {
           'Recibimos donaciones cada domingo, en las reuniones principales',
           'Para aportar, escríbenos al +56 9 5782 9898',
         ],
+        resumen: 'Canastas de mercadería a los hogares, y con ellas una palabra de esperanza.',
+        destacados: ['En todo Puerto Montt', 'Donaciones cada domingo', '+56 9 5782 9898'],
         action: {
           label: 'Quiero aportar',
           href: whatsappHref('Hola, quiero aportar a Dadores de Amor'),
@@ -931,6 +993,8 @@ export const about = {
       'Vista aérea del terreno nuevo de 80.000 m², a unos metros de la propiedad actual',
     fotoPie:
       'El terreno nuevo: 80.000 m² a unos metros de la propiedad actual, donde se proyectan estos sueños.',
+    /** La cifra que va sobre la foto en el teléfono. */
+    superficie: '80.000 m²',
     cierre: 'Sé parte de nuestros proyectos',
     action: { label: 'Dar', href: contactChannels.givingUrl, external: true },
     items: [
@@ -938,23 +1002,50 @@ export const about = {
         title: 'Universidad «Velos»',
         body: 'En el terreno adquirido recientemente se proyecta la Universidad «Velos», primera universidad cristiana del sur de Chile.',
         lista: ['Nuevo terreno, a unos metros del actual'],
+        resumen: 'La primera universidad cristiana del sur de Chile.',
       },
       {
         title: 'Academia y Centro de Formación Técnica',
         body: 'También se proyecta nuestro Centro de Formación Técnica, complementado con un programa de capacitación para emprendedores locales, abriendo puertas de futuro para niños, adolescentes y jóvenes de nuestra región.',
+        resumen: 'Formación técnica y capacitación para emprendedores locales.',
       },
       {
         title: 'Hospital Clínico La Viña',
         body: 'En fe, sobre este nuevo terreno, construiremos este centro clínico, ampliando nuestra capacidad de servicio y sanidad en la comuna.',
+        resumen: 'Más capacidad de servicio y sanidad en la comuna.',
       },
       {
         title: 'Residencia de niños y familias de acogida',
         body: 'Anhelamos brindar un entorno seguro, de amor, restauración y cuidado integral a niños que lo necesitan, acompañando y capacitando a familias que abren sus corazones bajo esta hermosa labor de acogida.',
+        resumen: 'Un entorno seguro y de cuidado para niños que lo necesitan.',
       },
     ] satisfies Sueno[],
   },
 
+  /*
+    Quien quiere servir con su profesión: una tarjeta plegada al final de «Lo
+    que viene» que se abre en un formulario de dos campos. No hay dónde
+    guardar las respuestas, así que por ahora enviar abre WhatsApp con el
+    mensaje escrito; `mensaje` lo arma con lo que se eligió.
+  */
+  sumate: {
+    rotulo: 'Sirve con tu profesión',
+    title: '¿Quieres apoyar con lo que sabes hacer?',
+    bajada:
+      'Si quieres apoyar en los proyectos de compasión social actuales y en los que vienen, déjanos tu nombre y tu área, y te escribimos.',
+    areas: ['Salud', 'Educación', 'Derecho', 'Tecnología', 'Ciencia', 'Otra'],
+    enviar: 'Enviar por WhatsApp',
+    nota: 'Se abre WhatsApp con tu mensaje listo para enviar.',
+    /** El enlace que lleva al formulario desde el final de los proyectos. */
+    enlace: '¿Quieres apoyar con tu profesión? Escríbenos',
+    /** El mensaje que llega por WhatsApp; `{nombre}` y `{area}` se rellenan. */
+    mensaje:
+      'Hola, soy {nombre} y mi área es {area}. Me gustaría apoyar con mi profesión en los proyectos de la iglesia.',
+  },
+
   equipo: {
+    /** Como el de la historia: solo en el teléfono. */
+    rotulo: 'Quiénes nos pastorean',
     title: 'Equipo pastoral',
     /**
      * Dos tramos, cada uno con su rótulo: primero los fundadores y luego los

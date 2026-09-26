@@ -203,6 +203,22 @@ mensajes de commit van en español.
   que queda de ventana después de medir todo lo demás). Como la foto va con
   `object-cover`, recortarla de alto la encuadra más apaisada y no la deforma.
 
+- **`nosotros` tiene otra forma en el teléfono.** Por debajo de 64rem cada
+  sección abre con su número y su rótulo (`numero` en `SectionHeading`), hay
+  un índice bajo el titular, la historia es una línea de tiempo que se
+  desliza con el relato plegado, los proyectos y el equipo pasan de lado y
+  los sueños son una lista con su `resumen`. Los textos cortos de allí
+  —`resumen`, `destacados`, `cita`, los rótulos— están en `content.ts` junto
+  a los largos: si cambia un proyecto, hay que mirar los dos. Al final de «Lo
+  que viene» va `Sumate`, la tarjeta plegada de quien quiere servir con su
+  profesión, que por ahora envía por WhatsApp.
+
+  Ojo con las filas que se deslizan: un `sr-only` dentro de una tarjeta es
+  `position: absolute`, y si la tarjeta no es `relative` se escapa de la
+  fila y ensancha la página entera —el teléfono la muestra alejada, a 672px
+  en vez de 390—. Pasó con «(se abre en una ventana nueva)» en los
+  proyectos.
+
 - **El afiche de la radio tiene dos versiones.** La apaisada
   (`radio-programacion.png`) es la de escritorio. La vertical
   (`radio-programacion-vertical.jpg`, 1200x2184) no es un recorte del

@@ -15,23 +15,90 @@
  * web que lo hace, y por eso el redondeo va solo en las esquinas de la
  * izquierda. En el teléfono no hay dos columnas: el texto va arriba y el
  * rectángulo debajo, y las fotos se apilan en vez de montarse.
+ *
+ * Eso era en el teléfono la parte más larga de `nosotros`, así que allí los
+ * proyectos van en otra forma: tarjetas que pasan de lado, cada una con una
+ * foto, el `resumen` y sus tres `destacados`. El marcado de escritorio se
+ * esconde y el del teléfono solo existe por debajo de 64rem. Al final va el
+ * enlace al formulario de quien quiere servir con su profesión.
  */
 import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
 import BotonPalabra from './BotonPalabra.astro';
 import SectionHeading from './SectionHeading.astro';
 import { about } from '../data/content';
 
 const { title, eyebrow, items } = about.proyectos;
+const { enlace } = about.sumate;
 ---
 
-<section id="proyectos" class="pb-28 lg:pb-48" aria-labelledby="proyectos-titulo">
+<section id="proyectos" class="pb-20 lg:pb-48" aria-labelledby="proyectos-titulo">
   {/* El encabezado sí se queda en la caja de la página; el que sale al filo es
       el rectángulo de las fotos, más abajo. */}
   <div class="container-page">
-    <SectionHeading id="proyectos-titulo" eyebrow={eyebrow} title={title} />
+    <SectionHeading id="proyectos-titulo" eyebrow={eyebrow} numero="02" title={title} />
+
+    <p class="nota mt-4 flex items-center gap-1.5 lg:hidden" aria-hidden="true">
+      Desliza para verlos
+      <Icon name="lucide:arrow-right" width={14} height={14} />
+    </p>
   </div>
 
-  <div class="tira-proyectos tira-derecha mt-16 lg:mt-24">
+  {/* El teléfono: una tarjeta por proyecto, que pasan de lado. */}
+  <div class="lg:hidden">
+    <ul data-carril class="carril-proyectos sin-barra mt-6 flex list-none gap-3 overflow-x-auto p-0">
+      {
+        items.map((proyecto) => (
+          <li class="tarjeta-proyecto relative flex flex-col overflow-hidden rounded-[1.5rem] bg-mist">
+            <Image
+              src={proyecto.photo}
+              alt={proyecto.photoAlt}
+              widths={[480, 720]}
+              sizes="19rem"
+              class="aspect-[8/5] w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="flex grow flex-col gap-3 p-5">
+              <h3 class="heading-md text-ink">{proyecto.title}</h3>
+              <p class="subtitle text-ink">{proyecto.resumen}</p>
+              <ul class="flex list-none flex-col gap-1 p-0">
+                {proyecto.destacados.map((linea) => <li class="nota">{linea}</li>)}
+              </ul>
+              <a
+                href={proyecto.action.href}
+                target={proyecto.action.external ? '_blank' : undefined}
+                rel={proyecto.action.external ? 'noopener noreferrer' : undefined}
+                class="mt-auto inline-flex min-h-11 items-center gap-2 self-start text-[1rem] font-semibold text-ink"
+              >
+                {proyecto.action.label}
+                {proyecto.action.external && <span class="sr-only">(se abre en una ventana nueva)</span>}
+                <Icon name="lucide:arrow-right" width={16} height={16} class="text-accent-strong" aria-hidden="true" />
+              </a>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+
+    {/* Qué tarjeta se está viendo. Lo mueve el script de abajo. */}
+    <div class="mt-4 flex justify-center gap-1.5" aria-hidden="true">
+      {items.map((_, i) => <span data-punto class="punto" data-activo={i === 0 ? '' : undefined} />)}
+    </div>
+
+    <div class="container-page mt-6">
+      <a
+        href="#sumate"
+        data-abre-sumate
+        class="flex min-h-11 items-center justify-between gap-3 border-t border-ink/15 py-3 text-[1rem] font-medium text-ink"
+      >
+        {enlace}
+        <Icon name="lucide:chevron-down" width={18} height={18} class="shrink-0 text-accent-strong" aria-hidden="true" />
+      </a>
+    </div>
+  </div>
+
+  <div class="tira-proyectos tira-derecha mt-16 max-lg:hidden lg:mt-24">
     {
       items.map((proyecto) => (
         <article class="bloque-proyecto">
@@ -88,6 +155,42 @@ const { title, eyebrow, items } = about.proyectos;
 </section>
 
 <style>
+  /*
+    Las tarjetas del teléfono. La fila llega de filo a filo; el margen de la
+    página lo pone el relleno, para que la primera tarjeta arranque alineada
+    con el título.
+  */
+  .carril-proyectos {
+    --margen: 1.25rem;
+    scroll-snap-type: x mandatory;
+    padding-inline: var(--margen);
+    scroll-padding-inline: var(--margen);
+  }
+
+  @media (width >= 40rem) {
+    .carril-proyectos {
+      --margen: 2rem;
+    }
+  }
+
+  .tarjeta-proyecto {
+    flex: 0 0 19rem;
+    scroll-snap-align: start;
+  }
+
+  .punto {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--color-ink) 20%, transparent);
+    transition: width 0.25s, background-color 0.25s;
+  }
+
+  .punto[data-activo] {
+    width: 1.125rem;
+    background-color: var(--color-ink);
+  }
+
   /* apilado, el rectángulo necesita aire por arriba: si no, el botón queda
      pegado al gris */
   .bloque-proyecto {
@@ -235,3 +338,48 @@ const { title, eyebrow, items } = about.proyectos;
     }
   }
 </style>
+
+<script>
+  /*
+    Los puntos de debajo de las tarjetas: se marca la que está más cerca del
+    borde izquierdo de la fila, que es donde se detiene cada una al soltar.
+  */
+  document.querySelectorAll<HTMLElement>('[data-carril]').forEach((carril) => {
+    const tarjetas = Array.from(carril.children) as HTMLElement[];
+    const puntos = Array.from(
+      carril.parentElement?.querySelectorAll<HTMLElement>('[data-punto]') ?? []
+    );
+
+    if (!puntos.length) return;
+
+    let pedido = 0;
+
+    const marcar = () => {
+      pedido = 0;
+      const inicio = carril.scrollLeft;
+      let activa = 0;
+      let cerca = Infinity;
+
+      tarjetas.forEach((tarjeta, i) => {
+        const distancia = Math.abs(tarjeta.offsetLeft - carril.offsetLeft - inicio);
+        if (distancia < cerca) {
+          cerca = distancia;
+          activa = i;
+        }
+      });
+
+      // la última no llega nunca al borde: al tope de la fila, es ella
+      if (inicio + carril.clientWidth >= carril.scrollWidth - 2) activa = tarjetas.length - 1;
+
+      puntos.forEach((punto, i) => punto.toggleAttribute('data-activo', i === activa));
+    };
+
+    carril.addEventListener(
+      'scroll',
+      () => {
+        if (!pedido) pedido = requestAnimationFrame(marcar);
+      },
+      { passive: true }
+    );
+  });
+</script>

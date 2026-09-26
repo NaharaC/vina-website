@@ -24,6 +24,23 @@ const contactHref = whatsappHref('Hola, me gustaría saber más de la iglesia') 
 /* El tipo declarado y no el que infiere el literal: dentro del literal, el
    miembro de los fundadores solo tiene los campos que trae escritos, y el
    marcado usa el resto (`encuadre`, `niveles`) para todos por igual. */
+/* Las secciones del índice del teléfono, en el orden en que aparecen. */
+const indice = [
+  { label: 'Historia', href: '#historia' },
+  { label: 'Compasión', href: '#proyectos' },
+  { label: 'Lo que viene', href: '#suenos' },
+  { label: 'Valores', href: '#creemos' },
+  { label: 'Equipo', href: '#equipo' },
+];
+
+/* De cuándo es la foto más antigua: el «1981 → hoy» de la línea de tiempo. */
+const primerAnio = about.historia.fotos
+  .map((foto) => foto.anio)
+  .filter((anio) => /^\d+$/.test(anio))
+  .sort()[0];
+
+const [primerParrafo, ...restoRelato] = about.historia.body;
+
 const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
   ...grupo,
   id: `equipo-lista-${i}`,
@@ -52,19 +69,58 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
       <h1 id="nosotros-titulo" class="portada mt-6 max-w-5xl text-ink text-balance">
         {about.title}
       </h1>
+
+      {/*
+        El índice de la página, solo en el teléfono: allí las secciones van
+        una debajo de otra y la página es larga, así que se dice de entrada
+        qué hay y se puede saltar. No se queda pegado arriba porque arriba
+        va la barra, que asoma al subir.
+      */}
+      <nav aria-label="En esta página" class="sin-barra -mx-5 mt-10 flex gap-2 overflow-x-auto px-5 sm:-mx-8 sm:px-8 lg:hidden">
+        {indice.map((entrada) => (
+          <a
+            href={entrada.href}
+            class="flex h-9 shrink-0 items-center rounded-full bg-mist px-4 text-[0.9375rem] font-medium text-ink"
+          >
+            {entrada.label}
+          </a>
+        ))}
+      </nav>
     </div>
   </section>
 
-  {/* Historia: la pila de fotos a un lado y el relato al otro */}
-  <section id="historia" class="pb-28 lg:pb-48" aria-label="Nuestra historia">
+  {/*
+    Historia: la pila de fotos a un lado y el relato al otro.
+
+    En el teléfono cambia de forma: las fotos pasan de lado en una línea de
+    tiempo, con el año grande, y del relato se ve el primer párrafo y la
+    promesa; el resto espera detrás de «Leer el relato completo». Apiladas,
+    las ocho fotos y los siete párrafos eran la mitad de la página.
+
+    Para reordenar sin repetir el marcado, en el teléfono el relato se
+    disuelve (`display: contents`) y sus partes se colocan con `order`: el
+    título arriba, las fotos en medio y el texto debajo. En escritorio el
+    relato sigue siendo un bloque, que es el que se queda pegado.
+  */}
+  <section id="historia" class="pb-20 lg:pb-48" aria-label="Nuestra historia">
     <div class="container-page">
-      <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
+      <div class="flex flex-col lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
+        <SectionHeading eyebrow={about.historia.rotulo} numero="01" as="p" class="lg:hidden" />
+
+        <div class="mt-10 flex items-center justify-between max-lg:order-2 lg:hidden">
+          <p class="eyebrow">{primerAnio} → hoy</p>
+          <p class="nota flex items-center gap-1.5" aria-hidden="true">
+            Desliza
+            <Icon name="lucide:arrow-right" width={14} height={14} />
+          </p>
+        </div>
+
         {/*
           La pila de fotos: crecen hacia abajo, cada una con su pie y con su
           propia proporción. El texto de al lado se queda quieto mientras
           pasan, como en la referencia.
         */}
-        <div class="flex flex-col gap-12">
+        <div class="linea-historia sin-barra flex flex-col gap-12 max-lg:order-2 max-lg:mt-3">
           {about.historia.fotos.map((foto, i) =>
             foto.image ? (
               <figure>
@@ -72,14 +128,16 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
                   src={foto.image}
                   alt={foto.caption}
                   widths={[480, 768, 1080]}
-                  sizes="(min-width: 64rem) 40rem, 92vw"
+                  sizes="(min-width: 64rem) 40rem, 16rem"
                   class="h-auto w-full rounded-[1rem]"
                   loading={i === 0 ? 'eager' : 'lazy'}
                 />
-
-                <figcaption class="nota mt-4 flex gap-3">
-                  <span aria-hidden="true">—</span>
-                  {foto.caption}
+                <figcaption class="mt-4 max-lg:mt-2.5">
+                  <span class="heading-md block text-ink lg:hidden">{foto.anio}</span>
+                  <span class="nota flex gap-3">
+                    <span aria-hidden="true" class="max-lg:hidden">—</span>
+                    {foto.caption}
+                  </span>
                 </figcaption>
               </figure>
             ) : (
@@ -88,30 +146,54 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
           )}
         </div>
 
-        <div class="relato-historia mt-12 lg:mt-0">
-          <h2 class="heading-lg text-ink">{about.historia.title}</h2>
-
-          {/* De quién es el relato, en el mismo cuerpo que la firma del final. */}
-          <p class="nota mt-5 max-w-xl border-b border-ink/15 pb-6 text-pretty">
-            {about.historia.bajada}
-          </p>
+        <div class="relato-historia max-lg:contents">
+          <div class="max-lg:order-1 max-lg:mt-6">
+            <h2 class="heading-lg text-ink">{about.historia.title}</h2>
+            {/* De quién es el relato, en el mismo cuerpo que la firma del final. */}
+            <p class="nota mt-5 max-w-xl border-b border-ink/15 pb-6 text-pretty max-lg:border-0 max-lg:pb-0">
+              {about.historia.bajada}
+            </p>
+          </div>
 
           {/*
             El relato va en `subtitle`, no en `subtitle-lg`: son párrafos de
             texto corrido, no la bajada de un título, y en cuerpo grande no
             cabía entero en una ventana de portátil.
           */}
-          <div class="mt-8 flex flex-col gap-4">
-            {about.historia.body.map((parrafo) => <p class="subtitle max-w-xl">{parrafo}</p>)}
-          </div>
+          <div class="texto-relato mt-8 max-lg:order-3">
+            <div class="flex flex-col gap-4">
+              <p class="subtitle max-w-xl max-lg:text-ink">{primerParrafo}</p>
 
-          {/* Quién lo firma: cuerpo de nota, para que no compita con el relato. */}
-          <div class="mt-8 flex max-w-xl flex-col border-t border-ink/15 pt-6">
-            {about.historia.firma.map((linea) => <p class="nota">{linea}</p>)}
+              <blockquote class="my-2 rounded-[1.25rem] bg-mist p-6 lg:hidden">
+                <p class="heading-md text-ink">{about.historia.cita.texto}</p>
+                <p class="nota mt-2.5">{about.historia.cita.pie}</p>
+              </blockquote>
+
+              <div id="relato-resto" class="relato-resto flex flex-col gap-4">
+                {restoRelato.map((parrafo) => <p class="subtitle max-w-xl">{parrafo}</p>)}
+              </div>
+            </div>
+
+            {/* Quién lo firma: cuerpo de nota, para que no compita con el relato. */}
+            <div id="relato-firma" class="relato-resto mt-8 flex max-w-xl flex-col border-t border-ink/15 pt-6">
+              {about.historia.firma.map((linea) => <p class="nota">{linea}</p>)}
+            </div>
+
+            <button
+              type="button"
+              data-relato
+              aria-expanded="false"
+              aria-controls="relato-resto relato-firma"
+              class="group mt-6 inline-flex items-center gap-3 rounded-full bg-mist py-2 pl-5 pr-2 text-[1rem] font-semibold text-carbon transition-colors hover:bg-ink/10 lg:hidden"
+            >
+              <span>Leer el relato completo</span>
+              <span class="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-white transition-transform duration-200 group-aria-expanded:rotate-180">
+                <Icon name="lucide:chevron-down" width={16} height={16} aria-hidden="true" />
+              </span>
+            </button>
           </div>
         </div>
       </div>
-
     </div>
   </section>
 
@@ -132,7 +214,7 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
     sola —el negro va bajando de valor en valor conforme se avanza— sin tener
     que abrir nada. Abrir uno lo marca a él mientras esté abierto.
   */}
-  <section id="creemos" class="pb-28 lg:pb-48" aria-labelledby="valores-titulo">
+  <section id="creemos" class="pb-20 lg:pb-48" aria-labelledby="valores-titulo">
     <div class="container-page">
       <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24">
         {/*
@@ -146,6 +228,7 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
           <SectionHeading
             id="valores-titulo"
             eyebrow={about.valores.eyebrow}
+            numero="04"
             title={about.valores.title}
             subtitle={about.valores.subtitle}
             estrecho
@@ -176,9 +259,13 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
                     data-valor
                     aria-expanded="false"
                     aria-controls={`valor-${i}`}
-                    class="group flex w-full items-start justify-between gap-6 py-9 text-left lg:py-12"
+                    class="group flex w-full items-start justify-between gap-6 py-6 text-left lg:py-12"
                   >
-                    <span class="titulo-valor heading-md text-balance transition-colors duration-500 group-hover:text-ink">
+                    {/* En el teléfono cada valor lleva su número, como las secciones. */}
+                    <span class="rotulo titulo-valor -mr-2 w-6 shrink-0 pt-2 lg:hidden" aria-hidden="true">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span class="titulo-valor grow heading-md text-balance transition-colors duration-500 group-hover:text-ink">
                       {valor.title}
                     </span>
                     <span
@@ -209,8 +296,9 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
   </section>
 
   {/* Equipo pastoral */}
-  <section id="equipo" class="equipo-retratos pb-28 lg:pb-48" aria-labelledby="equipo-titulo">
+  <section id="equipo" class="equipo-retratos pb-20 lg:pb-48" aria-labelledby="equipo-titulo">
     <div class="container-page">
+      <SectionHeading eyebrow={about.equipo.rotulo} numero="05" as="p" class="mb-6 lg:hidden" />
       <h2 id="equipo-titulo" class="heading-lg text-ink">{about.equipo.title}</h2>
 
       {
@@ -273,11 +361,24 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
             ) : (
               <Fragment>
                 {/* El rótulo del tramo: el título grande es el de la sección */}
-                <SectionHeading eyebrow={grupo.rotulo} as="p" />
+                <SectionHeading eyebrow={grupo.rotulo} as="p">
+                  {grupo.hayResto && (
+                    <span class="nota flex items-center gap-1.5 lg:hidden" aria-hidden="true">
+                      Desliza
+                      <Icon name="lucide:arrow-right" width={14} height={14} />
+                    </span>
+                  )}
+                </SectionHeading>
 
+                {/*
+                  En escritorio, la cuadrícula de tres con el resto plegado
+                  detrás del botón. En el teléfono, dos filas que pasan de
+                  lado con todo el equipo dentro: una columna de catorce
+                  tarjetas era la parte más larga de la página.
+                */}
                 <ul
                   id={grupo.id}
-                  class="equipo-lista mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-12 lg:grid-cols-3"
+                  class="equipo-lista sin-barra mt-6 lg:mt-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:gap-y-10"
                 >
                   {grupo.miembros.map((miembro, i) => (
                     <li class:list={[grupo.visibles !== undefined && i >= grupo.visibles && 'miembro-plegado']}>
@@ -346,6 +447,19 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
   acotado por la clase de la lista.
 */}
 <style is:global>
+  /*
+    En la línea de tiempo del teléfono todas las fotos van en el mismo marco
+    apaisado, para que la fila se lea pareja; apiladas, en escritorio, cada
+    una conserva su proporción.
+  */
+  @media (width < 64rem) {
+    .linea-historia img {
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      object-position: 50% 30%;
+    }
+  }
+
   /*
     Acotado a la sección entera y no a la cuadrícula: el tramo de los
     fundadores va fuera de la lista y lleva el mismo tratamiento.
@@ -427,6 +541,46 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
     .relato-historia {
       position: sticky;
       top: var(--tope, 4rem);
+    }
+  }
+
+  /*
+    La línea de tiempo del teléfono: la misma pila de fotos, tumbada. Llega
+    de filo a filo de la ventana —el margen de la página lo pone el relleno,
+    para que la primera foto arranque alineada con el texto— y se detiene en
+    cada foto. La de los fundadores hoy va primera en la lista, porque en
+    escritorio abre el relato; aquí va al final, que es donde cae «hoy».
+  */
+  @media (width < 64rem) {
+    .linea-historia {
+      --margen: 1.25rem;
+      flex-direction: row;
+      gap: 0.75rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(-1 * var(--margen));
+      padding-inline: var(--margen);
+      scroll-padding-inline: var(--margen);
+    }
+
+    .linea-historia > * {
+      flex: 0 0 15.5rem;
+      scroll-snap-align: start;
+    }
+
+    .linea-historia > :first-child {
+      order: 1;
+    }
+
+    /* el relato plegado: lo abre «Leer el relato completo» */
+    .texto-relato:not([data-abierto]) .relato-resto {
+      display: none;
+    }
+  }
+
+  @media (40rem <= width < 64rem) {
+    .linea-historia {
+      --margen: 2rem;
     }
   }
 </style>
@@ -517,6 +671,41 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
     display: none;
   }
 
+  @media (width < 64rem) {
+    .equipo-lista {
+      --margen: 1.25rem;
+      display: grid;
+      grid-template-rows: repeat(2, auto);
+      grid-auto-flow: column;
+      grid-auto-columns: 9.5rem;
+      gap: 1.75rem 0.75rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(-1 * var(--margen));
+      padding-inline: var(--margen);
+      scroll-padding-inline: var(--margen);
+    }
+
+    .equipo-lista > li {
+      scroll-snap-align: start;
+    }
+
+    /* en el teléfono no hay nada plegado: todo el equipo está en las filas */
+    .miembro-plegado {
+      display: revert;
+    }
+
+    .equipo-mas {
+      display: none;
+    }
+  }
+
+  @media (40rem <= width < 64rem) {
+    .equipo-lista {
+      --margen: 2rem;
+    }
+  }
+
   .equipo-lista.esta-abierta .miembro-plegado {
     display: revert;
     animation: asomar 0.4s ease both;
@@ -561,6 +750,30 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
     // El alto cambia cuando entra la tipografía de la página.
     document.fonts?.ready.then(ajustarTope);
   }
+
+  /*
+    «Leer el relato completo», en el teléfono. Abre el resto del relato y la
+    firma; al cerrarlo, si el botón quedó por encima de la ventana, se vuelve
+    al principio del texto para no dejar a nadie en medio de otra sección.
+  */
+  document.querySelectorAll<HTMLButtonElement>('[data-relato]').forEach((boton) => {
+    const texto = boton.closest<HTMLElement>('.texto-relato');
+    const etiqueta = boton.querySelector('span');
+
+    if (!texto || !etiqueta) return;
+
+    boton.addEventListener('click', () => {
+      const abierto = !texto.hasAttribute('data-abierto');
+
+      texto.toggleAttribute('data-abierto', abierto);
+      boton.setAttribute('aria-expanded', String(abierto));
+      etiqueta.textContent = abierto ? 'Cerrar el relato' : 'Leer el relato completo';
+
+      if (!abierto && boton.getBoundingClientRect().top < 0) {
+        texto.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    });
+  });
 
   /*
     Los valores. Dos cosas a la vez:

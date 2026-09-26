@@ -9,23 +9,77 @@
  * El nombre de cada sueño va un peldaño por debajo del título de la
  * sección, como en los proyectos de compasión social.
  *
- * En el teléfono no hay nada que se quede quieto: la foto va arriba y los
- * sueños debajo, uno tras otro.
+ * En el teléfono va otra forma, más corta: la foto con la superficie
+ * encima, los cuatro sueños en una lista numerada —el nombre y una línea, su
+ * `resumen`— y la llamada a dar en una franja oscura. El marcado de
+ * escritorio se esconde por debajo de 64rem.
+ *
+ * Cierra la sección, en las dos formas, la tarjeta plegada de quien quiere
+ * servir con su profesión (`Sumate`).
  */
 import { Image } from 'astro:assets';
 import ArrowButton from './ArrowButton.astro';
 import SectionHeading from './SectionHeading.astro';
+import Sumate from './Sumate.astro';
 import { about } from '../data/content';
 
-const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.sueños;
+const { title, eyebrow, items, foto, fotoAlt, fotoPie, superficie, cierre, action } = about.sueños;
 ---
 
-<section id="suenos" class="pb-28 lg:pb-48" aria-labelledby="suenos-titulo">
+<section id="suenos" class="pb-20 lg:pb-48" aria-labelledby="suenos-titulo">
   <div class="container-page">
-    <SectionHeading id="suenos-titulo" eyebrow={eyebrow} title={title} />
+    <SectionHeading id="suenos-titulo" eyebrow={eyebrow} numero="03" title={title} />
+
+    {/* El teléfono */}
+    <div class="suenos-movil lg:hidden">
+      <figure class="mt-8">
+        <div class="relative overflow-hidden rounded-[1.25rem]">
+          <Image
+            src={foto}
+            alt={fotoAlt}
+            widths={[640, 960]}
+            sizes="92vw"
+            class="aspect-[5/3] w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="heading-sm absolute bottom-3 left-3 rounded-[1rem] bg-white px-3.5 py-2 text-ink">
+            {superficie}
+          </span>
+        </div>
+        <figcaption class="nota mt-3">{fotoPie}</figcaption>
+      </figure>
+
+      <ol class="mt-8 list-none border-b border-ink/15 p-0">
+        {
+          items.map((sueno, i) => (
+            <li class="flex gap-3.5 border-t border-ink/15 py-4">
+              <span class="rotulo w-6 shrink-0 pt-1 text-muted" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div>
+                <h3 class="heading-sm text-ink">{sueno.title}</h3>
+                <p class="nota mt-1">{sueno.resumen}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="mt-6 flex items-center justify-between gap-3 rounded-[1.25rem] bg-carbon py-4 pl-5 pr-4">
+        <p class="heading-sm text-white">{cierre}</p>
+        <ArrowButton
+          label={action.label}
+          href={action.href}
+          external={action.external}
+          variant="light"
+          size="md"
+        />
+      </div>
+    </div>
   </div>
 
-  <div class="tira-suenos tira-derecha mt-16 lg:mt-24">
+  <div class="tira-suenos tira-derecha mt-16 max-lg:hidden lg:mt-24">
     {/*
       La foto va antes que el texto en el marcado: en el teléfono se lee
       primero, y en escritorio la rejilla la manda a la derecha.
@@ -83,6 +137,10 @@ const { title, eyebrow, items, foto, fotoAlt, fotoPie, cierre, action } = about.
         />
       </div>
     </div>
+  </div>
+
+  <div class="container-page mt-6 lg:mt-24">
+    <Sumate />
   </div>
 </section>
 

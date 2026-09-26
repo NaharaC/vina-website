@@ -1,0 +1,135 @@
+---
+/**
+ * Quien quiere servir con su profesión: una tarjeta plegada que se abre en
+ * un formulario de dos campos, el nombre y el área.
+ *
+ * Plegada solo enseña el rótulo y la pregunta, para que no pese en una
+ * página que ya es larga; se abre tocándola o desde el enlace del final de
+ * los proyectos de compasión (`data-abre-sumate`). Es un `<details>`, así que
+ * se abre y se cierra aunque no llegue el JavaScript.
+ *
+ * No hay dónde guardar las respuestas: enviar abre WhatsApp con el mensaje
+ * escrito, y la persona lo manda desde allí. El número es el de la iglesia
+ * (`contactChannels.whatsapp`) y el texto, `about.sumate.mensaje`.
+ */
+import { Icon } from 'astro-icon/components';
+import { about, contactChannels } from '../data/content';
+
+const { rotulo, title, bajada, areas, enviar, nota, mensaje } = about.sumate;
+---
+
+{
+  contactChannels.whatsapp && (
+    <details id="sumate" class="group rounded-[1.5rem] bg-mist lg:max-w-2xl">
+      <summary class="flex cursor-pointer list-none items-start justify-between gap-4 p-6 lg:p-8 [&::-webkit-details-marker]:hidden">
+        <span class="flex flex-col gap-2">
+          <span class="eyebrow">{rotulo}</span>
+          <span class="heading-md text-ink text-balance">{title}</span>
+        </span>
+        <span
+          class="mt-6 grid size-9 shrink-0 place-items-center rounded-full bg-white text-ink transition-[transform,background-color,color] duration-300 group-open:rotate-45 group-open:bg-ink group-open:text-white"
+          aria-hidden="true"
+        >
+          <Icon name="lucide:plus" width={16} height={16} />
+        </span>
+      </summary>
+
+      <form
+        data-sumate
+        data-numero={contactChannels.whatsapp}
+        data-mensaje={mensaje}
+        class="flex flex-col gap-4 px-6 pb-6 lg:px-8 lg:pb-8"
+      >
+        <p class="nota">{bajada}</p>
+
+        <label class="flex flex-col gap-1.5 text-[0.9375rem] font-medium text-ink">
+          Nombre
+          <input
+            name="nombre"
+            type="text"
+            autocomplete="name"
+            placeholder="Tu nombre"
+            required
+            class="h-12 rounded-[0.75rem] border border-ink/20 bg-white px-3.5 text-[1rem] font-normal text-ink placeholder:text-muted"
+          />
+        </label>
+
+        <label class="flex flex-col gap-1.5 text-[0.9375rem] font-medium text-ink">
+          Profesión o área
+          <span class="relative">
+            <select
+              name="area"
+              required
+              class="h-12 w-full appearance-none rounded-[0.75rem] border border-ink/20 bg-white pl-3.5 pr-11 text-[1rem] font-normal text-ink invalid:text-muted"
+            >
+              <option value="" disabled selected>Elige una opción</option>
+              {areas.map((area) => <option value={area}>{area}</option>)}
+            </select>
+            <Icon
+              name="lucide:chevron-down"
+              width={18}
+              height={18}
+              class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-ink"
+              aria-hidden="true"
+            />
+          </span>
+        </label>
+
+        <button
+          type="submit"
+          class="group/enviar mt-1 inline-flex min-h-13 items-center justify-center gap-3 rounded-full bg-ink px-6 text-[1rem] font-semibold text-white transition-colors hover:bg-carbon"
+        >
+          {enviar}
+          <span class="sr-only">(se abre en una ventana nueva)</span>
+          <Icon
+            name="lucide:arrow-right"
+            width={18}
+            height={18}
+            class="transition-transform duration-200 group-hover/enviar:translate-x-0.5"
+            aria-hidden="true"
+          />
+        </button>
+
+        <p class="text-center text-[0.8125rem] text-muted">{nota}</p>
+      </form>
+    </details>
+  )
+}
+
+<script>
+  /*
+    Enviar arma el mensaje con lo elegido y abre WhatsApp. Los dos campos son
+    obligatorios, y eso lo avisa el propio navegador antes de llegar aquí.
+  */
+  document.querySelectorAll<HTMLFormElement>('[data-sumate]').forEach((formulario) => {
+    formulario.addEventListener('submit', (evento) => {
+      evento.preventDefault();
+
+      const datos = new FormData(formulario);
+      const nombre = String(datos.get('nombre') ?? '').trim();
+      const area = String(datos.get('area') ?? '');
+
+      const texto = (formulario.dataset.mensaje ?? '')
+        .replace('{nombre}', nombre)
+        .replace('{area}', area.toLowerCase());
+
+      window.open(
+        `https://wa.me/${formulario.dataset.numero}?text=${encodeURIComponent(texto)}`,
+        '_blank',
+        'noopener'
+      );
+    });
+  });
+
+  /*
+    El enlace del final de los proyectos baja hasta la tarjeta y además la
+    deja abierta: quien lo toca ya decidió que quiere escribir.
+  */
+  const tarjeta = document.getElementById('sumate') as HTMLDetailsElement | null;
+
+  document.querySelectorAll('[data-abre-sumate]').forEach((enlace) => {
+    enlace.addEventListener('click', () => {
+      if (tarjeta) tarjeta.open = true;
+    });
+  });
+</script>

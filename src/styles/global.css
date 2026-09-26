@@ -200,6 +200,19 @@
   }
 }
 
+/*
+  Las filas que se deslizan de lado en el teléfono (fotos, tarjetas, el
+  índice de `nosotros`) no enseñan barra: el gesto se entiende solo, y la
+  barra gris bajo cada fila parecía una línea más del diseño.
+*/
+@utility sin-barra {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* ---------------------------------------------------------------------------
    Escala tipográfica
 
