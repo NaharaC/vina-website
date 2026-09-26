@@ -707,29 +707,61 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
 
   /*
     En el teléfono no hay ratón que pase por encima, así que la segunda foto
-    no llegaba a verse nunca. Ahí el retrato se enciende solo al cruzar la
-    franja central de la pantalla —la clase `encendida` hace lo mismo que el
-    `:hover`— y se apaga al seguir bajando: al recorrer la lista, cada pareja
-    cambia a su foto de color cuando le toca. Un toque también la enciende o
-    la apaga, para quien se quede quieto mirando una.
+    no llegaba a verse nunca. Ahí cada retrato que está a la vista alterna
+    solo entre las dos fotos —la clase `encendida` hace lo mismo que el
+    `:hover`—: primero la de blanco y negro, unos segundos después la de
+    color, y otra vez de vuelta, mientras siga en pantalla. Al salir vuelve a
+    la primera, para que la próxima vez empiece por ella.
+
+    Antes se encendía al cruzar el tercio central de la ventana y se apagaba
+    al salir de él; bajando a ritmo normal eso era un segundo, y la primera
+    foto no alcanzaba a verse. Un toque cambia de foto al momento y el turno
+    vuelve a contar desde ahí.
 
     Solo donde no hay hover de verdad: en escritorio el gesto sigue siendo
     pasar el ratón.
   */
   if (seccion && matchMedia('(hover: none)').matches) {
     const retratos = seccion.querySelectorAll<HTMLElement>('[data-retrato]');
+    // Cuánto dura cada foto antes de dar paso a la otra.
+    const TURNO = 3500;
+    const relojes = new Map<HTMLElement, number>();
 
-    const franja = new IntersectionObserver(
+    const alternar = (retrato: HTMLElement) => {
+      clearInterval(relojes.get(retrato));
+      relojes.set(
+        retrato,
+        window.setInterval(() => retrato.classList.toggle('encendida'), TURNO),
+      );
+    };
+
+    const parar = (retrato: HTMLElement) => {
+      clearInterval(relojes.get(retrato));
+      relojes.delete(retrato);
+      retrato.classList.remove('encendida');
+    };
+
+    // A la vista es con más de la mitad dentro de la ventana.
+    const vista = new IntersectionObserver(
       (entradas) => {
-        for (const e of entradas) e.target.classList.toggle('encendida', e.isIntersecting);
+        for (const e of entradas) {
+          const retrato = e.target as HTMLElement;
+          if (e.isIntersecting) {
+            if (!relojes.has(retrato)) alternar(retrato);
+          } else {
+            parar(retrato);
+          }
+        }
       },
-      // La franja: el tercio central de la ventana.
-      { rootMargin: '-35% 0px -35% 0px' },
+      { threshold: 0.5 },
     );
 
     retratos.forEach((retrato) => {
-      franja.observe(retrato);
-      retrato.addEventListener('click', () => retrato.classList.toggle('encendida'));
+      vista.observe(retrato);
+      retrato.addEventListener('click', () => {
+        retrato.classList.toggle('encendida');
+        if (relojes.has(retrato)) alternar(retrato);
+      });
     });
   }
 </script>
