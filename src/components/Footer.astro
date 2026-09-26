@@ -102,8 +102,14 @@ import fachada from '../assets/img/fachada.jpg';
   La capa fija mide 85vh aunque la ventana del revelado es de 70vh: los 15vh
   extra quedan escondidos tras el contenido y cubren la franja que destapa el
   rebote elástico del overscroll en macOS (si no, se vería el lienzo blanco).
+
+  Y además baja 25vh por debajo de la ventana. En el iPhone (Safari de iOS 26)
+  la página corre por detrás de la barra flotante de abajo, pero `bottom: 0`
+  se ancla encima de ella: al llegar al final, lo que quedaba bajo la barra
+  era el lienzo blanco. Alargada hacia abajo, la foto llega también ahí. El
+  logo se sube lo mismo para seguir centrado en el hueco que se ve.
 */}
-<div class="fixed inset-x-0 bottom-0 -z-10 h-[85vh] overflow-clip">
+<div class="fixed inset-x-0 -bottom-[25vh] -z-10 h-[110vh] overflow-clip">
   <Image
     src={fachada}
     alt=""
@@ -114,7 +120,7 @@ import fachada from '../assets/img/fachada.jpg';
     decoding="async"
   />
   <div class="absolute inset-0 bg-black/25" aria-hidden="true"></div>
-  <div class="absolute inset-x-0 bottom-0 flex h-[70vh] items-center justify-center">
+  <div class="absolute inset-x-0 bottom-[25vh] flex h-[70vh] items-center justify-center">
     <div class="w-[min(55vw,400px)] px-4">
       <Logo class="w-full text-white drop-shadow-lg" width={400} />
     </div>

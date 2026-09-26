@@ -707,50 +707,27 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
 
   /*
     En el teléfono no hay ratón que pase por encima, así que la segunda foto
-    no llegaba a verse nunca. Ahí cada retrato que está a la vista alterna
-    solo entre las dos fotos —la clase `encendida` hace lo mismo que el
-    `:hover`—: primero la de blanco y negro, unos segundos después la de
-    color, y otra vez de vuelta, mientras siga en pantalla. Al salir vuelve a
-    la primera, para que la próxima vez empiece por ella.
+    no llegaba a verse nunca. Ahí un toque sobre el retrato hace de `:hover`
+    —la clase `encendida` hace lo mismo—: cambia a la segunda foto y otro
+    toque devuelve la primera. Al salir de la ventana vuelve a la primera,
+    para que la próxima vez empiece por ella.
 
-    Antes se encendía al cruzar el tercio central de la ventana y se apagaba
-    al salir de él; bajando a ritmo normal eso era un segundo, y la primera
-    foto no alcanzaba a verse. Un toque cambia de foto al momento y el turno
-    vuelve a contar desde ahí.
+    Hubo dos versiones antes: encenderse al cruzar el tercio central de la
+    ventana (duraba un segundo y la primera foto no se alcanzaba a ver) y
+    alternar sola cada 3,5 s mientras estuviera a la vista. Se prefirió que
+    cambie solo cuando lo pide quien mira.
 
     Solo donde no hay hover de verdad: en escritorio el gesto sigue siendo
     pasar el ratón.
   */
   if (seccion && matchMedia('(hover: none)').matches) {
     const retratos = seccion.querySelectorAll<HTMLElement>('[data-retrato]');
-    // Cuánto dura cada foto antes de dar paso a la otra.
-    const TURNO = 3500;
-    const relojes = new Map<HTMLElement, number>();
 
-    const alternar = (retrato: HTMLElement) => {
-      clearInterval(relojes.get(retrato));
-      relojes.set(
-        retrato,
-        window.setInterval(() => retrato.classList.toggle('encendida'), TURNO),
-      );
-    };
-
-    const parar = (retrato: HTMLElement) => {
-      clearInterval(relojes.get(retrato));
-      relojes.delete(retrato);
-      retrato.classList.remove('encendida');
-    };
-
-    // A la vista es con más de la mitad dentro de la ventana.
+    // Fuera de la ventana es con menos de la mitad dentro.
     const vista = new IntersectionObserver(
       (entradas) => {
         for (const e of entradas) {
-          const retrato = e.target as HTMLElement;
-          if (e.isIntersecting) {
-            if (!relojes.has(retrato)) alternar(retrato);
-          } else {
-            parar(retrato);
-          }
+          if (!e.isIntersecting) e.target.classList.remove('encendida');
         }
       },
       { threshold: 0.5 },
@@ -758,10 +735,7 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
 
     retratos.forEach((retrato) => {
       vista.observe(retrato);
-      retrato.addEventListener('click', () => {
-        retrato.classList.toggle('encendida');
-        if (relojes.has(retrato)) alternar(retrato);
-      });
+      retrato.addEventListener('click', () => retrato.classList.toggle('encendida'));
     });
   }
 </script>
