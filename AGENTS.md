@@ -275,9 +275,12 @@ cuatro veces esas peticiones. Son unas ciento cuarenta —las futuras de la
 base entera, no solo las «Web»—, alrededor de tres cuartos de minuto.
 En una construcción la lectura no caduca —el build dura lo que
 dura—; en desarrollo caduca a los 30 s, para que editar el calendario y
-recargar enseñe el cambio. El token es otra cosa: un servidor levantado antes
-de tocar `.env` sigue sirviendo la lista de respaldo aunque el token ya esté
-puesto, y ahí sí hay que reiniciar (`astro dev stop` y volver a levantarlo).
+recargar enseñe el cambio. Solo se espera la primera lectura (unos 20 s): una
+caducada se sirve igual mientras se pide la nueva por detrás, así que el
+cambio de Notion sale en la recarga siguiente, no en la primera. El token es
+otra cosa: un servidor levantado antes de tocar `.env` sigue sirviendo la lista
+de respaldo aunque el token ya esté puesto, y ahí sí hay que reiniciar (`astro
+dev stop` y volver a levantarlo).
 
 ### El calendario interno del equipo
 

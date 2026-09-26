@@ -5,7 +5,7 @@ import Logo from './Logo.astro';
 import { nav, whatsappHref } from '../data/content';
 
 // Mientras no haya número de WhatsApp, "Contactar" baja a la sección de contacto.
-const contactHref = whatsappHref() || '#contacto';
+const contactHref = whatsappHref() || '/#contacto';
 const contactIsExternal = contactHref.startsWith('http');
 ---
 
@@ -356,6 +356,45 @@ const contactIsExternal = contactHref.startsWith('http');
     });
   }
 
+  /* --- Desplazamiento suave, una vez cargada la página -------------------- */
+
+  const suavizar = () => requestAnimationFrame(() => document.documentElement.classList.add('suave'));
+  if (document.readyState === 'complete') suavizar();
+  else window.addEventListener('load', suavizar, { once: true });
+
+  /* --- Salto a una sección con fundido ------------------------------------- */
+
+  /*
+    Entre páginas el fundido lo hace el CSS (@view-transition en global.css).
+    Un enlace del menú a una sección de la página en que ya se está no es
+    navegación y no lo dispara: aquí se hace a mano con la misma transición,
+    y en vez de deslizarse hasta la sección, la página se funde a blanco y
+    reaparece ya en ella. Sin soporte, o con movimiento reducido, se deja el
+    desplazamiento suave de siempre.
+  */
+  const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)');
+  /** El salto no es «bajar»: la barra tiene que seguir a la vista al llegar. */
+  let trasSalto = false;
+
+  nav?.addEventListener('click', (event) => {
+    if (!document.startViewTransition || sinMovimiento.matches) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const enlace = (event.target as HTMLElement).closest('a');
+    if (!enlace || !enlace.hash) return;
+    const destino = new URL(enlace.href);
+    if (destino.origin !== location.origin || destino.pathname !== location.pathname) return;
+    const seccion = document.getElementById(decodeURIComponent(destino.hash.slice(1)));
+    if (!seccion) return;
+
+    event.preventDefault();
+    document.startViewTransition(() => {
+      trasSalto = true;
+      seccion.scrollIntoView({ behavior: 'instant' });
+      history.pushState(null, '', destino.hash);
+    });
+  });
+
   /* --- Estados según posición y dirección del scroll ----------------------- */
 
   if (header) {
@@ -381,6 +420,16 @@ const contactIsExternal = contactHref.startsWith('http');
       const y = Math.max(0, window.scrollY);
 
       header.dataset.atTop = String(y < AT_TOP);
+
+      // mientras carga, el scroll es el navegador llevando la página al ancla
+      // de la dirección (`/#compasion`), no alguien bajando
+      const cargando = !document.documentElement.classList.contains('suave');
+      if (trasSalto || cargando) {
+        trasSalto = false;
+        header.dataset.hidden = 'false';
+        lastY = y;
+        return;
+      }
 
       const movement = y - lastY;
       if (Math.abs(movement) < THRESHOLD) return;

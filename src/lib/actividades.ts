@@ -351,11 +351,18 @@ type Lectura = { actividades: Actividad[]; desdeRespaldo: boolean };
   escribe en Notion no aparece hasta reiniciar el servidor —y editar el
   calendario y recargar para ver el cambio es justo lo que se hace mientras
   se trabaja—.
+
+  Pero una lectura tarda unos 20 s, y esperarla cada vez que caducaba dejaba
+  la página colgada al entrar desde el menú. Así que en desarrollo solo se
+  espera la primera: después, si la lectura está vieja, se sirve igual y se
+  pide la nueva por detrás, y la recarga siguiente ya trae el cambio de
+  Notion. Si esa lectura de fondo falla, se queda la que había.
 */
 const VIGENCIA = import.meta.env.DEV ? 30_000 : Infinity;
 
 let lectura: Promise<Lectura> | undefined;
 let leidaEn = 0;
+let renovando = false;
 
 /**
  * Todas las actividades futuras, salgan o no a la web, de la más próxima a la
@@ -367,9 +374,23 @@ let leidaEn = 0;
  * desde fuera.
  */
 export function obtenerTodas(): Promise<Lectura> {
-  if (!lectura || Date.now() - leidaEn > VIGENCIA) {
+  if (!lectura) {
     leidaEn = Date.now();
     lectura = leerActividades();
+  } else if (Date.now() - leidaEn > VIGENCIA && !renovando) {
+    renovando = true;
+    const vieja = lectura;
+    const nueva = leerActividades();
+    Promise.all([vieja, nueva])
+      .then(([antes, ahora]) => {
+        // una lectura de respaldo (Notion caído) no pisa una buena
+        if (!ahora.desdeRespaldo || antes.desdeRespaldo) lectura = nueva;
+        leidaEn = Date.now();
+      })
+      .catch(() => {})
+      .finally(() => {
+        renovando = false;
+      });
   }
   return lectura;
 }

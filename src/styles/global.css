@@ -48,7 +48,6 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
     /*
       Sin esto, al pasarse de largo arriba o abajo el rebote elástico de macOS
@@ -56,6 +55,16 @@
       sobre el hero y la foto del pie por debajo.
     */
     overscroll-behavior-y: none;
+  }
+
+  /*
+    El desplazamiento suave, solo después de cargar: lo pone el script de
+    Header.astro. Puesto desde el principio, al llegar desde otra página a
+    `/#compasion` la portada abría arriba y bajaba deslizándose hasta la
+    sección —justo después del fundido— y la barra se escondía por el camino.
+  */
+  html.suave {
+    scroll-behavior: smooth;
   }
 
   body {
@@ -84,7 +93,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    html {
+    html.suave {
       scroll-behavior: auto;
     }
 
@@ -95,6 +104,54 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+/*
+  Paso entre páginas: la que se va se funde a blanco, queda un instante en
+  blanco y la que llega aparece. Son transiciones de vista entre documentos,
+  así que no hay enrutador de cliente y los scripts de cada página corren
+  como siempre; donde el navegador no las conoce (Firefox), el cambio es
+  seco, como antes.
+
+  Los saltos a una sección de la misma página no son navegación y no las
+  disparan: esos los envuelve a mano el script del menú, en Header.astro,
+  con estas mismas animaciones.
+
+  El fondo blanco de ::view-transition es el blanco del medio: sin él, con
+  las dos capturas transparentes a la vez, asomaría lo que haya debajo.
+*/
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition {
+  background-color: white;
+}
+
+::view-transition-old(root) {
+  animation: 320ms ease-in both fundido-sale;
+}
+
+::view-transition-new(root) {
+  animation: 380ms ease-out 420ms both fundido-entra;
+}
+
+@keyframes fundido-sale {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fundido-entra {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
   }
 }
 
@@ -411,25 +468,35 @@
    a pantalla completa (hero, video, foto a sangre) llevan el suyo, porque ahí
    manda el alto de la ventana.
    --------------------------------------------------------------------------- */
+/*
+  Al llegar a una sección por su ancla (`/#avisos` en el menú), lo que tiene
+  que quedar a 7rem del borde —lo que ocupa la barra flotante— es el rótulo,
+  no el borde de la sección. El aire de arriba ya está dentro de la sección,
+  así que el margen de desplazamiento lo descuenta; si no, los dos se sumaban
+  y el rótulo quedaba a 15,5rem, con media pantalla en blanco encima.
+*/
 .seccion {
-  padding-block: 5rem;
+  --aire-seccion: 5rem;
+  padding-block: var(--aire-seccion);
+  scroll-margin-top: calc(7rem - var(--aire-seccion));
 }
 
 @media (width >= 40rem) {
   .seccion {
-    padding-block: 6.5rem;
+    --aire-seccion: 6.5rem;
   }
 }
 
 @media (width >= 64rem) {
   .seccion {
-    padding-block: 8.5rem;
+    --aire-seccion: 8.5rem;
   }
 }
 
 /* Media sección: para pares de secciones que se leen como un bloque. */
 .seccion-fin {
   padding-block-start: 0;
+  scroll-margin-top: 7rem;
 }
 
 /* Sección holgada: un peldaño más de aire, para las que son una sola frase y

@@ -168,11 +168,14 @@ export const site = {
 
 export type NavLink = { label: string; href: string; external?: boolean };
 
+// Nosotros y Actividades son páginas; Avisos («Mantente conectado») y Dar,
+// secciones de la portada. Esas llevan `/` delante para que funcionen desde
+// cualquier página: con el `#` a secas, fuera de la portada no hacían nada.
 export const nav: NavLink[] = [
-  { label: 'Compasión', href: '#compasion' },
-  { label: 'Actividades', href: '#vida-en-familia' },
-  { label: 'Avisos', href: '#avisos' },
-  { label: 'Dar', href: '#dar' },
+  { label: 'Nosotros', href: '/nosotros' },
+  { label: 'Actividades', href: '/actividades' },
+  { label: 'Avisos', href: '/#avisos' },
+  { label: 'Dar', href: '/#dar' },
 ];
 
 /* --- Hero ------------------------------------------------------------------ */
