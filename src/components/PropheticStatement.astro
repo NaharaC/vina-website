@@ -27,3 +27,17 @@ import { propheticWord } from '../data/content';
     </div>
   </div>
 </section>
+
+<style>
+  /*
+    En el teléfono la frase sola en su `.seccion` quedaba apretada entre el
+    hero y las reuniones, y se leía como una línea de paso. Con más aire
+    arriba y abajo ocupa casi toda la pantalla y se detiene uno en ella. El
+    id le gana a `.seccion` sin tocar el resto de tamaños.
+  */
+  @media (width < 40rem) {
+    #palabra {
+      padding-block: 10rem;
+    }
+  }
+</style>

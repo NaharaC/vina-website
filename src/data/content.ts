@@ -1396,7 +1396,7 @@ export const soyNuevo = {
         a: 'Sí. Tenemos una sala de lactancia para mamás con bebés de 0 a 1 año y una sala cuna para papás con niños de 1 a 2 años. En las dos puedes ver la reunión en tiempo real.',
       },
       {
-        q: '¿Cómo llego en micro?',
+        q: '¿Cómo llego en microbús?',
         a: 'Puedes tomar cualquier micro que haga el recorrido Alerce – Puerto Montt. Bájate en el paradero que está frente a Parque Fundadores: en cinco minutos caminando llegas a la puerta de la iglesia.',
       },
       {

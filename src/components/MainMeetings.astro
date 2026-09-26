@@ -88,7 +88,7 @@ const label = 'Nuestras Reuniones';
       {label}
     </p>
 
-    <div class="grid gap-10 lg:grid-cols-3 lg:gap-8">
+    <div class="reuniones-lista grid gap-10 lg:grid-cols-3 lg:gap-8">
       {
         meetings.map((meeting, index) => (
           <div
@@ -101,6 +101,7 @@ const label = 'Nuestras Reuniones';
                 abajo —el hueco de la rejilla por un lado, `pt-10` por el
                 otro—, así queda centrada en la separación.
               */
+              'reunion',
               index > 0 && 'border-t border-ink/15 pt-10 lg:border-t-0 lg:pt-0',
               'lg:border-l lg:border-ink/15 lg:pl-7',
             ]}
@@ -269,6 +270,29 @@ const label = 'Nuestras Reuniones';
     }
   }
 
+  /*
+    En el teléfono las tres reuniones van apiladas y se marcan al bajar como
+    los valores de `nosotros`: la que está a la altura del medio de la ventana
+    va en tinta y las otras en gris. El gris no se pone elemento a elemento:
+    se redefinen los tokens de tinta y de gris dentro de la reunión apagada y
+    todo lo de dentro —título, horas, iconos— cambia a la vez. Es el mismo
+    gris que el de los valores.
+
+    Solo con la clase `marcando`, que pone el script: sin él las tres se leen
+    en tinta, como antes.
+  */
+  @media (width < 64rem) {
+    .reuniones-lista.marcando .reunion,
+    .reuniones-lista.marcando .reunion :global(*) {
+      transition: color 500ms;
+    }
+
+    .reuniones-lista.marcando .reunion:not([data-activo]) {
+      --color-ink: color-mix(in srgb, #111111 50%, white);
+      --color-muted: color-mix(in srgb, #6a6a6a 50%, white);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .reuniones-words,
     .reuniones-label,
@@ -320,6 +344,52 @@ const label = 'Nuestras Reuniones';
     window.addEventListener('resize', measure);
     // las webfonts cambian el alto del texto: vuelve a medir al cargarlas
     document.fonts?.ready.then(measure);
+
+    /*
+      Teléfono: marca la reunión cuyo centro queda más cerca del medio de la
+      ventana, igual que la lista de valores de `nosotros`. Una pasada por
+      cuadro, que el desplazamiento dispara mucho más a menudo de lo que se
+      pinta. En escritorio las tres van lado a lado y no se marca ninguna.
+    */
+    const lista = section.querySelector<HTMLElement>('.reuniones-lista');
+    const apiladas = window.matchMedia('(width < 64rem)');
+
+    if (lista) {
+      const reuniones = Array.from(lista.querySelectorAll<HTMLElement>('.reunion'));
+
+      const marcar = () => {
+        lista.classList.toggle('marcando', apiladas.matches);
+        if (!apiladas.matches) return;
+
+        const medio = window.innerHeight / 2;
+        let activa: HTMLElement | undefined;
+        let cerca = Infinity;
+
+        for (const reunion of reuniones) {
+          const caja = reunion.getBoundingClientRect();
+          const distancia = Math.abs(caja.top + caja.height / 2 - medio);
+          if (distancia < cerca) {
+            cerca = distancia;
+            activa = reunion;
+          }
+        }
+
+        reuniones.forEach((r) => r.toggleAttribute('data-activo', r === activa));
+      };
+
+      let pedido = 0;
+      const pedirMarca = () => {
+        if (pedido) return;
+        pedido = requestAnimationFrame(() => {
+          pedido = 0;
+          marcar();
+        });
+      };
+
+      marcar();
+      window.addEventListener('scroll', pedirMarca, { passive: true });
+      window.addEventListener('resize', pedirMarca);
+    }
 
     // con "reducir movimiento" el video queda quieto en su póster
     const video = section.querySelector('video');

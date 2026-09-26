@@ -76,13 +76,13 @@ const tiles = [
       tiles.map((tile, index) => (
         <div
           class:list={['collage-tile absolute', !tile.mobile && 'hidden md:block']}
-          style={`top:${tile.top}%; left:${tile.left}%; width:min(${tile.width}px, ${Math.round(tile.width / 10)}vw); --dur:${tile.dur}s; --delay:${tile.delay}s`}
+          style={`top:${tile.top}%; left:${tile.left}%; --ancho:${tile.width}; --dur:${tile.dur}s; --delay:${tile.delay}s`}
         >
           <Image
             src={photos[index % photos.length]}
             alt=""
             widths={[180, 360]}
-            sizes="12vw"
+            sizes="(min-width: 48rem) 12vw, 36vw"
             class:list={['w-full rounded-md object-cover', tile.aspect]}
             loading="lazy"
             decoding="async"
@@ -154,6 +154,23 @@ const tiles = [
       black calc(100% - 7rem),
       transparent 100%
     );
+  }
+
+  /*
+    El ancho sale de `width` en `tiles`: en escritorio, esos píxeles o una
+    décima de ese número en vw, lo que sea menor. En el teléfono la décima
+    dejaba las fotos en 40px, sellos que no se alcanzaban a ver; ahí va al
+    doble —unos 100px en un teléfono de 390—, y como solo quedan las
+    `mobile` no se amontonan.
+  */
+  .collage-tile {
+    width: min(calc(var(--ancho) * 1px), calc(var(--ancho) * 0.1vw));
+  }
+
+  @media (width < 48rem) {
+    .collage-tile {
+      width: calc(var(--ancho) * 0.2vw);
+    }
   }
 
   .collage-tile {
