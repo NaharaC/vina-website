@@ -159,14 +159,14 @@ const medidas = {
       */}
       {
         proxima && (
-          <a href="#calendario" class="panel-cristal">
+          <a href="#calendario" class="panel-cristal" id="proxima">
             <span class="min-w-0 flex-1">
               <span class="flex items-center gap-2.5">
                 <span class="size-[7px] shrink-0 rounded-full bg-accent" aria-hidden="true" />
                 <span class="rotulo !text-white/70">Lo próximo</span>
               </span>
-              <span class="heading-sm mt-2.5 block !text-white">{proxima.nombre}</span>
-              <span class="nota mt-1 block !text-white/70">{proxima.cuando}</span>
+              <span id="proxima-nombre" class="heading-sm mt-2.5 block !text-white">{proxima.nombre}</span>
+              <span id="proxima-cuando" class="nota mt-1 block !text-white/70">{proxima.cuando}</span>
             </span>
             <span class="panel-cristal-flecha">
               <Icon name="lucide:arrow-right" width={18} height={18} aria-hidden="true" />

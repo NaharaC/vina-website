@@ -398,6 +398,18 @@ const grupos = (about.equipo.grupos as GrupoEquipo[]).map((grupo, i) => ({
     user-select: none;
     -webkit-user-select: none;
   }
+
+  /*
+    Y apretar la foto misma, en iOS, la levanta para arrastrarla: pierde las
+    esquinas redondeadas, crece por fuera de la tarjeta y le sale sombra. Si
+    el dedo no toca el <img> sino el contenedor, ese gesto no existe; el
+    hover y la clase `encendida` van en el contenedor, así que no se pierde
+    nada.
+  */
+  .equipo-retratos [data-retrato] img {
+    pointer-events: none;
+    -webkit-user-drag: none;
+  }
 </style>
 
 <style>

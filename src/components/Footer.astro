@@ -127,7 +127,37 @@ import fachada from '../assets/img/fachada.jpg';
   </div>
 </div>
 
+{/*
+  En el iPhone, cuando Safari encoge su barra de abajo a la píldora, la franja
+  que queda debajo la pinta Safari con el color de fondo de la página —el
+  blanco del body—, no con lo que haya detrás; la foto fija no llega a
+  taparla. Mientras el hueco del final está a la vista, el body pasa al negro
+  del pie y esa franja sale oscura. Solo en táctil: en escritorio no hay
+  barra que se encoja.
+
+  Y mientras tanto se apaga el rebote elástico. Al empujar más allá del
+  final, iOS arrastra la página entera hacia arriba —la foto fija también— y
+  por debajo asoma el fondo. Solo al final: arriba el rebote y el «tirar
+  para recargar» siguen como siempre.
+*/}
+<script>
+  const hueco = document.querySelector('.footer-reveal-spacer');
+  if (hueco && matchMedia('(hover: none)').matches) {
+    new IntersectionObserver(([entrada]) => {
+      document.documentElement.classList.toggle('al-final', entrada.isIntersecting);
+    }).observe(hueco);
+  }
+</script>
+
 <style is:global>
+  .al-final body {
+    background-color: #161616;
+  }
+
+  html.al-final {
+    overscroll-behavior-y: none;
+  }
+
   /*
     Zoom-out del revelado: la foto parte ampliada y vuelve a escala 1 mientras
     el hueco final entra en pantalla. El hueco (en flujo) presta su línea de

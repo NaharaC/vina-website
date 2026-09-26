@@ -405,8 +405,13 @@ async function leerActividades(): Promise<Lectura> {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
+  // Un final con hora es el instante en que acaba: la Casa de oración va de
+  // 12:00 a 00:00, y acabar justo a medianoche no la deja viva el día
+  // siguiente. Un final sin hora es el último día entero, y ese sí cuenta.
   const futuras = actividades
-    .filter((a) => fechaDe(a.fin ?? a.inicio) >= hoy)
+    .filter((a) =>
+      a.fin && a.fin.includes('T') ? fechaDe(a.fin) > hoy : fechaDe(a.fin ?? a.inicio) >= hoy,
+    )
     .sort((a, b) => a.inicio.localeCompare(b.inicio));
 
   // después de filtrar: no tiene sentido ir a buscar la descripción de algo

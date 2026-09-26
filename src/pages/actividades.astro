@@ -196,15 +196,33 @@ for (const actividad of actividades) {
   jornada.actividades.push(actividad);
 }
 
-/** La más próxima: la lista ya viene ordenada y sin lo que ya pasó. */
-const proxima = actividades[0];
+/*
+  Cuándo deja de ser «lo próximo». La lista llega sin los días pasados, pero
+  lo de hoy sigue dentro aunque ya haya acabado: el filtro mira el día, no la
+  hora. Un final con hora es el instante en que acaba; sin él, una actividad
+  con hora deja de ser próxima al empezar, y una de día entero, al acabar el
+  día. El guion de abajo repite esta cuenta en el navegador.
+*/
+const terminoDe = (a: Actividad) => {
+  if (a.fin?.includes('T')) return new Date(a.fin);
+  if (!a.todoElDia) return new Date(a.inicio);
+  const ultimo = fechaDe(a.fin ?? a.inicio);
+  return new Date(ultimo.getFullYear(), ultimo.getMonth(), ultimo.getDate() + 1);
+};
 
-const proximaCuando = proxima
-  ? `${diaLargo(proxima.inicio)} ${fechaDe(proxima.inicio).toLocaleDateString('es-CL', {
-      day: 'numeric',
-      month: 'long',
-    })} · ${proxima.todoElDia ? 'todo el día' : `${hora(proxima.inicio)} hrs`}`
-  : '';
+const cuandoDe = (a: Actividad) =>
+  `${diaLargo(a.inicio)} ${fechaDe(a.inicio).toLocaleDateString('es-CL', {
+    day: 'numeric',
+    month: 'long',
+  })} · ${a.todoElDia ? 'todo el día' : `${hora(a.inicio)} hrs`}`;
+
+/*
+  La más próxima al construir. La página es estática, así que esto se queda
+  viejo en cuanto pasa la hora: el guion la vuelve a calcular al abrirla.
+*/
+const proxima = actividades.find((a) => terminoDe(a) > new Date());
+
+const proximaCuando = proxima ? cuandoDe(proxima) : '';
 ---
 
 <BaseLayout
@@ -246,6 +264,9 @@ const proximaCuando = proxima
               agendar: agendarHref(a),
               /* la ranura de su calendario propio: /calendarios/<ranura>.ics */
               ranura: ranura(a.nombre),
+              /* para recalcular «Lo próximo» con la hora de quien mira */
+              termino: terminoDe(a).toISOString(),
+              cuando: cuandoDe(a),
               fechaLarga: `${diaLargo(a.inicio)} ${fechaDe(a.inicio).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}`,
             }))
           )}
@@ -590,7 +611,7 @@ const proximaCuando = proxima
                                     </span>
                                   ) : (
                                     <span class="rounded-full border border-ink/15 px-2.5 py-1 text-[0.8125rem] font-semibold tracking-[0.06em] text-muted uppercase">
-                                      Iglesia
+                                      Toda la iglesia
                                     </span>
                                   )}
                                 </span>
@@ -1073,6 +1094,10 @@ const proximaCuando = proxima
     agendar: string;
     /** su calendario propio: /calendarios/<ranura>.ics */
     ranura: string;
+    /** el instante en que deja de ser próxima, en ISO */
+    termino: string;
+    /** «sábado 26 de septiembre · 19:00 hrs», para el cristal de la portada */
+    cuando: string;
     ancho?: number;
     alto?: number;
   };
@@ -1082,6 +1107,26 @@ const proximaCuando = proxima
 
   if (fuente && raiz) {
     const datos: Fila[] = JSON.parse(fuente.textContent || '[]');
+
+    /*
+      «Lo próximo» sale escrito al construir la página, y la página no se
+      vuelve a construir cada hora: una reunión que ya acabó seguía
+      anunciándose como la próxima. Aquí se vuelve a elegir con la hora de
+      quien mira, y se repite cada minuto por si la pestaña queda abierta.
+    */
+    const terminada = (f: Fila) => new Date(f.termino).getTime() <= Date.now();
+    const ponerProxima = () => {
+      const panel = document.getElementById('proxima');
+      if (!panel) return;
+      const siguiente = datos.find((f) => !terminada(f));
+      // `.panel-cristal` lleva `display: flex`, que le gana al atributo `hidden`
+      panel.style.display = siguiente ? '' : 'none';
+      if (!siguiente) return;
+      document.getElementById('proxima-nombre')!.textContent = siguiente.nombre;
+      document.getElementById('proxima-cuando')!.textContent = siguiente.cuando;
+    };
+    ponerProxima();
+    setInterval(ponerProxima, 60_000);
 
     if (datos.length > 0) {
       /* ---------- piezas ---------- */
@@ -1302,6 +1347,10 @@ const proximaCuando = proxima
         Las actividades sin red son «de toda la iglesia», y su valor vacío no
         puede ser también el de «sin filtro»: con los dos en '' el chip de
         Iglesia se encendía junto al de Todas. Dentro se llama `__iglesia`.
+
+        En pantalla dice «Toda la iglesia», no «Iglesia» a secas: el filtro
+        es quién convoca, y lo que no lleva red en «Red a cargo» es para la
+        iglesia entera. La columna «Organizacion» de Notion no se lee.
       */
       const suRedDe = (valor: string | null | undefined) => valor || '__iglesia';
       const visibles = () =>
@@ -1361,7 +1410,7 @@ const proximaCuando = proxima
           `<button type="button" class="cal-red" data-red="__todas" aria-pressed="${red ? 'false' : 'true'}">Todas</button>`,
           ...nombres.map((n) => {
             const valor = suRedDe(n);
-            return `<button type="button" class="cal-red" data-red="${escapar(valor)}" aria-pressed="${red === valor ? 'true' : 'false'}">${escapar(n || 'Iglesia')}</button>`;
+            return `<button type="button" class="cal-red" data-red="${escapar(valor)}" aria-pressed="${red === valor ? 'true' : 'false'}">${escapar(n || 'Toda la iglesia')}</button>`;
           }),
         ].join('');
       };
@@ -1449,7 +1498,7 @@ const proximaCuando = proxima
 
         actNombre.textContent = actividad;
 
-        actRed.textContent = foco.red || 'Iglesia';
+        actRed.textContent = foco.red || 'Toda la iglesia';
         actRed.className =
           'rounded-full border px-2.5 py-1 text-[0.8125rem] font-semibold tracking-[0.06em] uppercase ' +
           (foco.red ? 'border-accent/35 text-accent' : 'border-ink/15 text-muted');
@@ -1478,7 +1527,8 @@ const proximaCuando = proxima
         actDescripcion.textContent = descripcion;
         actDescripcion.classList.toggle('hidden', !descripcion);
 
-        actRotulo.textContent = foco.dia === filas[0].dia ? 'La próxima' : 'La fecha que elegiste';
+        const siguiente = filas.find((f) => !terminada(f)) ?? filas[0];
+        actRotulo.textContent = foco === siguiente ? 'La próxima' : 'La fecha que elegiste';
         actFecha.textContent = foco.fechaLarga;
         actHora.textContent = [foco.horario, foco.ubicacion].filter(Boolean).join(' · ');
         actAgendar.href = foco.agendar;
@@ -1548,7 +1598,7 @@ const proximaCuando = proxima
         if (!filas || filas.length === 0) return;
 
         actividad = nombre;
-        fechaFoco = filas[0].dia;
+        fechaFoco = (filas.find((f) => !terminada(f)) ?? filas[0]).dia;
         buscador.value = nombre;
         busca = plano(nombre);
         red = '';
@@ -1587,7 +1637,7 @@ const proximaCuando = proxima
           ? comoFecha(dia).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric' })
           : red
             ? red === '__iglesia'
-              ? 'Iglesia'
+              ? 'Toda la iglesia'
               : red
             : '';
         resumen.textContent = ficheando
