@@ -182,12 +182,13 @@ export const nav: NavLink[] = [
 
 export const hero = {
   /*
-    La portada abre con video. El original venía a 1920x1080 y 111 MB: aquí va
-    a 720p, sin pista de audio —nunca suena— y bien comprimido, porque detrás
-    del velo y del titular no se nota y sí se nota lo que tarda en cargar.
+    La portada abre con video. El original (VÑA_VSL) venía a 720p y 97 MB: aquí
+    va sin pista de audio —nunca suena—, sin sus tres primeros segundos y bien
+    comprimido, porque detrás del velo y del titular no se nota y sí se nota lo
+    que tarda en cargar. El póster es su primer fotograma.
   */
-  video: '/videos/hero-vinapm.mp4',
-  poster: '/videos/hero-vinapm-poster.jpg',
+  video: '/videos/hero-vina-vsl.mp4',
+  poster: '/videos/hero-vina-vsl-poster.jpg',
   image: heroCongregacion,
   alt: 'Recorrido por la vida de Iglesia Viña Puerto Montt: encuentros, adoración y proyectos',
   panelTitle: '¡Te estábamos esperando!',
@@ -1609,26 +1610,26 @@ export const testimonialsIntro = {
 /** TODO: falta el resumen del milagro de cada uno; se ve bajo el nombre. */
 export const testimonials: Testimonial[] = [
   {
-    name: 'Andrea',
-    summary: '',
-    video: '/videos/testimonio-andrea.mp4',
-    poster: '/videos/testimonio-andrea-poster.jpg',
-    alt: 'Andrea contando su testimonio',
-  },
-  {
-    name: 'Flor',
+    name: 'Testimonio Isabella',
     summary: '',
     inicial: true,
-    video: '/videos/testimonio-flor.mp4',
-    poster: '/videos/testimonio-flor-poster.jpg',
-    alt: 'Flor contando su testimonio',
+    video: '/videos/testimonio-isabella.mp4',
+    poster: '/videos/testimonio-isabella-poster.jpg',
+    alt: 'Los papás de Isabella contando su testimonio',
   },
   {
-    name: 'Carlos',
+    name: 'Testimonio Benjamín',
     summary: '',
-    video: '/videos/testimonio-carlos.mp4',
-    poster: '/videos/testimonio-carlos-poster.jpg',
-    alt: 'Carlos contando su testimonio',
+    video: '/videos/testimonio-benjamin.mp4',
+    poster: '/videos/testimonio-benjamin-poster.jpg',
+    alt: 'Benjamín contando su testimonio',
+  },
+  {
+    name: 'Testimonio Laura',
+    summary: '',
+    video: '/videos/testimonio-laura-julieta.mp4',
+    poster: '/videos/testimonio-laura-julieta-poster.jpg',
+    alt: 'Laura contando el testimonio de Julieta en Educa Montealto',
   },
 ];
 
